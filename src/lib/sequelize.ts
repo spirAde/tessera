@@ -13,6 +13,6 @@ export function getTransaction(): Transaction {
 }
 
 export const sequelize = new (Sequelize.useCLS(namespace))(pgConnectionString, {
-  logging: true,
+  logging: false,
   minifyAliases: true,
 });
