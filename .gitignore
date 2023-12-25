@@ -1,0 +1,16 @@
+dist
+data
+node_modules
+.idea
+temp
+.env
+
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
+.history/
+# Built Visual Studio Code Extensions
+*.vsix

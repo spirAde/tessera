@@ -1,0 +1,13 @@
+version: "3.8"
+
+services:
+  postgres:
+    container_name: tessera-postgres
+    image: postgres:12.3
+    restart: always
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_DB=tessera-db
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
