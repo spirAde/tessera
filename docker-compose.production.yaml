@@ -1,0 +1,116 @@
+x-logging: &default-logging
+  driver: loki
+  options:
+    loki-url: 'http://localhost:3100/api/prom/push'
+    loki-pipeline-stages: |
+      - multiline:
+          firstline: '^\d{4}-\d{2}-\d{2} \d{1,2}:\d{2}:\d{2}'
+          max_wait_time: 3s
+      - regex:
+          expression: '^(?P<time>\d{4}-\d{2}-\d{2} \d{1,2}:\d{2}:\d{2},d{3}) (?P<message>(?s:.*))$$'
+
+version: "3.4"
+
+networks:
+  tessera-bridge:
+
+services:
+  loki:
+    container_name: tessera-loki
+    image: grafana/loki:2.8.7
+    command: -config.file=/etc/loki/local-config.yaml
+    ports:
+      - "3100:3100"
+    networks:
+      - tessera-bridge
+
+  prometheus:
+    container_name: tessera-prometheus
+    image: prom/prometheus:v2.45.2
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./etc/prometheus:/workspace
+    command:
+      - --config.file=/workspace/prometheus.yml
+      - --enable-feature=exemplar-storage
+    depends_on:
+      - loki
+    networks:
+      - tessera-bridge
+    logging: *default-logging
+
+  tempo:
+    container_name: tessera-tempo
+    image: grafana/tempo:2.3.1
+    command:
+      -target=all
+      -storage.trace.backend=local
+      -storage.trace.local.path=/var/tempo
+      -auth.enabled=false
+    ports:
+      - "14268:14268"
+      - "3200:3200"
+      - "9095:9095"
+      - "4317:4317"
+      - "4318:4318"
+      - "9411:9411"
+    depends_on:
+      - loki
+    networks:
+      - tessera-bridge
+    logging: *default-logging
+
+  grafana:
+    container_name: tessera-grafana
+    image: grafana/grafana:10.0.10
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./etc/grafana/:/etc/grafana/provisioning/datasources
+      - ./etc/dashboards.yaml:/etc/grafana/provisioning/dashboards/dashboards.yaml
+      - ./etc/dashboards:/etc/grafana/dashboards
+    depends_on:
+      - loki
+      - prometheus
+    networks:
+      - tessera-bridge
+    logging: *default-logging
+
+  postgres:
+    container_name: tessera-postgres
+    image: postgres:12.3
+    restart: always
+    ports:
+      - "5432:5432"
+    expose:
+      - "5432"
+    environment:
+      - POSTGRES_USER=$PG_USER
+      - POSTGRES_PASSWORD=$PG_PASSWORD
+      - POSTGRES_DB=$PG_DATABASE
+    networks:
+      - tessera-bridge
+    logging: *default-logging
+
+  application:
+    container_name: tessera-application
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+    restart: always
+    env_file: ./.env
+    environment:
+      - PG_HOST=postgres
+      - OTEL_COLLECTOR_URL=http://tempo:4317
+    ports:
+      - "3003:3003"
+    depends_on:
+      - loki
+      - prometheus
+      - tempo
+      - grafana
+      - postgres
+    networks:
+      - tessera-bridge
+    logging: *default-logging

@@ -1,10 +1,12 @@
 import path from 'path';
 import fastify, { errorCodes, FastifyError, FastifyReply, FastifyRequest } from 'fastify';
+import { fastifyAutoload } from '@fastify/autoload';
 
 import { host, port } from './config';
 import { runQueue } from './services/enqueueJob.service';
 import { sequelize } from './lib/sequelize';
 import { initOpentelemetry } from './lib/opentelemetry';
+import { logger } from './lib/logger';
 
 export const application = fastify({
   logger: true,
@@ -25,23 +27,26 @@ export async function runApplication() {
     name: 'tessera',
     environment: process.env.NODE_ENV ?? 'development',
     opentelemetry: {
-      enabled: true,
       endpoint: process.env.OTEL_COLLECTOR_URL ?? '',
     },
   });
 
   try {
     await sequelize.sync();
-    await application.register(require('@fastify/autoload'), {
+    await runQueue();
+
+    await application.register(require('fastify-metrics'), {
+      endpoint: '/metrics',
+    });
+    await application.register(fastifyAutoload, {
       dir: path.join(__dirname, 'routes', 'v1'),
       options: {
         prefix: '/api/v1',
       },
     });
-    await runQueue();
     await application.listen({ host, port });
   } catch (error) {
-    console.log('error', error);
+    logger.fatal('error', error);
     application.log.error(error);
     process.exit(1);
   }
@@ -50,24 +55,27 @@ export async function runApplication() {
 export async function runTestApplication() {
   try {
     await sequelize.sync();
-    await application.register(require('@fastify/autoload'), {
+    await runQueue();
+
+    await application.register(fastifyAutoload, {
       dir: path.join(__dirname, 'routes', 'v1'),
       options: {
         prefix: '/api/v1',
       },
     });
-    await runQueue();
     await application.listen({ host, port });
   } catch (error) {
-    console.error(error);
+    logger.fatal(error);
     process.exit(1);
   }
 }
 
 process.on('uncaughtException', (error) => {
+  logger.fatal(error);
   process.exit(1);
 });
 
 process.on('unhandledRejection', (error) => {
+  logger.fatal(error);
   process.exit(1);
 });

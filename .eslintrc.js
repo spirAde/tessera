@@ -64,15 +64,13 @@ module.exports = {
     '@typescript-eslint/no-floating-promises': ['error'],
     '@typescript-eslint/no-unused-vars': ['warn'],
     'no-console': ['warn'],
-    'prettier/prettier': 'off', // TODO remove after prettier plugin has been removed from the shared config
     'no-unused-vars': 'off',
     'no-return-await': 'error',
     'object-shorthand': ['error', 'always'],
-    'max-params': ['warn', 3], // TODO fix and change to error
+    'max-params': ['error', 3], // TODO fix and change to error
   },
   overrides: [
     {
-      // only necessary while transitioning; all these overrides should be removed as soon as practically possible
       files: ['*'],
       rules: {
         '@typescript-eslint/no-explicit-any': 'off',
@@ -146,14 +144,7 @@ module.exports = {
       },
     },
     {
-      files: [
-        'src/**/services/**/*.ts',
-        'src/**/controllers*/**/*.ts',
-        'src/**/events/**/*.ts',
-        'src/**/jobs/**/*.ts',
-        'src/**/policies*/**/*.ts',
-        'src/**/serializers/**/*.ts',
-      ],
+      files: ['src/**/services/**/*.ts', 'src/**/controllers*/**/*.ts', 'src/**/jobs/**/*.ts'],
       excludedFiles: ['**/*test.ts'],
     },
   ],

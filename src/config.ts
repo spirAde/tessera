@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import path from 'path';
 
-export const pgConfig = {
+const pgConfig = {
   host: process.env.PG_HOST || 'localhost',
   port: Number(process.env.PG_PORT) || 5432,
   database: process.env.PG_DATABASE || 'tessera-db',
@@ -48,7 +48,7 @@ export const testPageUrls = [
   '/about/',
 ];
 
-export const rootFolderPath = process.cwd();
+const rootFolderPath = process.cwd();
 
 const tempApplicationFolderRootPath = path.join(rootFolderPath, 'temp');
 export const tempApplicationBuildsFolderRootPath = path.join(

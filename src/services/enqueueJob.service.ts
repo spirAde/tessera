@@ -1,4 +1,4 @@
-import PgBoss from 'pg-boss';
+import PgBoss, { SendOptions } from 'pg-boss';
 
 import { createBuildJob } from '../jobs/createBuild.job';
 import { updatePageJob } from '../jobs/updatePage.job';
@@ -20,14 +20,14 @@ export function getJobFunction(jobName: JobName) {
   return jobs[jobName];
 }
 
-export async function enqueue(jobName: JobName, args: any = {}) {
+export async function enqueue(jobName: JobName, args: any = {}, options: SendOptions = {}) {
   const jobFunction = getJobFunction(jobName);
 
   if (!jobFunction) {
     throw new Error(`Unknown job name ${jobName}`);
   }
 
-  return pgQueue.send(jobName, args);
+  return pgQueue.send(jobName, args, options);
 }
 
 export async function runQueue() {

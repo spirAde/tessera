@@ -12,6 +12,16 @@ export function getTransaction(): Transaction {
   return namespace.get('transaction');
 }
 
+export async function afterCommit(handler: () => Promise<void>): Promise<void> {
+  const transaction = namespace.get('transaction');
+
+  if (transaction) {
+    transaction.afterCommit(handler);
+  } else {
+    await handler();
+  }
+}
+
 export const sequelize = new (Sequelize.useCLS(namespace))(pgConnectionString, {
   logging: false,
   minifyAliases: true,

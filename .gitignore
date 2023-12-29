@@ -4,6 +4,7 @@ node_modules
 .idea
 temp
 .env
+.DS_Store
 
 .vscode/*
 !.vscode/settings.json

@@ -30,8 +30,6 @@ describe('PUT /pages', () => {
       },
     });
 
-    console.log('pages', pages);
-
     expect(pages.length).toEqual(2);
 
     const [newPage, oldPage] = pages;
