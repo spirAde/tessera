@@ -3,9 +3,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.schemas = void 0;
 exports.schemas = {
     Build: {},
-    CreateBuildResponse: {},
+    CreateBuildEndpoint: {},
+    CreateBuildRequest: {},
     CreatePageEndpoint: {},
     CreatePageRequest: {},
+    CreatePageRequestBody: {},
+    DeletePageEndpoint: {},
+    DeletePageRequest: {},
+    DeletePageRequestBody: {},
     Page: {},
     Stage: {},
     Status: {},
@@ -29,24 +34,49 @@ exports.schemas.Build = Object.assign(exports.schemas.Build, {
     required: ["id", "stage", "status", "createdAt", "updatedAt"],
     additionalProperties: false,
 });
-exports.schemas.CreateBuildResponse = Object.assign(exports.schemas.CreateBuildResponse, {
+exports.schemas.CreateBuildEndpoint = Object.assign(exports.schemas.CreateBuildEndpoint, {
     type: "object",
-    properties: { build: exports.schemas.Build },
-    required: ["build"],
+    properties: { request: exports.schemas.CreateBuildRequest },
+    required: ["request"],
     additionalProperties: false,
+});
+exports.schemas.CreateBuildRequest = Object.assign(exports.schemas.CreateBuildRequest, {
+    type: "object",
+    properties: {},
 });
 exports.schemas.CreatePageEndpoint = Object.assign(exports.schemas.CreatePageEndpoint, {
     type: "object",
-    properties: {
-        request: exports.schemas.CreatePageRequest,
-        response: exports.schemas.CreateBuildResponse,
-    },
-    required: ["request", "response"],
+    properties: { request: exports.schemas.CreatePageRequest },
+    required: ["request"],
     additionalProperties: false,
 });
 exports.schemas.CreatePageRequest = Object.assign(exports.schemas.CreatePageRequest, {
     type: "object",
-    properties: {},
+    properties: { body: exports.schemas.CreatePageRequestBody },
+    required: ["body"],
+});
+exports.schemas.CreatePageRequestBody = Object.assign(exports.schemas.CreatePageRequestBody, {
+    type: "object",
+    properties: { id: { type: "integer" }, url: { type: "string" } },
+    required: ["id", "url"],
+    additionalProperties: false,
+});
+exports.schemas.DeletePageEndpoint = Object.assign(exports.schemas.DeletePageEndpoint, {
+    type: "object",
+    properties: { request: exports.schemas.DeletePageRequest },
+    required: ["request"],
+    additionalProperties: false,
+});
+exports.schemas.DeletePageRequest = Object.assign(exports.schemas.DeletePageRequest, {
+    type: "object",
+    properties: { body: exports.schemas.DeletePageRequestBody },
+    required: ["body"],
+});
+exports.schemas.DeletePageRequestBody = Object.assign(exports.schemas.DeletePageRequestBody, {
+    type: "object",
+    properties: { id: { type: "integer" } },
+    required: ["id"],
+    additionalProperties: false,
 });
 exports.schemas.Page = Object.assign(exports.schemas.Page, {
     type: "object",
@@ -56,6 +86,7 @@ exports.schemas.Page = Object.assign(exports.schemas.Page, {
         url: { type: "string" },
         stage: exports.schemas.Stage,
         status: exports.schemas.Status,
+        externalId: { type: "integer" },
         createdAt: { type: "string", format: "date-time" },
         updatedAt: { type: "string", format: "date-time" },
         deletedAt: {
@@ -68,6 +99,7 @@ exports.schemas.Page = Object.assign(exports.schemas.Page, {
         "url",
         "stage",
         "status",
+        "externalId",
         "createdAt",
         "updatedAt",
     ],
@@ -76,23 +108,28 @@ exports.schemas.Page = Object.assign(exports.schemas.Page, {
 exports.schemas.Stage = Object.assign(exports.schemas.Stage, {
     type: "string",
     enum: [
-        "idle",
         "setup",
         "fetching",
         "generating",
         "preparing",
         "compilation",
         "export",
-        "done",
+        "verification",
+        "teardown",
     ],
 });
 exports.schemas.Status = Object.assign(exports.schemas.Status, {
     type: "string",
-    enum: ["idle", "progress", "failed", "success"],
+    enum: ["progress", "failed", "success"],
 });
 exports.schemas.TesseraHttp = Object.assign(exports.schemas.TesseraHttp, {
     type: "string",
-    enum: ["update-page|put /pages", "create-page|post /builds"],
+    enum: [
+        "create-page|post /pages",
+        "update-page|put /pages",
+        "delete-page|delete /pages",
+        "create-build|post /builds",
+    ],
 });
 exports.schemas.UpdatePageEndpoint = Object.assign(exports.schemas.UpdatePageEndpoint, {
     type: "object",
@@ -107,8 +144,8 @@ exports.schemas.UpdatePageRequest = Object.assign(exports.schemas.UpdatePageRequ
 });
 exports.schemas.UpdatePageRequestBody = Object.assign(exports.schemas.UpdatePageRequestBody, {
     type: "object",
-    properties: { url: { type: "string" } },
-    required: ["url"],
+    properties: { id: { type: "integer" } },
+    required: ["id"],
     additionalProperties: false,
 });
 Object.keys(exports.schemas).forEach(function (name) {

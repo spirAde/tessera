@@ -1,18 +1,46 @@
 import { RouteHandler } from 'fastify';
 
-import { UpdatePageRequestBody } from '../../types';
+import {
+  CreatePageRequestBody,
+  DeletePageRequestBody,
+  Stage,
+  Status,
+  UpdatePageRequestBody,
+} from '../../types';
 import { enqueue, JobName } from '../../services/enqueueJob.service';
 import { findActiveBuild } from '../../services/build/build.service';
 import { Page } from '../../models';
 import { throwBadRequest } from '../../lib/error';
+import { createPage } from '../../services/page/page.service';
+
+export const create: RouteHandler<{ Body: CreatePageRequestBody }> = async function (
+  request,
+  response,
+) {
+  const build = await findActiveBuild();
+
+  if (!build) {
+    return throwBadRequest();
+  }
+
+  const page = await createPage({
+    status: null,
+    stage: null,
+    buildId: build.id,
+    url: request.body.url,
+    externalId: request.body.id,
+  });
+
+  await enqueue(JobName.createPage, { pageId: page.id });
+
+  return response.status(204).send();
+};
 
 export const update: RouteHandler<{ Body: UpdatePageRequestBody }> = async function (
   request,
   response,
 ) {
   const build = await findActiveBuild();
-
-  console.log('here', build);
 
   if (!build) {
     return throwBadRequest();
@@ -21,7 +49,7 @@ export const update: RouteHandler<{ Body: UpdatePageRequestBody }> = async funct
   const page = await Page.findOne({
     where: {
       buildId: build.id,
-      url: request.body.url,
+      externalId: request.body.id,
     },
   });
 
@@ -31,5 +59,31 @@ export const update: RouteHandler<{ Body: UpdatePageRequestBody }> = async funct
 
   await enqueue(JobName.updatePage, { pageId: page.id });
 
-  return response.status(204).send();
+  return response.status(201).send();
+};
+
+export const remove: RouteHandler<{ Body: DeletePageRequestBody }> = async function (
+  request,
+  response,
+) {
+  const build = await findActiveBuild();
+
+  if (!build) {
+    return throwBadRequest();
+  }
+
+  const page = await Page.findOne({
+    where: {
+      buildId: build.id,
+      externalId: request.body.id,
+    },
+  });
+
+  if (!page) {
+    return throwBadRequest();
+  }
+
+  await enqueue(JobName.deletePage, { pageId: page.id });
+
+  return response.status(200).send();
 };

@@ -1,15 +1,5 @@
 import pino from 'pino';
 import { PrettyOptions } from 'pino-pretty';
-import type { LokiOptions } from 'pino-loki';
-
-const pinoLokiTransport = pino.transport<LokiOptions>({
-  target: 'pino-loki',
-  options: {
-    host: 'http://localhost:3100',
-    batching: false,
-    labels: { application: 'tessera' },
-  },
-});
 
 const pinoPretty = pino.transport<PrettyOptions>({
   target: 'pino-pretty',

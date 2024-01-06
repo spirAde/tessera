@@ -6,14 +6,29 @@ export interface Build {
     updatedAt: string;
     deletedAt?: string | null;
 }
-export interface CreateBuildResponse {
-    build: Build;
+export interface CreateBuildEndpoint {
+    request: CreateBuildRequest;
+}
+export interface CreateBuildRequest {
 }
 export interface CreatePageEndpoint {
     request: CreatePageRequest;
-    response: CreateBuildResponse;
 }
 export interface CreatePageRequest {
+    body: CreatePageRequestBody;
+}
+export interface CreatePageRequestBody {
+    id: number;
+    url: string;
+}
+export interface DeletePageEndpoint {
+    request: DeletePageRequest;
+}
+export interface DeletePageRequest {
+    body: DeletePageRequestBody;
+}
+export interface DeletePageRequestBody {
+    id: number;
 }
 export interface Page {
     id: number;
@@ -21,29 +36,31 @@ export interface Page {
     url: string;
     stage: Stage;
     status: Status;
+    externalId: number;
     createdAt: string;
     updatedAt: string;
     deletedAt?: string | null;
 }
 export declare enum Stage {
-    idle = "idle",
     setup = "setup",
     fetching = "fetching",
     generating = "generating",
     preparing = "preparing",
     compilation = "compilation",
     export = "export",
-    done = "done"
+    verification = "verification",
+    teardown = "teardown"
 }
 export declare enum Status {
-    idle = "idle",
     progress = "progress",
     failed = "failed",
     success = "success"
 }
 export declare enum TesseraHttp {
+    createPagePostPages = "create-page|post /pages",
     updatePagePutPages = "update-page|put /pages",
-    createPagePostBuilds = "create-page|post /builds"
+    deletePageDeletePages = "delete-page|delete /pages",
+    createBuildPostBuilds = "create-build|post /builds"
 }
 export interface UpdatePageEndpoint {
     request: UpdatePageRequest;
@@ -52,5 +69,5 @@ export interface UpdatePageRequest {
     body: UpdatePageRequestBody;
 }
 export interface UpdatePageRequestBody {
-    url: string;
+    id: number;
 }

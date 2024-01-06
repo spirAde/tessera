@@ -13,7 +13,7 @@ export function getTransaction(): Transaction {
 }
 
 export async function afterCommit(handler: () => Promise<void>): Promise<void> {
-  const transaction = namespace.get('transaction');
+  const transaction = getTransaction();
 
   if (transaction) {
     transaction.afterCommit(handler);

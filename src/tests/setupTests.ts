@@ -14,6 +14,7 @@ beforeAll(async () => {
 
 beforeEach(() => {
   nock.cleanAll();
+  nock.disableNetConnect();
   jest.resetAllMocks();
 });
 

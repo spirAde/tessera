@@ -1,13 +1,4 @@
-import {
-  Association,
-  CreationOptional,
-  DataTypes,
-  HasManyGetAssociationsMixin,
-  InferAttributes,
-  InferCreationAttributes,
-  Model,
-  Optional,
-} from 'sequelize';
+import { DataTypes, HasManyGetAssociationsMixin, Model, Optional } from 'sequelize';
 
 import { sequelize } from '../lib/sequelize';
 import { Page } from './Page.model';
@@ -15,15 +6,15 @@ import { Stage, Status } from '../types';
 
 export interface BuildAttributes {
   id: number;
-  stage: Stage;
-  status: Status;
+  stage: Stage | null;
+  status: Status | null;
   createdAt: string;
   updatedAt: string;
   deletedAt: string | null;
 }
 
 type BuildAttributesWithDefaultValue = 'id' | 'createdAt' | 'updatedAt';
-type BuildAttributesNullable = 'deletedAt';
+type BuildAttributesNullable = 'deletedAt' | 'stage' | 'status';
 
 export type BuildAttributesNew = Optional<
   BuildAttributes,
@@ -37,8 +28,8 @@ export class Build extends Model<BuildAttributes, BuildAttributesNew> implements
   readonly updatedAt!: string;
   readonly deletedAt!: string | null;
 
-  readonly stage!: Stage;
-  readonly status!: Status;
+  readonly stage!: Stage | null;
+  readonly status!: Status | null;
 
   readonly pages?: Page[];
   readonly getPages!: HasManyGetAssociationsMixin<Page>;
@@ -56,15 +47,13 @@ Build.init(
       type: DataTypes.ENUM,
       values: Object.values(Stage),
       validate: { isIn: [Object.values(Stage)] },
-      allowNull: false,
-      defaultValue: Stage.idle,
+      allowNull: true,
     },
     status: {
       type: DataTypes.ENUM,
       values: Object.values(Status),
       validate: { isIn: [Object.values(Status)] },
-      allowNull: false,
-      defaultValue: Stage.idle,
+      allowNull: true,
     },
     createdAt: DataTypes.DATE,
     updatedAt: DataTypes.DATE,

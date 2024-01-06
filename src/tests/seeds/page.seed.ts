@@ -13,8 +13,9 @@ export async function seedPage(overrides: Partial<PageAttributes> = {}) {
   const defaults = {
     buildId,
     url: '/',
-    stage: Stage.idle,
-    status: Status.idle,
+    stage: null,
+    status: null,
+    externalId: 1,
   };
 
   return Page.create({ ...defaults, ...overrides });

@@ -4,18 +4,17 @@ module.exports = {
       CREATE EXTENSION pgcrypto;
 
       CREATE TYPE "stage" AS ENUM (
-        'idle',
         'setup',
         'fetching',
         'generating',
         'preparing',
         'compilation',
         'export',
-        'done'
+        'verification',
+        'teardown'
       );
   
       CREATE TYPE "status" AS ENUM (
-        'idle',
         'success',
         'failed',
         'progress'
@@ -28,8 +27,8 @@ module.exports = {
         "updatedAt" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         "deletedAt" TIMESTAMPTZ,
   
-        "stage" "stage" NOT NULL,
-        "status" "status" NOT NULL
+        "stage" "stage",
+        "status" "status"
       );
   
       CREATE TABLE "pages" (
@@ -41,9 +40,10 @@ module.exports = {
   
         "buildId" INTEGER NOT NULL REFERENCES "builds" ("id") ON DELETE CASCADE,
   
-        "stage" "stage" NOT NULL,
-        "status" "status" NOT NULL,
-        "url" VARCHAR NOT NULL
+        "stage" "stage",
+        "status" "status",
+        "url" VARCHAR NOT NULL,
+        "externalId" INTEGER NOT NULL
       );
   
       CREATE INDEX ON "pages" ("buildId") WHERE ("deletedAt" IS NULL);

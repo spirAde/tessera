@@ -41,6 +41,8 @@ export function expectError(response: TestResponse, statusCode: number, message:
   getExpectToMatchObjectFn(response, { statusCode, body: { message } });
 }
 
+export function expectFileSystemObjectExist() {}
+
 function getExpectToMatchObjectFn(actual: any, expected: any) {
   return expect(actual).toMatchObject(expected);
 }

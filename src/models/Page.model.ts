@@ -19,15 +19,16 @@ export interface PageAttributes {
   id: number;
   buildId: number;
   url: string;
-  stage: Stage;
-  status: Status;
+  stage: Stage | null;
+  status: Status | null;
+  externalId: number;
   createdAt: string;
   updatedAt: string;
   deletedAt: string | null;
 }
 
 type PageAttributesWithDefaultValue = 'id' | 'createdAt' | 'updatedAt';
-type PageAttributesNullable = 'deletedAt';
+type PageAttributesNullable = 'deletedAt' | 'stage' | 'status';
 
 export type PageAttributesNew = Optional<
   PageAttributes,
@@ -43,8 +44,9 @@ export class Page extends Model<PageAttributes, PageAttributesNew> implements Pa
 
   readonly buildId!: number;
   readonly url!: string;
-  readonly stage!: Stage;
-  readonly status!: Status;
+  readonly stage!: Stage | null;
+  readonly status!: Status | null;
+  readonly externalId!: number;
 
   readonly build?: Build;
   readonly getBuild!: BelongsToGetAssociationMixin<Build>;
@@ -70,15 +72,17 @@ Page.init(
       type: DataTypes.ENUM,
       values: Object.values(Stage),
       validate: { isIn: [Object.values(Stage)] },
-      allowNull: false,
-      defaultValue: Stage.idle,
+      allowNull: true,
     },
     status: {
       type: DataTypes.ENUM,
       values: Object.values(Status),
       validate: { isIn: [Object.values(Status)] },
+      allowNull: true,
+    },
+    externalId: {
+      type: DataTypes.INTEGER,
       allowNull: false,
-      defaultValue: Status.idle,
     },
     createdAt: DataTypes.DATE,
     updatedAt: DataTypes.DATE,

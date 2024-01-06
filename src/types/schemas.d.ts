@@ -5,9 +5,14 @@ export interface SdkSchema<T> extends JSONSchema6 {
 }
 export declare const schemas: {
     Build: SdkSchema<types.Build>;
-    CreateBuildResponse: SdkSchema<types.CreateBuildResponse>;
+    CreateBuildEndpoint: SdkSchema<types.CreateBuildEndpoint>;
+    CreateBuildRequest: SdkSchema<types.CreateBuildRequest>;
     CreatePageEndpoint: SdkSchema<types.CreatePageEndpoint>;
     CreatePageRequest: SdkSchema<types.CreatePageRequest>;
+    CreatePageRequestBody: SdkSchema<types.CreatePageRequestBody>;
+    DeletePageEndpoint: SdkSchema<types.DeletePageEndpoint>;
+    DeletePageRequest: SdkSchema<types.DeletePageRequest>;
+    DeletePageRequestBody: SdkSchema<types.DeletePageRequestBody>;
     Page: SdkSchema<types.Page>;
     Stage: SdkSchema<types.Stage>;
     Status: SdkSchema<types.Status>;

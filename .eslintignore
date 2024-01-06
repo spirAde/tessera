@@ -1,1 +1,5 @@
-temp
+output
+src/templates
+database
+src/types/*.js
+jest.config.js

@@ -1,13 +1,9 @@
 import { RouteHandler } from 'fastify';
 
-import { CreateBuildResponse, Stage, Status } from '../../types';
-import { createBuild } from '../../services/build/build.service';
 import { enqueue, JobName } from '../../services/enqueueJob.service';
 import { withSafelyActiveSpan, otlContext, SemanticAttributes } from '../../lib/opentelemetry';
 
-export const create: RouteHandler<{
-  Reply: CreateBuildResponse;
-}> = async function (_, response) {
+export const create: RouteHandler<{}> = async function (_, response) {
   await withSafelyActiveSpan(
     {
       name: 'create-build handler',
@@ -19,15 +15,9 @@ export const create: RouteHandler<{
       },
     },
     async (span) => {
-      const build = await createBuild({
-        status: Status.idle,
-        stage: Stage.idle,
-      });
-
       await enqueue(
         JobName.createBuild,
         {
-          buildId: build.id,
           parentSpanContext: span?.spanContext(),
         },
         {
@@ -36,9 +26,7 @@ export const create: RouteHandler<{
         },
       );
 
-      return response.code(200).send({
-        build,
-      });
+      return response.code(201).send();
     },
   );
 };

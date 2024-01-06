@@ -1,4 +1,4 @@
-import { ProjectPageStructureComponent } from '../sdk/siteapi.sdk';
+import { ProjectPageStructureComponent } from '../sdk/platform.sdk';
 
 export function traverseComponentsTree(
   node: ProjectPageStructureComponent,

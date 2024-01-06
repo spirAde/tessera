@@ -8,7 +8,7 @@ const full = {
 module.exports = {
   roots: ['<rootDir>/src'],
   setupFilesAfterEnv: ['jest-extended/all', '<rootDir>/src/tests/setupTests.ts'],
-  transform: { '^.+\\.tsx?$': ['ts-jest', { isolatedModules: true }] },
+  transform: { '^.+\\.ts?$': ['ts-jest', { isolatedModules: true }] },
   testRegex: '(/__tests__/.*|(\\.|/)(test|spec))\\.tsx?$',
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
   verbose: true,
@@ -22,4 +22,11 @@ module.exports = {
     },
     './src/controllers/': full,
   },
+  coveragePathIgnorePatterns: [
+    '<rootDir>/src/lib',
+    '<rootDir>/src/tests',
+    '<rootDir>/node_modules/',
+    '<rootDir>/temp/',
+    '<rootDir>/temp_test/',
+  ],
 };

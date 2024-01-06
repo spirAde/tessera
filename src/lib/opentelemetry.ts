@@ -38,7 +38,7 @@ export const otlContextAttributes = {
   requestId: createContextKey('requestId'),
 };
 
-export function initOpentelemetry(config: {
+export function initializeOpentelemetry(config: {
   name: string;
   environment: string;
   opentelemetry: OpentelemetryOptions;
@@ -90,6 +90,10 @@ export function withSafelyActiveSpan<T>(
   { name, context, options }: { name: string; options: SpanOptions; context: OtlContext },
   callback: (span: Span | null) => Promise<T>,
 ) {
+  if (!tracer) {
+    return callback(null);
+  }
+
   return tracer.startActiveSpan(name, options, context, async (span) => {
     try {
       const result = await callback(span);
