@@ -1,34 +1,28 @@
-import { promises as fs } from 'fs';
+import { outputFile, pathExistsSync } from 'fs-extra';
 import path from 'path';
 import uniqBy from 'lodash/uniqBy';
-import {
-  getProjectEndpoints,
-  getDesignSystemComponentSource,
-  ComponentLike,
-  Project,
-  ProjectConfig,
-} from '../../sdk/platform.sdk';
 
-export async function prepareComponentsForBuild({
-  projectBuildFolderPath,
-  componentsForBuild,
+import { getDesignSystemComponentSource, ComponentLike, Project } from '../../sdk/platform.sdk';
+import { temporaryApplicationBuildFolderRootPath } from '../../config';
+
+export async function collectMissedComponents({
   project,
+  missedComponents,
+  foundationKitComponent,
 }: {
-  projectBuildFolderPath: string;
-  componentsForBuild: ComponentLike[];
   project: Project;
+  missedComponents: ComponentLike[];
+  foundationKitComponent: ComponentLike;
 }) {
   const componentsRequiringBundles = uniqBy(
-    componentsForBuild,
+    missedComponents,
     ({ name, version }) => `${name}@${version}`,
   );
 
-  const [foundationKitComponent, ...components] = componentsForBuild;
-
-  for (const componentRequiringBundle of componentsRequiringBundles) {
+  for (const component of componentsRequiringBundles) {
     const componentSourceBundle = await getDesignSystemComponentSource(
       project.settings.designSystemId,
-      componentRequiringBundle,
+      component,
     );
 
     const normalizedComponentSourceBundle = componentSourceBundle.replaceAll(
@@ -36,13 +30,27 @@ export async function prepareComponentsForBuild({
       `@/components/foundation-kit@${foundationKitComponent.version}`,
     );
 
-    await fs.writeFile(
-      path.join(
-        projectBuildFolderPath,
-        'components',
-        `${componentRequiringBundle.name}@${componentRequiringBundle.version}.js`,
-      ),
-      normalizedComponentSourceBundle,
+    const componentFilePath = path.join(
+      temporaryApplicationBuildFolderRootPath,
+      'components',
+      `${component.name}@${component.version}.js`,
     );
+
+    await outputFile(componentFilePath, normalizedComponentSourceBundle);
+  }
+
+  const foundationComponentKitFilePath = path.join(
+    temporaryApplicationBuildFolderRootPath,
+    'components',
+    `${foundationKitComponent.name}@${foundationKitComponent.version}.js`,
+  );
+
+  if (!pathExistsSync(foundationComponentKitFilePath)) {
+    const componentSourceBundle = await getDesignSystemComponentSource(
+      project.settings.designSystemId,
+      foundationKitComponent,
+    );
+
+    await outputFile(foundationComponentKitFilePath, componentSourceBundle);
   }
 }

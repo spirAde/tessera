@@ -1,20 +1,17 @@
-import { promises as fs } from 'fs';
+import { outputFile } from 'fs-extra';
 import path from 'path';
 import upperFirst from 'lodash/upperFirst';
 import escape from 'lodash/escape';
 import { stripIndent } from 'common-tags';
 import {
+  ComponentLike,
   ProjectPageStructureComponent,
   StrictProjectPageStructure,
-  ComponentLike,
-  ProjectConfig,
-  ProjectPageFooter,
-  ProjectPageMetadata,
-  ProjectHeader,
 } from '../../sdk/platform.sdk';
 import { getApplicationPageFileContent } from '../../templates/templates/page.template';
 import { getApplicationFileContent } from '../../templates/templates/application.template';
 import { getPageFolderPathFromUrl } from '../../lib/url';
+import { temporaryApplicationBuildFolderRootPath } from '../../config';
 
 interface GeneratedPage {
   pageUrl: string;
@@ -31,22 +28,15 @@ const ignoreProps = [
   'uuid',
 ];
 
-export async function createApplicationPageFile({
-  pageStructure,
-  projectBuildFolderPath,
-  componentsList,
-}: {
-  pageStructure: StrictProjectPageStructure;
-  projectBuildFolderPath: string;
-  componentsList: ComponentLike[];
-}) {
+export async function createApplicationPageFile(
+  pageStructure: StrictProjectPageStructure,
+  componentsList: ComponentLike[],
+) {
   const pageFolderPath = getPageFolderPathFromUrl(pageStructure.url);
   const pageComponentName = getPageComponentName(pageFolderPath);
   const componentsTree = getPageComponentsTree(pageStructure.template);
   const componentsImports = getPageComponentsImports(componentsList);
-
-  const absolutePageFolderPath = path.join(projectBuildFolderPath, 'pages', pageFolderPath);
-  const absolutePageFilePath = path.join(absolutePageFolderPath, 'index.jsx');
+  const absolutePageFilePath = getAbsolutePageFilePath(pageFolderPath);
 
   const pageFileContent = getApplicationPageFileContent({
     pageName: pageComponentName,
@@ -58,19 +48,12 @@ export async function createApplicationPageFile({
     colorTheme: "'light'",
   });
 
-  await fs.mkdir(absolutePageFolderPath, { recursive: true });
-  await fs.writeFile(absolutePageFilePath, stripIndent(pageFileContent));
+  await outputFile(absolutePageFilePath, stripIndent(pageFileContent));
 
   return { pageComponentName, pageFilePath: absolutePageFilePath };
 }
 
-export async function createApplicationFile({
-  projectBuildFolderPath,
-  generatedPages,
-}: {
-  projectBuildFolderPath: string;
-  generatedPages: GeneratedPage[];
-}) {
+export async function createApplicationFile(generatedPages: GeneratedPage[]) {
   const applicationFileContent = getApplicationFileContent({
     loadableComponents: getApplicationLoadableComponents(generatedPages),
     projectInitialStore: JSON.stringify({}),
@@ -78,11 +61,11 @@ export async function createApplicationFile({
   });
 
   const absoluteApplicationFilePath = path.join(
-    projectBuildFolderPath,
+    temporaryApplicationBuildFolderRootPath,
     'application/application.jsx',
   );
 
-  await fs.writeFile(absoluteApplicationFilePath, stripIndent(applicationFileContent));
+  await outputFile(absoluteApplicationFilePath, stripIndent(applicationFileContent));
 }
 
 export function convertToMap(components: ComponentLike[]) {
@@ -92,9 +75,19 @@ export function convertToMap(components: ComponentLike[]) {
   );
 }
 
-function getPageComponentName(pageFolderPath: string) {
+export function getPageComponentName(pageFolderPath: string) {
   const folderName = pageFolderPath.split('/').reverse()[0];
   return folderName ? formatComponentName(folderName) : 'Main';
+}
+
+export function getAbsolutePageFilePath(pageFolderPath: string) {
+  const absolutePageFolderPath = path.join(
+    temporaryApplicationBuildFolderRootPath,
+    'pages',
+    pageFolderPath,
+  );
+
+  return path.join(absolutePageFolderPath, 'index.jsx');
 }
 
 function getPageComponentsTree(template: ProjectPageStructureComponent[]) {

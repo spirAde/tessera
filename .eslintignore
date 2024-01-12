@@ -1,5 +1,6 @@
 output
 src/templates
+src/tests/fixtures
 database
 src/types/*.js
 jest.config.js

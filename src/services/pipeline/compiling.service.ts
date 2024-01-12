@@ -1,55 +1,38 @@
-import webpack, { Configuration, DefinePlugin, Compiler, Compilation } from 'webpack';
+import webpack, { Configuration, DefinePlugin } from 'webpack';
+import { merge } from 'webpack-merge';
 import LoadablePlugin from '@loadable/webpack-plugin';
-import { CleanWebpackPlugin } from 'clean-webpack-plugin';
 import TerserPlugin from 'terser-webpack-plugin';
-import { BundleAnalyzerPlugin } from 'webpack-bundle-analyzer';
 import nodeExternals from 'webpack-node-externals';
 
-export async function runCompilation({
-  projectBuildFolderPath,
-  projectPageUrls,
-}: {
-  projectBuildFolderPath: string;
-  projectPageUrls: string[];
-}) {
-  const serverEmittedAssets: string[] = [];
-  const clientEmittedAssets: string[] = [];
+import { temporaryApplicationBuildFolderRootPath, isTest } from '../../config';
 
-  const serverWebpackConfig = getServerWebpackConfig({
-    projectBuildFolderPath,
-    projectPageUrls,
-    emittedAssets: serverEmittedAssets,
-  });
+export async function compile(projectPageUrls: string[]) {
+  const commonWebpackConfig = getCommonWebpackConfig(projectPageUrls);
+  const serverWebpackConfig = getServerWebpackConfig(commonWebpackConfig);
+  const clientWebpackConfig = getClientWebpackConfig(commonWebpackConfig);
 
-  const clientWebpackConfig = getClientWebpackConfig({
-    projectBuildFolderPath,
-    projectPageUrls,
-    emittedAssets: clientEmittedAssets,
-  });
-
-  await Promise.all(
+  const [serverEmittedAssets, clientEmittedAssets] = await Promise.all(
     [serverWebpackConfig, clientWebpackConfig].map((config) => runCompiler(config)),
   );
 
-  return { serverEmittedAssets, clientEmittedAssets };
+  return {
+    serverEmittedAssets: Array.from(serverEmittedAssets),
+    clientEmittedAssets: Array.from(clientEmittedAssets),
+  };
 }
 
-function getServerWebpackConfig({
-  projectBuildFolderPath,
-  projectPageUrls,
-  emittedAssets,
-}: {
-  projectBuildFolderPath: string;
-  projectPageUrls: string[];
-  emittedAssets: string[];
-}) {
+function getCommonWebpackConfig(projectPageUrls: string[]) {
   return {
     parallelism: undefined,
-    externalsPresets: { node: true },
     optimization: {
       emitOnErrors: true,
+      moduleIds: 'deterministic',
       nodeEnv: false,
-      splitChunks: { filename: '[name].js', chunks: 'all', minSize: 1000 },
+      splitChunks: {
+        filename: isTest ? '[name].js' : '[name].[contenthash].js',
+        chunks: 'all',
+        minSize: 1000,
+      },
       runtimeChunk: undefined,
       minimizer: [
         new TerserPlugin({
@@ -62,21 +45,16 @@ function getServerWebpackConfig({
         }),
       ],
     },
-    context: projectBuildFolderPath,
-    entry: {
-      'application-server': `${projectBuildFolderPath}/application/server.jsx`,
-      ...getWebpackConfigEntries(projectPageUrls),
-    },
+    context: temporaryApplicationBuildFolderRootPath,
+    entry: getWebpackConfigEntries(projectPageUrls),
     output: {
       publicPath: '/static/',
-      path: `${projectBuildFolderPath}/build/server/`,
-      filename: '[name].js',
+      filename: isTest ? '[name].js' : '[name].[contenthash].js',
+      chunkFilename: isTest ? '[id].chunk.js' : '[name].[id].chunk.js',
       library: undefined,
       libraryTarget: 'commonjs2',
-      chunkFilename: '[name].js',
       strictModuleExceptionHandling: true,
-      hashFunction: 'xxhash64',
-      hashDigestLength: 16,
+      clean: false,
     },
     performance: false,
     resolve: {
@@ -85,8 +63,8 @@ function getServerWebpackConfig({
       modules: ['node_modules', './src'],
       mainFields: ['main', 'module'],
       alias: {
-        '@/components': `${projectBuildFolderPath}/components`,
-        '@/contexts': `${projectBuildFolderPath}/contexts`,
+        '@/components': `${temporaryApplicationBuildFolderRootPath}/components`,
+        '@/contexts': `${temporaryApplicationBuildFolderRootPath}/contexts`,
       },
     },
     resolveLoader: {
@@ -100,161 +78,60 @@ function getServerWebpackConfig({
           use: ['thread-loader', 'babel-loader'],
         },
       ],
-      parser: {
-        javascript: {
-          url: 'relative',
-        },
-      },
-      generator: {
-        asset: {
-          filename: 'static/media/[name].[hash:8][ext]',
-        },
-      },
     },
     plugins: [
       new LoadablePlugin(),
-      new CleanWebpackPlugin({
-        cleanStaleWebpackAssets: false,
-        protectWebpackAssets: false,
-        cleanAfterEveryBuildPatterns: ['*.LICENSE.txt'],
-      }),
       new DefinePlugin({
         'process.env.NODE_ENV': JSON.stringify('production'),
       }),
-      new (class {
-        apply(compiler: Compiler) {
-          compiler.hooks.afterEmit.tap('OutputMonitor', (compilation) => {
-            emittedAssets.push(...compilation.emittedAssets);
-          });
-        }
-      })(),
     ],
     experiments: { layers: true, cacheUnaffected: true, buildHttp: undefined },
     snapshot: { managedPaths: [/^(.+?[\\/]node_modules[\\/])/] },
-    cache: {
-      type: 'filesystem',
-      maxMemoryGenerations: Infinity,
-      cacheDirectory: `${projectBuildFolderPath}/cache`,
-      compression: false,
-      name: 'server-production',
-    },
     mode: 'production',
-    name: 'server',
-    target: 'node16.14',
     devtool: false,
-    externals: ['@loadable/component', nodeExternals()],
   } as Configuration;
 }
 
-export function getClientWebpackConfig({
-  projectBuildFolderPath,
-  projectPageUrls,
-  emittedAssets,
-}: {
-  projectBuildFolderPath: string;
-  projectPageUrls: string[];
-  emittedAssets: string[];
-}) {
-  return {
-    parallelism: undefined,
+function getServerWebpackConfig(config: Configuration) {
+  return merge(config, {
     externalsPresets: { node: true },
-    optimization: {
-      emitOnErrors: true,
-      nodeEnv: false,
-      splitChunks: { filename: '[name].js', chunks: 'all', minSize: 1000 },
-      runtimeChunk: undefined,
-      minimize: true,
-      minimizer: [
-        new TerserPlugin({
-          terserOptions: {
-            format: {
-              comments: false,
-            },
-          },
-          extractComments: false,
-        }),
-      ],
-    },
-    context: projectBuildFolderPath,
     entry: {
-      'application-client': `${projectBuildFolderPath}/application/client.jsx`,
-      ...getWebpackConfigEntries(projectPageUrls),
+      'application-server': `${temporaryApplicationBuildFolderRootPath}/application/server.jsx`,
     },
     output: {
-      publicPath: '/static/',
-      path: `${projectBuildFolderPath}/build/client/`,
-      filename: '[name].js',
-      library: undefined,
-      chunkFilename: '[name].js',
-      strictModuleExceptionHandling: true,
-      hashFunction: 'xxhash64',
-      hashDigestLength: 16,
+      path: `${temporaryApplicationBuildFolderRootPath}/build/server/`,
     },
-    performance: false,
-    resolve: {
-      extensions: ['.js', '.jsx', '.json'],
-      extensionAlias: undefined,
-      modules: ['node_modules', './src'],
-      mainFields: ['main', 'module'],
-      alias: {
-        '@/components': `${projectBuildFolderPath}/components`,
-        '@/contexts': `${projectBuildFolderPath}/contexts`,
-      },
-    },
-    resolveLoader: {
-      modules: ['node_modules', './src'],
-    },
-    module: {
-      rules: [
-        {
-          test: /\.(jsx)$/,
-          exclude: /node_modules/,
-          use: ['thread-loader', 'babel-loader'],
-        },
-      ],
-      parser: {
-        javascript: {
-          url: 'relative',
-        },
-      },
-      generator: {
-        asset: {
-          filename: 'static/media/[name].[hash:8][ext]',
-        },
-      },
-    },
-    plugins: [
-      new LoadablePlugin(),
-      new CleanWebpackPlugin({
-        cleanStaleWebpackAssets: false,
-        protectWebpackAssets: false,
-        cleanAfterEveryBuildPatterns: ['*.LICENSE.txt'],
-      }),
-      new DefinePlugin({
-        'process.env.NODE_ENV': JSON.stringify('production'),
-      }),
-      new (class {
-        apply(compiler: Compiler) {
-          compiler.hooks.afterEmit.tap('OutputMonitor', (compilation) => {
-            emittedAssets.push(...compilation.emittedAssets);
-          });
-        }
-      })(),
-    ],
-    experiments: { layers: true, cacheUnaffected: true, buildHttp: undefined },
-    snapshot: { managedPaths: [/^(.+?[\\/]node_modules[\\/])/] },
     cache: {
       type: 'filesystem',
       maxMemoryGenerations: Infinity,
-      cacheDirectory: `${projectBuildFolderPath}/cache`,
+      cacheDirectory: `${temporaryApplicationBuildFolderRootPath}/cache`,
       compression: false,
-      name: 'client-production',
+      name: 'server-cache',
     },
-    mode: 'production',
+    externals: ['@loadable/component', nodeExternals()],
+    name: 'server',
+    target: 'node',
+  });
+}
+
+export function getClientWebpackConfig(config: Configuration) {
+  return merge(config, {
+    entry: {
+      'application-client': `${temporaryApplicationBuildFolderRootPath}/application/client.jsx`,
+    },
+    output: {
+      path: `${temporaryApplicationBuildFolderRootPath}/build/client/`,
+    },
+    cache: {
+      type: 'filesystem',
+      maxMemoryGenerations: Infinity,
+      cacheDirectory: `${temporaryApplicationBuildFolderRootPath}/cache`,
+      compression: false,
+      name: 'client-cache',
+    },
     name: 'client',
     target: 'web',
-    devtool: false,
-  } as Configuration;
+  });
 }
 
 // TODO: redo
@@ -273,5 +150,17 @@ function unslashPageUrl(str: string) {
 }
 
 function runCompiler(config: Configuration) {
-  return new Promise((resolve) => webpack(config).run(resolve));
+  const compiler = webpack(config);
+
+  return new Promise<Set<string>>((resolve, reject) => {
+    compiler.run((error, stats) => {
+      if (error) {
+        reject(error);
+      }
+
+      compiler.close(() => {
+        resolve(stats?.compilation?.emittedAssets ?? new Set());
+      });
+    });
+  });
 }

@@ -10,8 +10,7 @@ module.exports = {
         'preparing',
         'compilation',
         'export',
-        'verification',
-        'teardown'
+        'commit'
       );
   
       CREATE TYPE "status" AS ENUM (
@@ -47,6 +46,8 @@ module.exports = {
       );
   
       CREATE INDEX ON "pages" ("buildId") WHERE ("deletedAt" IS NULL);
+      
+      CREATE UNIQUE INDEX ON "pages" ("buildId", "externalId") WHERE "deletedAt" IS NULL;
     `);
   },
 

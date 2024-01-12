@@ -48,8 +48,7 @@ export declare enum Stage {
     preparing = "preparing",
     compilation = "compilation",
     export = "export",
-    verification = "verification",
-    teardown = "teardown"
+    commit = "commit"
 }
 export declare enum Status {
     progress = "progress",

@@ -1,9 +1,10 @@
-import { isFileSystemObjectExist } from '../lib/fs';
+import { pathExists } from 'fs-extra';
+
 import { temporaryApplicationExportFolderRootPath } from '../config';
 import { enqueue, JobName } from './enqueueJob.service';
 
 export async function ensureBuildExistOrEnqueueJob() {
-  if (isFileSystemObjectExist(temporaryApplicationExportFolderRootPath)) {
+  if (await pathExists(temporaryApplicationExportFolderRootPath)) {
     return;
   }
 

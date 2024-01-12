@@ -1,40 +1,6 @@
-import { Build } from '../../models';
-import { ComponentLike, Project, ProjectPage } from '../../sdk/platform.sdk';
+type PipelineHandler<T> = (context: T) => Promise<Partial<T>> | Promise<void> | void;
 
-export interface PipelineContext {
-  projectBuild: Build;
-  projectBuildFolderPath: string;
-  projectExportFolderPath: string;
-  project: Project | null;
-  projectPages: ProjectPage[];
-  designSystemComponentsList: ComponentLike[];
-  componentsRequiringBundles: ComponentLike[];
-}
-export function createPipelineContext({
-  projectBuild,
-  projectBuildFolderPath,
-  projectExportFolderPath,
-}: {
-  projectBuild: Build;
-  projectBuildFolderPath: string;
-  projectExportFolderPath: string;
-}): PipelineContext {
-  return {
-    projectBuild,
-    projectBuildFolderPath,
-    projectExportFolderPath,
-    project: null,
-    projectPages: [],
-    designSystemComponentsList: [],
-    componentsRequiringBundles: [],
-  };
-}
-
-type PipelineHandler = (
-  context: PipelineContext,
-) => Promise<Partial<PipelineContext>> | Promise<void> | void;
-
-export async function runPipeline(context: PipelineContext, handlers: PipelineHandler[]) {
+export async function runPipeline<T>(context: T, handlers: PipelineHandler<T>[]) {
   let pipelineContext = context;
 
   for (const handler of handlers) {

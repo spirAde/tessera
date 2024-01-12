@@ -11,6 +11,8 @@ const pgConfig = {
 
 export const pgConnectionString = `postgres://${pgConfig.user}:${pgConfig.password}@${pgConfig.host}:${pgConfig.port}/${pgConfig.database}`;
 
+export const isTest = process.env.STAGE === 'test';
+
 export const host = process.env.HOST || '0.0.0.0';
 export const port = Number(process.env.PORT || 3003);
 
@@ -38,5 +40,9 @@ export const persistentApplicationExportFolderRootPath = path.join(
   persistentApplicationFolderRootPath,
   'export',
 );
+
+export const snapshotsFolderRootPath = path.join(outputFolderPath, 'snapshots');
+
+export const snapshotManifestFileName = 'snapshot-manifest.json';
 
 export const applicationTemplateFolderPath = path.join(rootFolderPath, 'src/templates/application');

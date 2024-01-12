@@ -1,5 +1,6 @@
 import path from 'path';
 import fs from 'fs';
+import uniqBy from 'lodash/uniqBy';
 
 import {
   nockPlatformProjects,
@@ -10,22 +11,26 @@ import {
 } from '../../tests/nocks/platform.nock';
 import {
   outputFolderPath,
+  persistentApplicationExportFolderRootPath,
   temporaryApplicationBuildFolderRootPath,
-  temporaryApplicationExportFolderRootPath,
 } from '../../config';
 import { projectT1CloudFixture } from '../../tests/fixtures/project.fixture';
 import {
   pageStructureMainFixture,
   pageStructureServiceFixture,
-  pageStructureServiceCDNFixture,
+  pageStructureAboutFixture,
+  pageComponentsByPageId,
 } from '../../tests/fixtures/pageStructure.fixture';
-import { StrictProjectPageStructure } from '../../sdk/platform.sdk';
+import { ComponentLike, StrictProjectPageStructure } from '../../sdk/platform.sdk';
 import { createBuildJob } from './createBuild.job';
-import { designSystemFixture } from '../../tests/fixtures/designSystem.fixture';
 
 describe('createBuildJob', () => {
   it('creates build', async () => {
-    nockProjectEnvironment();
+    nockProjectEnvironment([
+      pageStructureMainFixture,
+      pageStructureServiceFixture,
+      pageStructureAboutFixture,
+    ] as unknown as StrictProjectPageStructure[]);
 
     await createBuildJob({ id: '1', name: 'create-build-job', data: {} });
 
@@ -34,7 +39,6 @@ describe('createBuildJob', () => {
     expect(fs.readdirSync(temporaryApplicationBuildFolderRootPath)).toIncludeSameMembers([
       '.babelrc',
       'build',
-      'BUILD_ID',
       'application',
       'cache',
       'contexts',
@@ -52,8 +56,20 @@ describe('createBuildJob', () => {
       'index.jsx',
       'service',
       'service/index.jsx',
-      'service/cdn',
-      'service/cdn/index.jsx',
+      'about-company',
+      'about-company/index.jsx',
+    ]);
+
+    expect(
+      fs.readdirSync(path.join(persistentApplicationExportFolderRootPath, 'pages'), {
+        recursive: true,
+      }),
+    ).toIncludeSameMembers([
+      'index.html',
+      'service',
+      'service/index.html',
+      'about-company',
+      'about-company/index.html',
     ]);
 
     expect(
@@ -70,6 +86,8 @@ describe('createBuildJob', () => {
       'layout-card@1.0.3.js',
       'section@1.0.5.js',
       'section-header@1.0.2.js',
+      'markdown-markup@1.0.1.js',
+      'card-announce@1.0.4.js',
     ]);
 
     expect(
@@ -80,35 +98,37 @@ describe('createBuildJob', () => {
     ).toIncludeMultiple([
       '<Route exact path="/" element={<Main />} />',
       '<Route exact path="/service" element={<Service />} />',
-      '<Route exact path="/service/cdn" element={<Cdn />} />',
+      '<Route exact path="/about-company" element={<AboutCompany />} />',
     ]);
   });
 });
 
-function nockProjectEnvironment() {
+function nockProjectEnvironment(pages: StrictProjectPageStructure[]) {
+  const components = uniqBy(
+    [
+      ...pages.reduce<ComponentLike[]>(
+        (list, page) => [...list, ...pageComponentsByPageId[page.id]],
+        [],
+      ),
+      { name: 'foundation-kit', version: '1.0.18' },
+    ],
+    'name',
+  );
+
   nockPlatformProjects();
-  nockPlatformProjectPages(projectT1CloudFixture.sysName);
+  nockPlatformProjectPages({
+    projectSysName: projectT1CloudFixture.sysName,
+    body: { pages },
+  });
   nockPlatformDesignSystem(projectT1CloudFixture.settings.designSystemId);
 
-  nockPlatformProjectPage({
-    pageId: 1,
-    body: pageStructureMainFixture as unknown as StrictProjectPageStructure,
-  });
-  nockPlatformProjectPage({
-    pageId: 2,
-    body: pageStructureServiceFixture as unknown as StrictProjectPageStructure,
-  });
-  nockPlatformProjectPage({
-    pageId: 3,
-    body: pageStructureServiceCDNFixture as unknown as StrictProjectPageStructure,
-  });
+  for (const page of pages) {
+    nockPlatformProjectPage({ pageId: page.id, body: page });
+  }
 
-  for (const component of designSystemFixture) {
+  for (const component of components) {
     nockPlatformComponentSource({
-      component: {
-        name: component.componentName,
-        version: component.currentVersion,
-      },
+      component,
       designSystemId: projectT1CloudFixture.settings.designSystemId,
     });
   }

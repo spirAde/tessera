@@ -8,7 +8,7 @@ const full = {
 module.exports = {
   roots: ['<rootDir>/src'],
   setupFilesAfterEnv: ['jest-extended/all', '<rootDir>/src/tests/setupTests.ts'],
-  transform: { '^.+\\.ts?$': ['ts-jest', { isolatedModules: true }] },
+  transform: { '^.+\\.tsx?$': ['ts-jest', { isolatedModules: true }] },
   testRegex: '(/__tests__/.*|(\\.|/)(test|spec))\\.tsx?$',
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
   verbose: true,

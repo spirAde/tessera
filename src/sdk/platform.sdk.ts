@@ -187,10 +187,7 @@ interface ProjectHeaderProps {
 }
 
 export interface ProjectPage {
-  children: ProjectPage[];
   id: number;
-  status: string;
-  title: string;
   url: string;
 }
 
@@ -271,6 +268,11 @@ export async function getProjectPages(projectSysName: string) {
   // return new Promise((resolve) => setTimeout(() => resolve(projectPagesMock), 1000));
 }
 
+export function getProjectPage(id: number) {
+  return client.get(`${process.env.PLATFORM_HOST}/api/sitepages/page/${id}`).json<ProjectPage>();
+  // return new Promise((resolve) => setTimeout(() => resolve(projectPagesMock), 1000));
+}
+
 export function getProjectEndpoints(projectConfig: ProjectConfig) {
   const {
     BACKEND_ENDPOINT,
@@ -298,7 +300,7 @@ export function getProjectEndpoints(projectConfig: ProjectConfig) {
   };
 }
 
-export async function getProjectPage(pageId: number) {
+export async function getProjectPageStructure(pageId: number) {
   const projectPage: RawProjectPageStructure | StrictProjectPageStructure = await client
     .get(`${process.env.PLATFORM_HOST}/api/sitepages/page/${pageId}/result`)
     .json();

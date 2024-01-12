@@ -1,11 +1,11 @@
 import PgBoss, { SendOptions, WorkHandler } from 'pg-boss';
+import { pathExists } from 'fs-extra';
 
 import { createBuildJob } from '../jobs/build/createBuild.job';
-import { createPageJob } from '../jobs/page/createPage.job';
-import { updatePageJob } from '../jobs/page/updatePage.job';
-import { deletePageJob } from '../jobs/page/deletePage.job';
-import { pgConnectionString, temporaryApplicationExportFolderRootPath } from '../config';
-import { isFileSystemObjectExist } from '../lib/fs';
+import { createPageJob } from '../jobs/page/creation/createPage.job';
+import { updatePageJob } from '../jobs/page/updating/updatePage.job';
+import { deletePageJob } from '../jobs/page/deleting/deletePage.job';
+import { persistentApplicationExportFolderRootPath, pgConnectionString } from '../config';
 
 export enum JobName {
   createBuild = 'createBuild',
@@ -59,9 +59,25 @@ export async function flushPendingTasks(jobName: JobName) {
   await pgQueue.deleteQueue(jobName);
 }
 
+export async function stopPageJobs() {
+  await stopJob(JobName.createPage);
+  await stopJob(JobName.updatePage);
+  await stopJob(JobName.deletePage);
+
+  await flushPendingTasks(JobName.createPage);
+  await flushPendingTasks(JobName.updatePage);
+  await flushPendingTasks(JobName.deletePage);
+}
+
+export async function runPageJobs() {
+  await runJob(JobName.createPage);
+  await runJob(JobName.updatePage);
+  await runJob(JobName.deletePage);
+}
+
 async function shouldRunPageJobs() {
   return (
-    isFileSystemObjectExist(temporaryApplicationExportFolderRootPath) &&
+    (await pathExists(persistentApplicationExportFolderRootPath)) &&
     (await pgQueue.getQueueSize(JobName.createBuild)) === 0
   );
 }

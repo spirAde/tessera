@@ -114,8 +114,7 @@ exports.schemas.Stage = Object.assign(exports.schemas.Stage, {
         "preparing",
         "compilation",
         "export",
-        "verification",
-        "teardown",
+        "commit",
     ],
 });
 exports.schemas.Status = Object.assign(exports.schemas.Status, {

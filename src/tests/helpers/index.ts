@@ -1,4 +1,10 @@
 import { AddressInfo } from 'net';
+import { copy, remove } from 'fs-extra';
+import { readFileSync } from 'fs';
+import path from 'path';
+import crypto from 'crypto';
+
+import { outputFolderPath, rootFolderPath } from '../../config';
 
 interface TestResponse {
   statusCode: number;
@@ -45,4 +51,18 @@ export function expectFileSystemObjectExist() {}
 
 function getExpectToMatchObjectFn(actual: any, expected: any) {
   return expect(actual).toMatchObject(expected);
+}
+
+export async function copyPrebuildProjectFixture() {
+  await copy(path.join(rootFolderPath, 'src/tests/fixtures/prebuild'), outputFolderPath);
+}
+
+export async function removePrebuildProjectFixture() {
+  await remove(outputFolderPath);
+}
+
+export function hashFileSync(filePath: string) {
+  const fileContent = readFileSync(filePath);
+  const hash = crypto.createHash('sha256');
+  return hash.update(fileContent).digest('hex');
 }

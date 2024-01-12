@@ -9,8 +9,7 @@ var Stage;
     Stage["preparing"] = "preparing";
     Stage["compilation"] = "compilation";
     Stage["export"] = "export";
-    Stage["verification"] = "verification";
-    Stage["teardown"] = "teardown";
+    Stage["commit"] = "commit";
 })(Stage = exports.Stage || (exports.Stage = {}));
 var Status;
 (function (Status) {

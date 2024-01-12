@@ -8,7 +8,7 @@ import {
 import { logger } from '../../lib/logger';
 import { projectSysName } from '../../config';
 
-export async function getProjectEnvironment() {
+export async function getProject() {
   logger.debug('fetch project');
   const projects = await getProjects();
   const project = projects.find((project) => project.sysName === projectSysName);
@@ -17,13 +17,7 @@ export async function getProjectEnvironment() {
     throw new Error(`can not find ${projectSysName} in the projects list`);
   }
 
-  logger.debug('fetch project page urls');
-  const projectPages = await getProjectPages(project.sysName);
-
-  return {
-    project,
-    projectPages,
-  };
+  return project;
 }
 
 export async function getDesignSystemComponentsList(designSystemId: number) {

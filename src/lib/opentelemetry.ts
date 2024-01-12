@@ -116,30 +116,6 @@ export function withSafelyActiveSpan<T>(
   });
 }
 
-export async function withForceFlush<T>(callback: () => Promise<T>) {
-  try {
-    return await callback();
-  } finally {
-    await forceFlushTraces();
-  }
-}
-
-export function doIfSpanExists(span: Span | null, action: (span: Span) => void) {
-  if (span) {
-    action(span);
-  }
-}
-
-export function getTracingHeader(span: Span | null) {
-  if (!span) {
-    return undefined;
-  }
-  const ctx = span.spanContext();
-  return { b3: `${ctx.traceId}-${ctx.spanId}-${ctx.traceFlags}` };
-}
-
-// private
-
 function createSpanExporter(): SpanExporter {
   return {
     export(spans: ReadableSpan[], resultCallback: (result: ExportResult) => void) {

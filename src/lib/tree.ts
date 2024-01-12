@@ -12,13 +12,13 @@ export function traverseComponentsTree(
     callback(node);
   }
 
-  if (node.components) {
+  if (Array.isArray(node.components) && node.components.length > 0) {
     node.components.forEach((childNode) => {
       traverseComponentsTree(childNode, callback);
     });
   }
 
-  if (node.result && node.result.components) {
+  if (node.result && Array.isArray(node.result.components) && node.result.components.length > 0) {
     node.result.components.forEach((childNode) => {
       traverseComponentsTree(childNode, callback);
     });

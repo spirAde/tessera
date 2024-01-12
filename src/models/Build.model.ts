@@ -1,4 +1,4 @@
-import { DataTypes, HasManyGetAssociationsMixin, Model, Optional } from 'sequelize';
+import { Association, DataTypes, HasManyGetAssociationsMixin, Model, Optional } from 'sequelize';
 
 import { sequelize } from '../lib/sequelize';
 import { Page } from './Page.model';
@@ -22,6 +22,8 @@ export type BuildAttributesNew = Optional<
 >;
 
 export class Build extends Model<BuildAttributes, BuildAttributesNew> implements BuildAttributes {
+  static pages: Association<Build, Page>;
+
   readonly id!: number;
 
   readonly createdAt!: string;

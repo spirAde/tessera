@@ -1,5 +1,5 @@
 import path from 'path';
-import { promises as fs } from 'fs';
+import { copy, outputFile, pathExistsSync } from 'fs-extra';
 import React, { ComponentType } from 'react';
 import { renderToString } from 'react-dom/server';
 import { ServerStyleSheet } from 'styled-components';
@@ -7,24 +7,26 @@ import { ChunkExtractor } from '@loadable/server';
 import { minify } from 'html-minifier';
 
 import { getPageFolderPathFromUrl } from '../../lib/url';
-import { Project, ProjectPage } from '../../sdk/platform.sdk';
+import { Project } from '../../sdk/platform.sdk';
+import {
+  temporaryApplicationBuildFolderRootPath,
+  temporaryApplicationExportFolderRootPath,
+  persistentApplicationBuildFolderRootPath,
+  persistentApplicationExportFolderRootPath,
+} from '../../config';
 
 const STATIC_URL = '/static/';
 const sheet = new ServerStyleSheet();
 
-export async function runExport({
-  projectBuildFolderPath,
-  projectExportFolderPath,
-  projectPages,
-  project,
-}: {
-  projectBuildFolderPath: string;
-  projectExportFolderPath: string;
-  projectPages: ProjectPage[];
-  project: Project;
-}) {
-  const serverStats = path.join(projectBuildFolderPath, 'build/server/loadable-stats.json');
-  const clientStats = path.join(projectBuildFolderPath, 'build/client/loadable-stats.json');
+export async function exportPages(project: Project, projectPageUrls: string[]) {
+  const serverStats = path.join(
+    temporaryApplicationBuildFolderRootPath,
+    'build/server/loadable-stats.json',
+  );
+  const clientStats = path.join(
+    temporaryApplicationBuildFolderRootPath,
+    'build/client/loadable-stats.json',
+  );
 
   const nodeExtractor = new ChunkExtractor({
     statsFile: serverStats,
@@ -38,41 +40,47 @@ export async function runExport({
 
   const { default: Application } = nodeExtractor.requireEntrypoint();
 
-  for (const projectPage of projectPages) {
+  for (const projectPageUrl of projectPageUrls) {
     await exportPage({
-      projectExportFolderPath,
       project,
+      projectPageUrl,
       Application: Application as ComponentType<{ url: string }>,
       extractor: webExtractor,
-      projectPageUrl: projectPage.url,
     });
   }
 
-  await fs.cp(
-    path.join(projectBuildFolderPath, 'build/client'),
-    path.join(projectExportFolderPath, 'static'),
-    { recursive: true },
+  await copy(
+    path.join(temporaryApplicationBuildFolderRootPath, 'build/client'),
+    path.join(temporaryApplicationExportFolderRootPath, 'static'),
   );
-  await fs.cp(
-    path.join(projectBuildFolderPath, 'server.js'),
-    path.join(projectExportFolderPath, 'server.js'),
+}
+
+export async function runExportServerFile() {
+  await copy(
+    path.join(temporaryApplicationBuildFolderRootPath, 'server.js'),
+    path.join(temporaryApplicationExportFolderRootPath, 'server.js'),
   );
-  await fs.cp(
-    path.join(projectBuildFolderPath, 'BUILD_ID'),
-    path.join(projectExportFolderPath, 'BUILD_ID'),
-  );
+}
+
+export async function exportClientStaticFiles(clientEmittedAssets: string[] = []) {
+  for (const clientEmittedAsset of clientEmittedAssets) {
+    if (!isPersistentFileHasTheSameHash(clientEmittedAsset)) {
+      await copy(
+        path.join(temporaryApplicationBuildFolderRootPath, 'build/client', clientEmittedAsset),
+        path.join(temporaryApplicationExportFolderRootPath, 'static', clientEmittedAsset),
+      );
+    }
+  }
 }
 
 async function exportPage({
   Application,
   extractor,
-  projectExportFolderPath,
   projectPageUrl,
   project,
 }: {
   Application: ComponentType<{ url: string }>;
   extractor: ChunkExtractor;
-  projectExportFolderPath: string;
   projectPageUrl: string;
   project: Project;
 }) {
@@ -86,11 +94,14 @@ async function exportPage({
   const html = renderToString(jsx);
 
   const pageFolderPath = getPageFolderPathFromUrl(projectPageUrl);
-  const absolutePageFolderPath = path.join(projectExportFolderPath, 'pages', pageFolderPath);
+  const absolutePageFolderPath = path.join(
+    temporaryApplicationExportFolderRootPath,
+    'pages',
+    pageFolderPath,
+  );
   const absolutePageFilePath = path.join(absolutePageFolderPath, 'index.html');
 
-  await fs.mkdir(absolutePageFolderPath, { recursive: true });
-  await fs.writeFile(
+  await outputFile(
     absolutePageFilePath,
     minify(
       `
@@ -120,5 +131,11 @@ async function exportPage({
         minifyJS: true,
       },
     ),
+  );
+}
+
+function isPersistentFileHasTheSameHash(clientEmittedAsset: string) {
+  return pathExistsSync(
+    path.join(persistentApplicationBuildFolderRootPath, 'build/client', clientEmittedAsset),
   );
 }

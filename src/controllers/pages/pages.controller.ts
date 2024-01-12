@@ -8,7 +8,7 @@ import {
   UpdatePageRequestBody,
 } from '../../types';
 import { enqueue, JobName } from '../../services/enqueueJob.service';
-import { findActiveBuild } from '../../services/build/build.service';
+import { getCurrentBuild } from '../../services/build/build.service';
 import { Page } from '../../models';
 import { throwBadRequest } from '../../lib/error';
 import { createPage } from '../../services/page/page.service';
@@ -17,21 +17,16 @@ export const create: RouteHandler<{ Body: CreatePageRequestBody }> = async funct
   request,
   response,
 ) {
-  const build = await findActiveBuild();
+  const build = await getCurrentBuild();
 
   if (!build) {
     return throwBadRequest();
   }
 
-  const page = await createPage({
-    status: null,
-    stage: null,
-    buildId: build.id,
-    url: request.body.url,
+  await enqueue(JobName.createPage, {
     externalId: request.body.id,
+    url: request.body.url,
   });
-
-  await enqueue(JobName.createPage, { pageId: page.id });
 
   return response.status(204).send();
 };
@@ -40,7 +35,7 @@ export const update: RouteHandler<{ Body: UpdatePageRequestBody }> = async funct
   request,
   response,
 ) {
-  const build = await findActiveBuild();
+  const build = await getCurrentBuild();
 
   if (!build) {
     return throwBadRequest();
@@ -66,7 +61,7 @@ export const remove: RouteHandler<{ Body: DeletePageRequestBody }> = async funct
   request,
   response,
 ) {
-  const build = await findActiveBuild();
+  const build = await getCurrentBuild();
 
   if (!build) {
     return throwBadRequest();
