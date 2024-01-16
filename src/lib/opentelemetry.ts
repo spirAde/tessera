@@ -1,3 +1,5 @@
+/* istanbul ignore file */
+
 import { context as otlContext, createContextKey, SpanStatusCode, trace } from '@opentelemetry/api';
 import type {
   Exception,

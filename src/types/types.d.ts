@@ -1,72 +1,72 @@
 export interface Build {
-    id: number;
-    stage: Stage;
-    status: Status;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt?: string | null;
+  id: number;
+  stage: Stage;
+  status: Status;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt?: string | null;
 }
 export interface CreateBuildEndpoint {
-    request: CreateBuildRequest;
+  request: CreateBuildRequest;
 }
-export interface CreateBuildRequest {
-}
+export interface CreateBuildRequest {}
 export interface CreatePageEndpoint {
-    request: CreatePageRequest;
+  request: CreatePageRequest;
 }
 export interface CreatePageRequest {
-    body: CreatePageRequestBody;
+  body: CreatePageRequestBody;
 }
 export interface CreatePageRequestBody {
-    id: number;
-    url: string;
+  id: number;
+  url: string;
 }
 export interface DeletePageEndpoint {
-    request: DeletePageRequest;
+  request: DeletePageRequest;
 }
 export interface DeletePageRequest {
-    body: DeletePageRequestBody;
+  body: DeletePageRequestBody;
 }
 export interface DeletePageRequestBody {
-    id: number;
+  id: number;
 }
 export interface Page {
-    id: number;
-    buildId: number;
-    url: string;
-    stage: Stage;
-    status: Status;
-    externalId: number;
-    createdAt: string;
-    updatedAt: string;
-    deletedAt?: string | null;
+  id: number;
+  buildId: number;
+  url: string;
+  stage: Stage;
+  status: Status;
+  externalId: number;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt?: string | null;
 }
 export declare enum Stage {
-    setup = "setup",
-    fetching = "fetching",
-    generating = "generating",
-    preparing = "preparing",
-    compilation = "compilation",
-    export = "export",
-    commit = "commit"
+  setup = 'setup',
+  fetching = 'fetching',
+  generating = 'generating',
+  preparing = 'preparing',
+  compilation = 'compilation',
+  export = 'export',
+  cleanup = 'cleanup',
+  commit = 'commit',
 }
 export declare enum Status {
-    progress = "progress",
-    failed = "failed",
-    success = "success"
+  progress = 'progress',
+  failed = 'failed',
+  success = 'success',
 }
 export declare enum TesseraHttp {
-    createPagePostPages = "create-page|post /pages",
-    updatePagePutPages = "update-page|put /pages",
-    deletePageDeletePages = "delete-page|delete /pages",
-    createBuildPostBuilds = "create-build|post /builds"
+  createPagePostPages = 'create-page|post /pages',
+  updatePagePutPages = 'update-page|put /pages',
+  deletePageDeletePages = 'delete-page|delete /pages',
+  createBuildPostBuilds = 'create-build|post /builds',
 }
 export interface UpdatePageEndpoint {
-    request: UpdatePageRequest;
+  request: UpdatePageRequest;
 }
 export interface UpdatePageRequest {
-    body: UpdatePageRequestBody;
+  body: UpdatePageRequestBody;
 }
 export interface UpdatePageRequestBody {
-    id: number;
+  id: number;
 }

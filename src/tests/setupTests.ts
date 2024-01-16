@@ -2,8 +2,10 @@ import { matchers } from 'jest-json-schema';
 import nock from 'nock';
 import 'jest-extended';
 
-import { application, runTestApplication } from '../application';
+import { Build, Page } from '../models';
 import { sequelize } from '../lib/sequelize';
+import { application, runTestApplication } from '../application';
+import { cleanupOutputFolder } from './helpers';
 
 jest.setTimeout(10_000);
 expect.extend(matchers);
@@ -14,15 +16,18 @@ beforeAll(async () => {
 
 beforeEach(() => {
   nock.cleanAll();
-  nock.disableNetConnect();
   jest.resetAllMocks();
 });
 
-afterEach(() => {
+afterEach(async () => {
   expect(nock.pendingMocks()).toEqual([]);
+
+  await Build.truncate();
+  await Page.truncate();
+  await cleanupOutputFolder();
 });
 
 afterAll(async () => {
-  await sequelize.close();
   await application.close();
+  await sequelize.close();
 });

@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>21/21</span>
+                <span class='fraction'>20/20</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>21/21</span>
+                <span class='fraction'>20/20</span>
             </div>
         
             
@@ -90,63 +90,60 @@
 <a name='L25'></a><a href='#L25'>25</a>
 <a name='L26'></a><a href='#L26'>26</a>
 <a name='L27'></a><a href='#L27'>27</a>
-<a name='L28'></a><a href='#L28'>28</a>
-<a name='L29'></a><a href='#L29'>29</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
+<a name='L28'></a><a href='#L28'>28</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">'use strict';
+Object.defineProperty(exports, '__esModule', { value: true });
 exports.TesseraHttp = exports.Status = exports.Stage = void 0;
 var Stage;
 (function (Stage) {
-    Stage["idle"] = "idle";
-    Stage["setup"] = "setup";
-    Stage["fetching"] = "fetching";
-    Stage["generating"] = "generating";
-    Stage["preparing"] = "preparing";
-    Stage["compilation"] = "compilation";
-    Stage["export"] = "export";
-    Stage["done"] = "done";
-})(Stage = exports.Stage || (exports.Stage = {}));
+  Stage['setup'] = 'setup';
+  Stage['fetching'] = 'fetching';
+  Stage['generating'] = 'generating';
+  Stage['preparing'] = 'preparing';
+  Stage['compilation'] = 'compilation';
+  Stage['export'] = 'export';
+  Stage['cleanup'] = 'cleanup';
+  Stage['commit'] = 'commit';
+})((Stage = exports.Stage || (exports.Stage = {})));
 var Status;
 (function (Status) {
-    Status["idle"] = "idle";
-    Status["progress"] = "progress";
-    Status["failed"] = "failed";
-    Status["success"] = "success";
-})(Status = exports.Status || (exports.Status = {}));
+  Status['progress'] = 'progress';
+  Status['failed'] = 'failed';
+  Status['success'] = 'success';
+})((Status = exports.Status || (exports.Status = {})));
 var TesseraHttp;
 (function (TesseraHttp) {
-    TesseraHttp["createPagePostPages"] = "create-page|post /pages";
-    TesseraHttp["updatePagePutPages"] = "update-page|put /pages";
-    TesseraHttp["deletePageDeletePages"] = "delete-page|delete /pages";
-    TesseraHttp["createPagePostBuilds"] = "create-page|post /builds";
-})(TesseraHttp = exports.TesseraHttp || (exports.TesseraHttp = {}));
+  TesseraHttp['createPagePostPages'] = 'create-page|post /pages';
+  TesseraHttp['updatePagePutPages'] = 'update-page|put /pages';
+  TesseraHttp['deletePageDeletePages'] = 'delete-page|delete /pages';
+  TesseraHttp['createBuildPostBuilds'] = 'create-build|post /builds';
+})((TesseraHttp = exports.TesseraHttp || (exports.TesseraHttp = {})));
 &nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
@@ -154,7 +151,7 @@ var TesseraHttp;
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2024-01-04T10:02:21.727Z
+                at 2024-01-15T11:52:27.330Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

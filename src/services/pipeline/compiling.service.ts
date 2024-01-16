@@ -1,8 +1,9 @@
 import webpack, { Configuration, DefinePlugin } from 'webpack';
 import { merge } from 'webpack-merge';
-import LoadablePlugin from '@loadable/webpack-plugin';
+import { CleanWebpackPlugin } from 'clean-webpack-plugin';
 import TerserPlugin from 'terser-webpack-plugin';
 import nodeExternals from 'webpack-node-externals';
+import LoadablePlugin from '@loadable/webpack-plugin';
 
 import { temporaryApplicationBuildFolderRootPath, isTest } from '../../config';
 
@@ -84,6 +85,11 @@ function getCommonWebpackConfig(projectPageUrls: string[]) {
       new DefinePlugin({
         'process.env.NODE_ENV': JSON.stringify('production'),
       }),
+      new CleanWebpackPlugin({
+        cleanStaleWebpackAssets: true,
+        protectWebpackAssets: true,
+        cleanAfterEveryBuildPatterns: ['*.LICENSE.txt'],
+      }),
     ],
     experiments: { layers: true, cacheUnaffected: true, buildHttp: undefined },
     snapshot: { managedPaths: [/^(.+?[\\/]node_modules[\\/])/] },
@@ -114,7 +120,7 @@ function getServerWebpackConfig(config: Configuration) {
   });
 }
 
-export function getClientWebpackConfig(config: Configuration) {
+function getClientWebpackConfig(config: Configuration) {
   return merge(config, {
     entry: {
       'application-client': `${temporaryApplicationBuildFolderRootPath}/application/client.jsx`,

@@ -10,6 +10,7 @@ module.exports = {
         'preparing',
         'compilation',
         'export',
+        'cleanup',
         'commit'
       );
   

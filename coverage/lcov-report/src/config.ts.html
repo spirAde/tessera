@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>13/13</span>
+                <span class='fraction'>19/19</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>13/13</span>
+                <span class='fraction'>19/19</span>
             </div>
         
             
@@ -110,23 +110,11 @@
 <a name='L45'></a><a href='#L45'>45</a>
 <a name='L46'></a><a href='#L46'>46</a>
 <a name='L47'></a><a href='#L47'>47</a>
-<a name='L48'></a><a href='#L48'>48</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
+<a name='L48'></a><a href='#L48'>48</a>
+<a name='L49'></a><a href='#L49'>49</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">6x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -134,29 +122,43 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">6x</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import 'dotenv/config';
 import path from 'path';
 &nbsp;
@@ -170,38 +172,39 @@ const pgConfig = {
 &nbsp;
 export const pgConnectionString = `postgres://${pgConfig.user}:${pgConfig.password}@${pgConfig.host}:${pgConfig.port}/${pgConfig.database}`;
 &nbsp;
+export const isTest = process.env.STAGE === 'test';
+&nbsp;
 export const host = process.env.HOST || <span class="branch-1 cbranch-no" title="branch not covered" >'0.0.0.0';</span>
 export const port = Number(process.env.PORT || <span class="branch-1 cbranch-no" title="branch not covered" >3003)</span>;
-&nbsp;
-export const initialProjectSettings = {
-  PROGRESS_BAR_ENABLE: false,
-  BACKEND_ENDPOINT: '',
-  API_PATH: '/api/external/draft',
-  PAGE_PATH: '/sitepages/v2?url=',
-  COMPONENTS_PATH: '/sitepages/components',
-  COMPONENTS_RESOLVER_PATH: '/components-kit',
-  PROJECT_SYS_NAME: 'vtb.ru',
-  MENU_PATH: '/menu/v2?projectSysName=',
-  FOOTER_PATH: '/dictionaries/document',
-  SCRIPTS_PATH: '/sitepages/scripts',
-  FONT_FAMILY: 'VTB Group UI',
-  HANDBOOKS_PATH: '/api/handbooks/handbooks',
-  API_PREFIX: '',
-  ENABLE_TO_LOAD_SECONDARY_COMPONENTS: false,
-  DESIGN_SYSTEM_ID: 111,
-  MEDIA_HOST: 'https://www.vtb.ru',
-};
 &nbsp;
 export const projectSysName = 'T1Cloud';
 &nbsp;
 export const rootFolderPath = process.cwd();
+export const outputFolderPath = path.join(rootFolderPath, 'output');
 &nbsp;
-export const tempApplicationFolderRootPath = path.join(rootFolderPath, 'temp');
-export const tempApplicationBuildFolderRootPath = path.join(tempApplicationFolderRootPath, 'build');
-export const tempApplicationExportFolderRootPath = path.join(
-  tempApplicationFolderRootPath,
+export const temporaryApplicationFolderRootPath = path.join(outputFolderPath, 'temporary');
+export const temporaryApplicationBuildFolderRootPath = path.join(
+  temporaryApplicationFolderRootPath,
+  'build',
+);
+export const temporaryApplicationExportFolderRootPath = path.join(
+  temporaryApplicationFolderRootPath,
   'export',
 );
+&nbsp;
+export const persistentApplicationFolderRootPath = path.join(outputFolderPath, 'persistent');
+export const persistentApplicationBuildFolderRootPath = path.join(
+  persistentApplicationFolderRootPath,
+  'build',
+);
+export const persistentApplicationExportFolderRootPath = path.join(
+  persistentApplicationFolderRootPath,
+  'export',
+);
+&nbsp;
+export const snapshotsFolderRootPath = path.join(outputFolderPath, 'snapshots');
+&nbsp;
+export const snapshotManifestFileName = 'snapshot-manifest.json';
 &nbsp;
 export const applicationTemplateFolderPath = path.join(rootFolderPath, 'src/templates/application');
 &nbsp;</pre></td></tr></table></pre>
@@ -211,7 +214,7 @@ export const applicationTemplateFolderPath = path.join(rootFolderPath, 'src/temp
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2024-01-04T10:02:21.727Z
+                at 2024-01-16T11:50:11.508Z
             </div>
         <script src="../prettify.js"></script>
         <script>

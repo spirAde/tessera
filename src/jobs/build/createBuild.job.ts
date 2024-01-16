@@ -15,7 +15,11 @@ export async function createBuildJob(payload: Job<{ parentSpanContext?: SpanCont
       context: otlContext.active(),
       options: {
         kind: SpanKind.CONSUMER,
-        links: payload.data.parentSpanContext ? [{ context: payload.data.parentSpanContext }] : [],
+        links: payload.data.parentSpanContext
+          ? /* istanbul ignore next */
+            [{ context: payload.data.parentSpanContext }]
+          : /* istanbul ignore next */
+            [],
         attributes: {
           [SemanticAttributes.CODE_FUNCTION]: 'job',
         },

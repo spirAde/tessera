@@ -1,4 +1,3 @@
-import { AddressInfo } from 'net';
 import { copy, remove } from 'fs-extra';
 import { readFileSync } from 'fs';
 import path from 'path';
@@ -19,12 +18,8 @@ export function fakeDbId() {
   return Math.floor(Math.random() * maxPostgresInt + 1);
 }
 
-export function getApplicationUrl(address: AddressInfo | string) {
-  if (typeof address === 'string') {
-    return address;
-  }
-
-  return `http://${address.address}:${address.port}`;
+export function getApplicationUrl() {
+  return `http://${process.env.HOST}:${process.env.PORT}`;
 }
 
 export function expectForbidden(response: TestResponse) {
@@ -57,7 +52,7 @@ export async function copyPrebuildProjectFixture() {
   await copy(path.join(rootFolderPath, 'src/tests/fixtures/prebuild'), outputFolderPath);
 }
 
-export async function removePrebuildProjectFixture() {
+export async function cleanupOutputFolder() {
   await remove(outputFolderPath);
 }
 

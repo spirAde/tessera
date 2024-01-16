@@ -1,5 +1,5 @@
 import path from 'path';
-import { copy, outputFile, pathExistsSync } from 'fs-extra';
+import { copy, outputFile } from 'fs-extra';
 import React, { ComponentType } from 'react';
 import { renderToString } from 'react-dom/server';
 import { ServerStyleSheet } from 'styled-components';
@@ -11,8 +11,6 @@ import { Project } from '../../sdk/platform.sdk';
 import {
   temporaryApplicationBuildFolderRootPath,
   temporaryApplicationExportFolderRootPath,
-  persistentApplicationBuildFolderRootPath,
-  persistentApplicationExportFolderRootPath,
 } from '../../config';
 
 const STATIC_URL = '/static/';
@@ -62,15 +60,11 @@ export async function runExportServerFile() {
   );
 }
 
-export async function exportClientStaticFiles(clientEmittedAssets: string[] = []) {
-  for (const clientEmittedAsset of clientEmittedAssets) {
-    if (!isPersistentFileHasTheSameHash(clientEmittedAsset)) {
-      await copy(
-        path.join(temporaryApplicationBuildFolderRootPath, 'build/client', clientEmittedAsset),
-        path.join(temporaryApplicationExportFolderRootPath, 'static', clientEmittedAsset),
-      );
-    }
-  }
+export async function exportClientStaticFiles() {
+  await copy(
+    path.join(temporaryApplicationBuildFolderRootPath, 'build/client'),
+    path.join(temporaryApplicationExportFolderRootPath, 'static'),
+  );
 }
 
 async function exportPage({
@@ -131,11 +125,5 @@ async function exportPage({
         minifyJS: true,
       },
     ),
-  );
-}
-
-function isPersistentFileHasTheSameHash(clientEmittedAsset: string) {
-  return pathExistsSync(
-    path.join(persistentApplicationBuildFolderRootPath, 'build/client', clientEmittedAsset),
   );
 }

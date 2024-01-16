@@ -1,3 +1,5 @@
+import { Op } from 'sequelize';
+
 import { Stage, Status } from '../../types';
 import { Build, BuildAttributes, BuildAttributesNew, Page } from '../../models';
 import {
@@ -81,7 +83,6 @@ export async function runProjectBuild() {
       status: Status.success,
     });
   } catch (error) {
-    logger.error(error);
     await updateBuild(readyToRunProjectBuild, {
       status: Status.failed,
     });
@@ -166,10 +167,6 @@ async function runGeneratingStage(context: BuildPipelineContext) {
       const { pageFilePath, pageComponentName, pageComponentsList } =
         await runProjectPageGenerating(page, context);
 
-      await updatePage(page, {
-        status: Status.success,
-      });
-
       componentsRequiringBundles.push(...pageComponentsList);
 
       generatedPages.push({
@@ -190,15 +187,7 @@ async function runGeneratingStage(context: BuildPipelineContext) {
 }
 
 async function runProjectPageGenerating(page: Page, context: BuildPipelineContext) {
-  await updatePage(page, {
-    stage: Stage.fetching,
-  });
-
   const pageStructure = await getProjectPageStructure(page.externalId);
-
-  await updatePage(page, {
-    stage: Stage.generating,
-  });
 
   const { pageComponentsList } = await parseProjectPage(
     pageStructure,
@@ -231,14 +220,23 @@ async function runPreparingStage(context: BuildPipelineContext) {
   });
 }
 
-async function runCompilationStage({ build, projectPages }: BuildPipelineContext) {
+async function runCompilationStage({ build }: BuildPipelineContext) {
   logger.debug(`build pipeline stage = compilation`);
 
   await updateBuild(build, {
     stage: Stage.compilation,
   });
 
-  return compile(projectPages.map(({ url }) => url));
+  const readyToCompilationPages = await Page.findAll({
+    where: {
+      buildId: build.id,
+      status: {
+        [Op.ne]: Status.failed,
+      },
+    },
+  });
+
+  return compile(readyToCompilationPages.map(({ url }) => url));
 }
 
 async function runExportStage(context: BuildPipelineContext) {
@@ -250,9 +248,18 @@ async function runExportStage(context: BuildPipelineContext) {
     stage: Stage.export,
   });
 
+  const readyToExportPages = await Page.findAll({
+    where: {
+      buildId: context.build.id,
+      status: {
+        [Op.ne]: Status.failed,
+      },
+    },
+  });
+
   await exportPages(
     context.project,
-    context.projectPages.map(({ url }) => url),
+    readyToExportPages.map(({ url }) => url),
   );
   await exportClientStaticFiles();
   await runExportServerFile();

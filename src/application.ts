@@ -42,7 +42,7 @@ export async function runApplication() {
     await application.register(require('@fastify/swagger'), {
       mode: 'static',
       specification: {
-        path: './openapi.json',
+        path: './etc/openapi.json',
       },
     });
     await application.register(require('@fastify/swagger-ui'));

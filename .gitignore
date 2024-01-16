@@ -3,6 +3,7 @@ data
 node_modules
 .idea
 temp
+coverage
 .env
 .DS_Store
 

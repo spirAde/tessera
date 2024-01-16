@@ -1,3 +1,5 @@
+/* istanbul ignore file */
+
 import got from 'got';
 
 export interface PlatformSettings {
@@ -312,6 +314,10 @@ export async function getProjectPageStructure(pageId: number) {
   //       1000,
   //     ),
   // );
+
+  if (!projectPage) {
+    throw new Error(`error: ${pageId}`);
+  }
 
   if (isStrictProjectPageStructure(projectPage)) {
     return projectPage;

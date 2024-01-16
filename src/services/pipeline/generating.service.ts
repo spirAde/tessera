@@ -1,8 +1,10 @@
-import { outputFile } from 'fs-extra';
+import { outputFile, readdirSync } from 'fs-extra';
 import path from 'path';
 import upperFirst from 'lodash/upperFirst';
 import escape from 'lodash/escape';
+import difference from 'lodash/difference';
 import { stripIndent } from 'common-tags';
+
 import {
   ComponentLike,
   ProjectPageStructureComponent,
@@ -80,14 +82,27 @@ export function getPageComponentName(pageFolderPath: string) {
   return folderName ? formatComponentName(folderName) : 'Main';
 }
 
-export function getAbsolutePageFilePath(pageFolderPath: string) {
-  const absolutePageFolderPath = path.join(
-    temporaryApplicationBuildFolderRootPath,
-    'pages',
-    pageFolderPath,
+export function getAbsolutePageFilePath(
+  pageFolderPath: string,
+  prefix = temporaryApplicationBuildFolderRootPath,
+) {
+  return path.join(prefix, 'pages', pageFolderPath, 'index.jsx');
+}
+
+export function getMissedComponentsList(componentsList: ComponentLike[]) {
+  const currentComponentFiles = readdirSync(
+    path.join(temporaryApplicationBuildFolderRootPath, 'components'),
   );
 
-  return path.join(absolutePageFolderPath, 'index.jsx');
+  const missedComponentFiles = difference(
+    componentsList.map(({ name, version }) => `${name}@${version}.js`),
+    currentComponentFiles,
+  );
+
+  return missedComponentFiles.map((componentFile) => {
+    const [name, version] = componentFile.replace('.js', '').split('@');
+    return { name, version };
+  }) as ComponentLike[];
 }
 
 function getPageComponentsTree(template: ProjectPageStructureComponent[]) {

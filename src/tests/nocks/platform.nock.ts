@@ -39,10 +39,11 @@ export function nockPlatformProjectPage({
   status = 200,
 }: {
   pageId: number;
-  body: StrictProjectPageStructure;
+  body: string | StrictProjectPageStructure;
   status?: number;
 }) {
-  return nock(basePath).get(`/api/sitepages/page/${pageId}/result`).reply(status, body);
+  const request = nock(basePath).get(`/api/sitepages/page/${pageId}/result`);
+  return status === 200 ? request.reply(status, body) : request.replyWithError(body);
 }
 
 export function nockPlatformComponentSource({

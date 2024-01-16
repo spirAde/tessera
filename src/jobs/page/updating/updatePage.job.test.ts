@@ -1,7 +1,6 @@
-import fs from 'fs';
+import { readdirSync } from 'fs-extra';
 import path from 'path';
 
-import { Build, Page } from '../../../models';
 import { updatePageJob } from './updatePage.job';
 import {
   nockPlatformProjects,
@@ -21,11 +20,7 @@ import {
   persistentApplicationExportFolderRootPath,
   temporaryApplicationBuildFolderRootPath,
 } from '../../../config';
-import {
-  copyPrebuildProjectFixture,
-  removePrebuildProjectFixture,
-  hashFileSync,
-} from '../../../tests/helpers';
+import { copyPrebuildProjectFixture, hashFileSync } from '../../../tests/helpers';
 import { seedBuild } from '../../../tests/seeds/build.seed';
 import { Stage, Status } from '../../../types';
 import { seedPage } from '../../../tests/seeds/page.seed';
@@ -33,13 +28,6 @@ import { seedPage } from '../../../tests/seeds/page.seed';
 describe('updatePageJob', () => {
   beforeEach(async () => {
     await copyPrebuildProjectFixture();
-  });
-
-  afterEach(async () => {
-    await Page.truncate();
-    await Build.truncate();
-
-    await removePrebuildProjectFixture();
   });
 
   it('updates existing page', async () => {
@@ -89,7 +77,7 @@ describe('updatePageJob', () => {
     });
 
     expect(
-      fs.readdirSync(path.join(temporaryApplicationBuildFolderRootPath, 'pages'), {
+      readdirSync(path.join(temporaryApplicationBuildFolderRootPath, 'pages'), {
         recursive: true,
       }),
     ).toIncludeSameMembers([
@@ -101,7 +89,7 @@ describe('updatePageJob', () => {
     ]);
 
     expect(
-      fs.readdirSync(path.join(persistentApplicationExportFolderRootPath, 'pages'), {
+      readdirSync(path.join(persistentApplicationExportFolderRootPath, 'pages'), {
         recursive: true,
       }),
     ).toIncludeSameMembers([
@@ -114,19 +102,31 @@ describe('updatePageJob', () => {
 
     expect(
       hashFileSync(path.join(persistentApplicationExportFolderRootPath, 'pages/index.html')),
-    ).toEqual(mainPageHtmlHash);
+    ).not.toEqual(mainPageHtmlHash);
 
     expect(
       hashFileSync(
         path.join(persistentApplicationExportFolderRootPath, 'pages/about-company/index.html'),
       ),
-    ).toEqual(aboutCompanyPageHtmlHash);
+    ).not.toEqual(aboutCompanyPageHtmlHash);
 
     expect(
       hashFileSync(
         path.join(persistentApplicationExportFolderRootPath, 'pages/service/index.html'),
       ),
     ).not.toEqual(servicePageHtmlHash);
+  });
+
+  it('throws error if current build does not exist', async () => {
+    await expect(
+      updatePageJob({
+        id: '1',
+        name: 'update-page-job',
+        data: {
+          pageId: 1,
+        },
+      }),
+    ).rejects.toThrow();
   });
 });
 

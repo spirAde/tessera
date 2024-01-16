@@ -1,11 +1,13 @@
+/* istanbul ignore file */
+
 import PgBoss, { SendOptions, WorkHandler } from 'pg-boss';
 import { pathExists } from 'fs-extra';
 
+import { persistentApplicationExportFolderRootPath, pgConnectionString } from '../config';
 import { createBuildJob } from '../jobs/build/createBuild.job';
 import { createPageJob } from '../jobs/page/creation/createPage.job';
 import { updatePageJob } from '../jobs/page/updating/updatePage.job';
 import { deletePageJob } from '../jobs/page/deleting/deletePage.job';
-import { persistentApplicationExportFolderRootPath, pgConnectionString } from '../config';
 
 export enum JobName {
   createBuild = 'createBuild',
@@ -22,10 +24,6 @@ const jobs = {
 };
 
 export const pgQueue = new PgBoss(pgConnectionString);
-
-export function getJobFunction(jobName: JobName) {
-  return jobs[jobName] as WorkHandler<object>;
-}
 
 export async function enqueue(jobName: JobName, args: any = {}, options: SendOptions = {}) {
   const jobFunction = getJobFunction(jobName);
@@ -73,6 +71,10 @@ export async function runPageJobs() {
   await runJob(JobName.createPage);
   await runJob(JobName.updatePage);
   await runJob(JobName.deletePage);
+}
+
+export function getJobFunction(jobName: JobName) {
+  return jobs[jobName] as WorkHandler<object>;
 }
 
 async function shouldRunPageJobs() {

@@ -1,8 +1,7 @@
-import fs from 'fs';
+import { readdirSync } from 'fs-extra';
 import path from 'path';
 
-import { copyPrebuildProjectFixture, removePrebuildProjectFixture } from '../../../tests/helpers';
-import { Build, Page } from '../../../models';
+import { copyPrebuildProjectFixture } from '../../../tests/helpers';
 import { createPageJob } from './createPage.job';
 import {
   nockPlatformComponentSource,
@@ -29,12 +28,6 @@ import { Stage, Status } from '../../../types';
 describe('createPageJob', () => {
   beforeEach(async () => {
     await copyPrebuildProjectFixture();
-  });
-
-  afterEach(async () => {
-    await Build.truncate();
-    await Page.truncate();
-    await removePrebuildProjectFixture();
   });
 
   it('creates new page', async () => {
@@ -68,7 +61,7 @@ describe('createPageJob', () => {
     });
 
     expect(
-      fs.readdirSync(path.join(temporaryApplicationBuildFolderRootPath, 'pages'), {
+      readdirSync(path.join(temporaryApplicationBuildFolderRootPath, 'pages'), {
         recursive: true,
       }),
     ).toIncludeSameMembers([
@@ -82,7 +75,7 @@ describe('createPageJob', () => {
     ]);
 
     expect(
-      fs.readdirSync(path.join(persistentApplicationExportFolderRootPath, 'pages'), {
+      readdirSync(path.join(persistentApplicationExportFolderRootPath, 'pages'), {
         recursive: true,
       }),
     ).toIncludeSameMembers([
@@ -94,6 +87,19 @@ describe('createPageJob', () => {
       'about-company',
       'about-company/index.html',
     ]);
+  });
+
+  it('throws error if current build does not exist', async () => {
+    await expect(
+      createPageJob({
+        id: '1',
+        name: 'create-page-job',
+        data: {
+          id: pageStructureServiceCDNFixture.id,
+          url: pageStructureServiceCDNFixture.url,
+        },
+      }),
+    ).rejects.toThrow();
   });
 });
 

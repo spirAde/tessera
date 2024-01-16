@@ -2,7 +2,7 @@ import { outputFile, pathExistsSync } from 'fs-extra';
 import path from 'path';
 import uniqBy from 'lodash/uniqBy';
 
-import { getDesignSystemComponentSource, ComponentLike, Project } from '../../sdk/platform.sdk';
+import { ComponentLike, getDesignSystemComponentSource, Project } from '../../sdk/platform.sdk';
 import { temporaryApplicationBuildFolderRootPath } from '../../config';
 
 export async function collectMissedComponents({

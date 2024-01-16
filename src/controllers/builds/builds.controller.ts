@@ -18,7 +18,7 @@ export const create: RouteHandler<{}> = async function (_, response) {
       await enqueue(
         JobName.createBuild,
         {
-          parentSpanContext: span?.spanContext(),
+          parentSpanContext: span?.spanContext() ?? null,
         },
         {
           singletonKey: 'build_key',

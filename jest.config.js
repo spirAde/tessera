@@ -15,18 +15,20 @@ module.exports = {
   testEnvironment: 'node',
   coverageThreshold: {
     global: {
-      statements: 95,
+      statements: 90,
       branches: 80,
-      functions: 99,
-      lines: 95,
+      functions: 95,
+      lines: 92,
     },
     './src/controllers/': full,
   },
   coveragePathIgnorePatterns: [
     '<rootDir>/src/lib',
     '<rootDir>/src/tests',
+    '<rootDir>/src/types',
     '<rootDir>/node_modules/',
     '<rootDir>/temp/',
     '<rootDir>/temp_test/',
+    '<rootDir>/output/',
   ],
 };

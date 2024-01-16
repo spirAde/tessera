@@ -1,5 +1,5 @@
 import path from 'path';
-import fs from 'fs';
+import { readdirSync, readFileSync } from 'fs-extra';
 import uniqBy from 'lodash/uniqBy';
 
 import {
@@ -9,11 +9,7 @@ import {
   nockPlatformProjectPage,
   nockPlatformComponentSource,
 } from '../../tests/nocks/platform.nock';
-import {
-  outputFolderPath,
-  persistentApplicationExportFolderRootPath,
-  temporaryApplicationBuildFolderRootPath,
-} from '../../config';
+import { outputFolderPath, temporaryApplicationBuildFolderRootPath } from '../../config';
 import { projectT1CloudFixture } from '../../tests/fixtures/project.fixture';
 import {
   pageStructureMainFixture,
@@ -23,20 +19,26 @@ import {
 } from '../../tests/fixtures/pageStructure.fixture';
 import { ComponentLike, StrictProjectPageStructure } from '../../sdk/platform.sdk';
 import { createBuildJob } from './createBuild.job';
+import { Build } from '../../models';
+import { Stage, Status } from '../../types';
 
 describe('createBuildJob', () => {
   it('creates build', async () => {
-    nockProjectEnvironment([
+    const pages = [
       pageStructureMainFixture,
       pageStructureServiceFixture,
       pageStructureAboutFixture,
-    ] as unknown as StrictProjectPageStructure[]);
+    ] as unknown as StrictProjectPageStructure[];
+
+    nockProjectEnvironment(pages);
+    nockProjectPages(pages);
+    nockProjectComponentsSources(pages);
 
     await createBuildJob({ id: '1', name: 'create-build-job', data: {} });
 
-    expect(fs.readdirSync(outputFolderPath)).toIncludeSameMembers(['temporary', 'persistent']);
+    expect(readdirSync(outputFolderPath)).toIncludeSameMembers(['temporary', 'persistent']);
 
-    expect(fs.readdirSync(temporaryApplicationBuildFolderRootPath)).toIncludeSameMembers([
+    expect(readdirSync(temporaryApplicationBuildFolderRootPath)).toIncludeSameMembers([
       '.babelrc',
       'build',
       'application',
@@ -49,7 +51,7 @@ describe('createBuildJob', () => {
     ]);
 
     expect(
-      fs.readdirSync(path.join(temporaryApplicationBuildFolderRootPath, 'pages'), {
+      readdirSync(path.join(temporaryApplicationBuildFolderRootPath, 'pages'), {
         recursive: true,
       }),
     ).toIncludeSameMembers([
@@ -61,19 +63,7 @@ describe('createBuildJob', () => {
     ]);
 
     expect(
-      fs.readdirSync(path.join(persistentApplicationExportFolderRootPath, 'pages'), {
-        recursive: true,
-      }),
-    ).toIncludeSameMembers([
-      'index.html',
-      'service',
-      'service/index.html',
-      'about-company',
-      'about-company/index.html',
-    ]);
-
-    expect(
-      fs.readdirSync(path.join(temporaryApplicationBuildFolderRootPath, 'components')),
+      readdirSync(path.join(temporaryApplicationBuildFolderRootPath, 'components')),
     ).toIncludeSameMembers([
       'Body.jsx',
       'PlatformProvider.jsx',
@@ -91,7 +81,7 @@ describe('createBuildJob', () => {
     ]);
 
     expect(
-      fs.readFileSync(
+      readFileSync(
         path.join(temporaryApplicationBuildFolderRootPath, 'application', 'application.jsx'),
         'utf-8',
       ),
@@ -100,10 +90,71 @@ describe('createBuildJob', () => {
       '<Route exact path="/service" element={<Service />} />',
       '<Route exact path="/about-company" element={<AboutCompany />} />',
     ]);
+
+    await expectSuccessfulBuild();
+  });
+
+  it('does not stop building if some pages throw error', async () => {
+    const pages = [
+      pageStructureMainFixture,
+      pageStructureServiceFixture,
+      pageStructureAboutFixture,
+    ] as unknown as StrictProjectPageStructure[];
+
+    nockProjectEnvironment(pages);
+    nockPlatformProjectPage({
+      pageId: pageStructureMainFixture.id,
+      body: pageStructureMainFixture as unknown as StrictProjectPageStructure,
+    });
+    nockPlatformProjectPage({
+      pageId: pageStructureServiceFixture.id,
+      body: 'unknown error',
+      status: 404,
+    });
+    nockPlatformProjectPage({
+      pageId: pageStructureAboutFixture.id,
+      body: pageStructureAboutFixture as unknown as StrictProjectPageStructure,
+    });
+    nockProjectComponentsSources(pages);
+
+    await createBuildJob({ id: '1', name: 'create-build-job', data: {} });
+
+    expect(
+      readdirSync(path.join(temporaryApplicationBuildFolderRootPath, 'pages'), {
+        recursive: true,
+      }),
+    ).toIncludeSameMembers(['index.jsx', 'about-company', 'about-company/index.jsx']);
+
+    expect(
+      readFileSync(
+        path.join(temporaryApplicationBuildFolderRootPath, 'application', 'application.jsx'),
+        'utf-8',
+      ),
+    ).toIncludeMultiple([
+      '<Route exact path="/" element={<Main />} />',
+      '<Route exact path="/about-company" element={<AboutCompany />} />',
+    ]);
+
+    await expectSuccessfulBuild();
   });
 });
 
 function nockProjectEnvironment(pages: StrictProjectPageStructure[]) {
+  nockPlatformProjects();
+  nockPlatformProjectPages({
+    projectSysName: projectT1CloudFixture.sysName,
+    body: { pages },
+  });
+  nockPlatformDesignSystem(projectT1CloudFixture.settings.designSystemId);
+}
+
+function nockProjectPages(pages: StrictProjectPageStructure[]) {
+  for (const page of pages) {
+    nockPlatformProjectPage({ pageId: page.id, body: page });
+  }
+}
+
+function nockProjectComponentsSources(pages: StrictProjectPageStructure[]) {
   const components = uniqBy(
     [
       ...pages.reduce<ComponentLike[]>(
@@ -115,21 +166,18 @@ function nockProjectEnvironment(pages: StrictProjectPageStructure[]) {
     'name',
   );
 
-  nockPlatformProjects();
-  nockPlatformProjectPages({
-    projectSysName: projectT1CloudFixture.sysName,
-    body: { pages },
-  });
-  nockPlatformDesignSystem(projectT1CloudFixture.settings.designSystemId);
-
-  for (const page of pages) {
-    nockPlatformProjectPage({ pageId: page.id, body: page });
-  }
-
   for (const component of components) {
     nockPlatformComponentSource({
       component,
       designSystemId: projectT1CloudFixture.settings.designSystemId,
     });
   }
+}
+
+async function expectSuccessfulBuild() {
+  const builds = await Build.findAll();
+
+  expect(builds.length).toEqual(1);
+  expect(builds[0].status).toEqual(Status.success);
+  expect(builds[0].stage).toEqual(Stage.commit);
 }
