@@ -26,8 +26,8 @@ import { Stage, Status } from '../../../types';
 import { seedPage } from '../../../tests/seeds/page.seed';
 
 describe('updatePageJob', () => {
-  beforeEach(async () => {
-    await copyPrebuildProjectFixture();
+  beforeEach(() => {
+    copyPrebuildProjectFixture();
   });
 
   it('updates existing page', async () => {

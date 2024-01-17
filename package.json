@@ -19,7 +19,7 @@
     "type-check": "tsc --noEmit --noUnusedLocals --noUnusedParameters",
     "type-coverage": "type-coverage --strict --at-least 97",
     "unused-exports": "ts-prune",
-    "test": "STAGE=test jest --coverage --detectOpenHandles --maxWorkers=80%"
+    "test": "STAGE=test jest --coverage --verbose --runInBand"
   },
   "author": "Dmitry Spiridonov",
   "license": "UNLICENSED",

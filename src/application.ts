@@ -3,11 +3,11 @@ import fastify, { errorCodes, FastifyError, FastifyReply, FastifyRequest } from 
 import { fastifyAutoload } from '@fastify/autoload';
 
 import { host, port } from './config';
-import { initializeJobs, pgQueue } from './services/enqueueJob.service';
 import { sequelize } from './lib/sequelize';
 import { initializeOpentelemetry } from './lib/opentelemetry';
 import { logger } from './lib/logger';
-import { ensureBuildExistOrEnqueueJob } from './services/application.service';
+import { initializeJobs, pgQueue } from './services/enqueueJob.service';
+import { ensureApplicationIsReadyToLaunch } from './services/application/application.service';
 
 export const application = fastify({
   logger: true,
@@ -37,7 +37,7 @@ export async function runApplication() {
     await pgQueue.start();
 
     await initializeJobs();
-    await ensureBuildExistOrEnqueueJob();
+    await ensureApplicationIsReadyToLaunch();
 
     await application.register(require('@fastify/swagger'), {
       mode: 'static',
@@ -94,4 +94,10 @@ process.on('uncaughtException', (error) => {
 process.on('unhandledRejection', (error) => {
   logger.fatal(error);
   process.exit(1);
+});
+
+process.on('beforeExit', async () => {
+  await sequelize.close();
+  await pgQueue.stop({ graceful: true });
+  process.exit(0);
 });

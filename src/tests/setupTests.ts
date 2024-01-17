@@ -4,6 +4,7 @@ import 'jest-extended';
 
 import { Build, Page } from '../models';
 import { sequelize } from '../lib/sequelize';
+import { pgQueue } from '../services/enqueueJob.service';
 import { application, runTestApplication } from '../application';
 import { cleanupOutputFolder } from './helpers';
 
@@ -21,13 +22,9 @@ beforeEach(() => {
 
 afterEach(async () => {
   expect(nock.pendingMocks()).toEqual([]);
-
-  await Build.truncate();
-  await Page.truncate();
-  await cleanupOutputFolder();
+  await Promise.all([Build.truncate(), Page.truncate(), cleanupOutputFolder()]);
 });
 
 afterAll(async () => {
-  await application.close();
-  await sequelize.close();
+  await Promise.all([application.close(), sequelize.close(), pgQueue.stop({ graceful: true })]);
 });

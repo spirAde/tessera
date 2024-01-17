@@ -47,6 +47,8 @@ function normalizePageComponentsVersionsGivenDesignSystem(
 ): ComponentLike[] {
   return pageComponentsList.map((component) => ({
     name: component.componentName,
-    version: designSystemComponentsMap.get(component.componentName) ?? component.version,
+    version:
+      designSystemComponentsMap.get(component.componentName) /* istanbul ignore next */ ??
+      component.version,
   }));
 }

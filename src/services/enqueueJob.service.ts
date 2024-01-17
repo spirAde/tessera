@@ -1,9 +1,8 @@
 /* istanbul ignore file */
 
-import PgBoss, { SendOptions, WorkHandler } from 'pg-boss';
-import { pathExists } from 'fs-extra';
+import PgBoss, { JobWithMetadata, SendOptions, WorkHandler } from 'pg-boss';
 
-import { persistentApplicationExportFolderRootPath, pgConnectionString } from '../config';
+import { pgConnectionString } from '../config';
 import { createBuildJob } from '../jobs/build/createBuild.job';
 import { createPageJob } from '../jobs/page/creation/createPage.job';
 import { updatePageJob } from '../jobs/page/updating/updatePage.job';
@@ -23,9 +22,12 @@ const jobs = {
   [JobName.deletePage]: deletePageJob,
 };
 
-export const pgQueue = new PgBoss(pgConnectionString);
+export const pgQueue = new PgBoss({
+  connectionString: pgConnectionString,
+  onComplete: true,
+});
 
-export async function enqueue(jobName: JobName, args: any = {}, options: SendOptions = {}) {
+export function enqueue(jobName: JobName, args: any = {}, options: SendOptions = {}) {
   const jobFunction = getJobFunction(jobName);
 
   if (!jobFunction) {
@@ -37,12 +39,9 @@ export async function enqueue(jobName: JobName, args: any = {}, options: SendOpt
 
 export async function initializeJobs() {
   await runJob(JobName.createBuild);
-
-  if (await shouldRunPageJobs()) {
-    await runJob(JobName.createPage);
-    await runJob(JobName.updatePage);
-    await runJob(JobName.deletePage);
-  }
+  await runJob(JobName.createPage);
+  await runJob(JobName.updatePage);
+  await runJob(JobName.deletePage);
 }
 
 export async function runJob(jobName: JobName) {
@@ -77,9 +76,14 @@ export function getJobFunction(jobName: JobName) {
   return jobs[jobName] as WorkHandler<object>;
 }
 
-async function shouldRunPageJobs() {
-  return (
-    (await pathExists(persistentApplicationExportFolderRootPath)) &&
-    (await pgQueue.getQueueSize(JobName.createBuild)) === 0
+export async function waitJobCompletion(jobName: JobName) {
+  return new Promise((resolve) =>
+    pgQueue.onComplete(jobName, (job: JobWithMetadata) => {
+      void (isJobCompletedSuccessfully(job) && pgQueue.offComplete(jobName).then(resolve));
+    }),
   );
+}
+
+function isJobCompletedSuccessfully(job: JobWithMetadata) {
+  return 'state' in job.data && job.data.state === 'completed';
 }

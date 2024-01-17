@@ -18,8 +18,8 @@ import { Stage, Status } from '../../../types';
 import { nockPlatformProjects } from '../../../tests/nocks/platform.nock';
 
 describe('deletePageJob', () => {
-  beforeEach(async () => {
-    await copyPrebuildProjectFixture();
+  beforeEach(() => {
+    copyPrebuildProjectFixture();
   });
 
   it('deletes page', async () => {

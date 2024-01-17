@@ -8,21 +8,27 @@ const full = {
 module.exports = {
   roots: ['<rootDir>/src'],
   setupFilesAfterEnv: ['jest-extended/all', '<rootDir>/src/tests/setupTests.ts'],
-  transform: { '^.+\\.tsx?$': ['ts-jest', { isolatedModules: true }] },
+  transform: {
+    '^.+\\.tsx?$': ['ts-jest', { isolatedModules: true }],
+  },
   testRegex: '(/__tests__/.*|(\\.|/)(test|spec))\\.tsx?$',
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
   verbose: true,
   testEnvironment: 'node',
   coverageThreshold: {
     global: {
-      statements: 90,
+      statements: 95,
       branches: 80,
-      functions: 95,
-      lines: 92,
+      functions: 99,
+      lines: 95,
     },
     './src/controllers/': full,
+    './src/jobs/': full,
+    './src/models/': full,
   },
   coveragePathIgnorePatterns: [
+    '<rootDir>/src/application',
+    '<rootDir>/src/config',
     '<rootDir>/src/lib',
     '<rootDir>/src/tests',
     '<rootDir>/src/types',

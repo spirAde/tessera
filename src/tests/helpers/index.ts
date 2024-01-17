@@ -1,4 +1,4 @@
-import { copy, remove } from 'fs-extra';
+import { copySync, remove } from 'fs-extra';
 import { readFileSync } from 'fs';
 import path from 'path';
 import crypto from 'crypto';
@@ -48,8 +48,8 @@ function getExpectToMatchObjectFn(actual: any, expected: any) {
   return expect(actual).toMatchObject(expected);
 }
 
-export async function copyPrebuildProjectFixture() {
-  await copy(path.join(rootFolderPath, 'src/tests/fixtures/prebuild'), outputFolderPath);
+export function copyPrebuildProjectFixture() {
+  copySync(path.join(rootFolderPath, 'src/tests/fixtures/prebuild'), outputFolderPath);
 }
 
 export async function cleanupOutputFolder() {

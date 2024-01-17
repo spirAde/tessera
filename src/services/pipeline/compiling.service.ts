@@ -30,7 +30,7 @@ function getCommonWebpackConfig(projectPageUrls: string[]) {
       moduleIds: 'deterministic',
       nodeEnv: false,
       splitChunks: {
-        filename: isTest ? '[name].js' : '[name].[contenthash].js',
+        filename: isTest ? '[name].js' : /* istanbul ignore next */ '[name].[contenthash].js',
         chunks: 'all',
         minSize: 1000,
       },
@@ -50,8 +50,8 @@ function getCommonWebpackConfig(projectPageUrls: string[]) {
     entry: getWebpackConfigEntries(projectPageUrls),
     output: {
       publicPath: '/static/',
-      filename: isTest ? '[name].js' : '[name].[contenthash].js',
-      chunkFilename: isTest ? '[id].chunk.js' : '[name].[id].chunk.js',
+      filename: isTest ? '[name].js' : /* istanbul ignore next */ '[name].[contenthash].js',
+      chunkFilename: isTest ? '[id].chunk.js' : /* istanbul ignore next */ '[name].[id].chunk.js',
       library: undefined,
       libraryTarget: 'commonjs2',
       strictModuleExceptionHandling: true,

@@ -60,17 +60,6 @@ export function getCurrentBuild() {
   });
 }
 
-function createBuildPipelineContext(context: Partial<BuildPipelineContext> & { build: Build }) {
-  return {
-    project: null,
-    projectPages: [],
-    designSystemComponentsList: [],
-    componentsRequiringBundles: [],
-    clientEmittedAssets: [],
-    ...context,
-  };
-}
-
 export async function runProjectBuild() {
   const readyToRunProjectBuild = await createBuild({
     status: Status.progress,
@@ -205,14 +194,12 @@ async function runProjectPageGenerating(page: Page, context: BuildPipelineContex
 async function runPreparingStage(context: BuildPipelineContext) {
   logger.debug(`build pipeline stage = preparing`);
 
-  assertPreparingStageIsReadyToRun(context);
-
   await updateBuild(context.build, {
     stage: Stage.preparing,
   });
 
   await collectMissedComponents({
-    project: context.project,
+    project: context.project!,
     missedComponents: context.componentsRequiringBundles,
     foundationKitComponent: context.designSystemComponentsList.find(
       (component) => component.name === 'foundation-kit',
@@ -242,8 +229,6 @@ async function runCompilationStage({ build }: BuildPipelineContext) {
 async function runExportStage(context: BuildPipelineContext) {
   logger.debug(`build pipeline stage = export`);
 
-  assertExportStageIsReadyToRun(context);
-
   await updateBuild(context.build, {
     stage: Stage.export,
   });
@@ -258,7 +243,7 @@ async function runExportStage(context: BuildPipelineContext) {
   });
 
   await exportPages(
-    context.project,
+    context.project!,
     readyToExportPages.map(({ url }) => url),
   );
   await exportClientStaticFiles();
@@ -275,30 +260,13 @@ async function runCommitStage(context: BuildPipelineContext) {
   await commit();
 }
 
-function assertPreparingStageIsReadyToRun(
-  context: BuildPipelineContext,
-): asserts context is BuildPipelineContext & {
-  project: Project;
-} {
-  if (!context.project) {
-    throw new Error('project build has no project data');
-  }
-
-  const foundationKitComponentLike = context.designSystemComponentsList.find(
-    (component) => component.name === 'foundation-kit',
-  );
-
-  if (!foundationKitComponentLike) {
-    throw new Error('foundation-kit is missing in the design system components');
-  }
-}
-
-function assertExportStageIsReadyToRun(
-  context: BuildPipelineContext,
-): asserts context is BuildPipelineContext & {
-  project: Project;
-} {
-  if (!context.project) {
-    throw new Error('project build has no project data');
-  }
+function createBuildPipelineContext(context: Partial<BuildPipelineContext> & { build: Build }) {
+  return {
+    project: null,
+    projectPages: [],
+    designSystemComponentsList: [],
+    componentsRequiringBundles: [],
+    clientEmittedAssets: [],
+    ...context,
+  };
 }

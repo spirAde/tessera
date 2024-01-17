@@ -50,10 +50,6 @@ export async function runFetchingStage() {
     project.settings.designSystemId,
   );
 
-  if (!designSystemComponentsList.some(({ name }) => name === 'foundation-kit')) {
-    throw new Error('design system components has no foundation kit');
-  }
-
   return {
     project,
     designSystemComponentsList,
