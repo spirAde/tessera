@@ -14,7 +14,7 @@
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "allowJs": true,
-    "checkJs": false
+    "checkJs": false,
   },
-  "include": ["src/**/*.ts", "src/index.d.ts", "src/types/*.js", "src/openapi.json"]
+  "include": ["src/**/*.ts", "src/index.d.ts", "src/types/*.js", "src/openapi.json"],
 }

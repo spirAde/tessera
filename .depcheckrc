@@ -1,23 +1,10 @@
 {
   "ignores": [
     "--type-ignores--",
-    "@types/node",
     "@types/jest",
+    "babel-loader",
+    "thread-loader",
     "--unused-ignores--",
     "pg-hstore",
-    "--unused-dev-ignores--",
-    "depcheck",
-    "husky",
-    "ts-node",
-    "typescript",
-    "--local-file-ignores--",
-    "config",
-    "controllers",
-    "lib",
-    "models",
-    "sdk",
-    "services",
-    "tests",
-    "jobs"
   ]
 }
