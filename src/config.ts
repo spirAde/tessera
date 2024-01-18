@@ -21,7 +21,7 @@ export const projectSysName = 'T1Cloud';
 export const rootFolderPath = process.cwd();
 export const outputFolderPath = path.join(rootFolderPath, 'output');
 
-export const temporaryApplicationFolderRootPath = path.join(outputFolderPath, 'temporary');
+const temporaryApplicationFolderRootPath = path.join(outputFolderPath, 'temporary');
 export const temporaryApplicationBuildFolderRootPath = path.join(
   temporaryApplicationFolderRootPath,
   'build',
@@ -31,7 +31,7 @@ export const temporaryApplicationExportFolderRootPath = path.join(
   'export',
 );
 
-export const persistentApplicationFolderRootPath = path.join(outputFolderPath, 'persistent');
+const persistentApplicationFolderRootPath = path.join(outputFolderPath, 'persistent');
 export const persistentApplicationBuildFolderRootPath = path.join(
   persistentApplicationFolderRootPath,
   'build',
@@ -40,9 +40,5 @@ export const persistentApplicationExportFolderRootPath = path.join(
   persistentApplicationFolderRootPath,
   'export',
 );
-
-export const snapshotsFolderRootPath = path.join(outputFolderPath, 'snapshots');
-
-export const snapshotManifestFileName = 'snapshot-manifest.json';
 
 export const applicationTemplateFolderPath = path.join(rootFolderPath, 'src/templates/application');

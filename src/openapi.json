@@ -14,9 +14,7 @@
           }
         },
         "operationId": "post--builds",
-        "tags": [
-          "tessera"
-        ]
+        "tags": ["tessera"]
       }
     },
     "/pages": {
@@ -38,9 +36,7 @@
           }
         },
         "operationId": "delete--pages",
-        "tags": [
-          "tessera"
-        ]
+        "tags": ["tessera"]
       },
       "post": {
         "summary": "POST /pages",
@@ -60,9 +56,7 @@
           }
         },
         "operationId": "post--pages",
-        "tags": [
-          "tessera"
-        ]
+        "tags": ["tessera"]
       },
       "put": {
         "summary": "PUT /pages",
@@ -82,9 +76,7 @@
           }
         },
         "operationId": "put--pages",
-        "tags": [
-          "tessera"
-        ]
+        "tags": ["tessera"]
       }
     }
   },
@@ -122,13 +114,7 @@
             ]
           }
         },
-        "required": [
-          "id",
-          "stage",
-          "status",
-          "createdAt",
-          "updatedAt"
-        ],
+        "required": ["id", "stage", "status", "createdAt", "updatedAt"],
         "additionalProperties": false
       },
       "CreateBuildEndpoint": {
@@ -138,9 +124,7 @@
             "$ref": "#/components/schemas/CreateBuildRequest"
           }
         },
-        "required": [
-          "request"
-        ],
+        "required": ["request"],
         "additionalProperties": false
       },
       "CreateBuildRequest": {
@@ -154,9 +138,7 @@
             "$ref": "#/components/schemas/CreatePageRequest"
           }
         },
-        "required": [
-          "request"
-        ],
+        "required": ["request"],
         "additionalProperties": false
       },
       "CreatePageRequest": {
@@ -166,9 +148,7 @@
             "$ref": "#/components/schemas/CreatePageRequestBody"
           }
         },
-        "required": [
-          "body"
-        ]
+        "required": ["body"]
       },
       "CreatePageRequestBody": {
         "type": "object",
@@ -180,10 +160,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "id",
-          "url"
-        ],
+        "required": ["id", "url"],
         "additionalProperties": false
       },
       "DeletePageEndpoint": {
@@ -193,9 +170,7 @@
             "$ref": "#/components/schemas/DeletePageRequest"
           }
         },
-        "required": [
-          "request"
-        ],
+        "required": ["request"],
         "additionalProperties": false
       },
       "DeletePageRequest": {
@@ -205,9 +180,7 @@
             "$ref": "#/components/schemas/DeletePageRequestBody"
           }
         },
-        "required": [
-          "body"
-        ]
+        "required": ["body"]
       },
       "DeletePageRequestBody": {
         "type": "object",
@@ -216,9 +189,7 @@
             "type": "integer"
           }
         },
-        "required": [
-          "id"
-        ],
+        "required": ["id"],
         "additionalProperties": false
       },
       "Page": {
@@ -289,11 +260,7 @@
       },
       "Status": {
         "type": "string",
-        "enum": [
-          "progress",
-          "failed",
-          "success"
-        ]
+        "enum": ["progress", "failed", "success"]
       },
       "TesseraHttp": {
         "type": "string",
@@ -311,9 +278,7 @@
             "$ref": "#/components/schemas/UpdatePageRequest"
           }
         },
-        "required": [
-          "request"
-        ],
+        "required": ["request"],
         "additionalProperties": false
       },
       "UpdatePageRequest": {
@@ -323,9 +288,7 @@
             "$ref": "#/components/schemas/UpdatePageRequestBody"
           }
         },
-        "required": [
-          "body"
-        ]
+        "required": ["body"]
       },
       "UpdatePageRequestBody": {
         "type": "object",
@@ -334,9 +297,7 @@
             "type": "integer"
           }
         },
-        "required": [
-          "id"
-        ],
+        "required": ["id"],
         "additionalProperties": false
       }
     }

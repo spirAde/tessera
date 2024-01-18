@@ -31,21 +31,13 @@ import { commit } from '../pipeline/commit.service';
 
 type BuildUpdate = Partial<BuildAttributes>;
 
-export interface BuildPipelineContext {
+interface BuildPipelineContext {
   build: Build;
   project: Project | null;
   projectPages: ProjectPage[];
   designSystemComponentsList: ComponentLike[];
   componentsRequiringBundles: ComponentLike[];
   clientEmittedAssets: string[];
-}
-
-export function createBuild(values: BuildAttributesNew) {
-  return Build.create(values);
-}
-
-export function updateBuild(build: Build, values: BuildUpdate) {
-  return build.update(values);
 }
 
 export function getCurrentBuild() {
@@ -132,12 +124,12 @@ async function runFetchingStage({ build }: BuildPipelineContext) {
 async function runGeneratingStage(context: BuildPipelineContext) {
   logger.debug(`build pipeline stage = generating`);
 
+  const componentsRequiringBundles = [];
+  const generatedPages = [];
+
   await updateBuild(context.build, {
     stage: Stage.generating,
   });
-
-  const componentsRequiringBundles = [];
-  const generatedPages = [];
 
   for (const projectPage of context.projectPages) {
     logger.debug(
@@ -176,12 +168,20 @@ async function runGeneratingStage(context: BuildPipelineContext) {
 }
 
 async function runProjectPageGenerating(page: Page, context: BuildPipelineContext) {
+  await updatePage(page, {
+    stage: Stage.fetching,
+  });
+
   const pageStructure = await getProjectPageStructure(page.externalId);
 
   const { pageComponentsList } = await parseProjectPage(
     pageStructure,
     convertToMap(context.designSystemComponentsList),
   );
+
+  await updatePage(page, {
+    stage: Stage.generating,
+  });
 
   const { pageFilePath, pageComponentName } = await createApplicationPageFile(
     pageStructure,
@@ -214,14 +214,18 @@ async function runCompilationStage({ build }: BuildPipelineContext) {
     stage: Stage.compilation,
   });
 
-  const readyToCompilationPages = await Page.findAll({
-    where: {
-      buildId: build.id,
-      status: {
-        [Op.ne]: Status.failed,
+  const [_, readyToCompilationPages] = await Page.update(
+    { stage: Stage.compilation },
+    {
+      where: {
+        buildId: build.id,
+        status: {
+          [Op.ne]: Status.failed,
+        },
       },
+      returning: true,
     },
-  });
+  );
 
   return compile(readyToCompilationPages.map(({ url }) => url));
 }
@@ -233,14 +237,18 @@ async function runExportStage(context: BuildPipelineContext) {
     stage: Stage.export,
   });
 
-  const readyToExportPages = await Page.findAll({
-    where: {
-      buildId: context.build.id,
-      status: {
-        [Op.ne]: Status.failed,
+  const [_, readyToExportPages] = await Page.update(
+    { stage: Stage.export },
+    {
+      where: {
+        buildId: context.build.id,
+        status: {
+          [Op.ne]: Status.failed,
+        },
       },
+      returning: true,
     },
-  });
+  );
 
   await exportPages(
     context.project!,
@@ -257,6 +265,18 @@ async function runCommitStage(context: BuildPipelineContext) {
     stage: Stage.commit,
   });
 
+  await Page.update(
+    { stage: Stage.commit },
+    {
+      where: {
+        buildId: context.build.id,
+        status: {
+          [Op.ne]: Status.failed,
+        },
+      },
+    },
+  );
+
   await commit();
 }
 
@@ -269,4 +289,12 @@ function createBuildPipelineContext(context: Partial<BuildPipelineContext> & { b
     clientEmittedAssets: [],
     ...context,
   };
+}
+
+function createBuild(values: BuildAttributesNew) {
+  return Build.create(values);
+}
+
+function updateBuild(build: Build, values: BuildUpdate) {
+  return build.update(values);
 }

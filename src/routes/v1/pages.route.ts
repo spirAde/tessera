@@ -4,6 +4,7 @@ import fp from 'fastify-plugin';
 import { create, update, remove } from '../../controllers/pages/pages.controller';
 import { schemas } from '../../types';
 
+// ts-prune-ignore-next
 export default fp(async (application: FastifyInstance) => {
   application.post(
     '/api/v1/pages',

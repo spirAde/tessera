@@ -1,0 +1,4 @@
+output
+src/tests/fixtures
+src/types/*.js
+jest.config.js

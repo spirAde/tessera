@@ -1,9 +1,6 @@
 import { stripIndent } from 'common-tags';
-import { _pageTemplateContent } from './page.template';
-import { Routes } from 'react-router-dom';
-import React from 'react';
 
-export const _applicationTemplateContent = `
+const _applicationTemplateContent = `
   import 'regenerator-runtime/runtime';
   import React from 'react';
   import { Route, Routes } from 'react-router-dom';

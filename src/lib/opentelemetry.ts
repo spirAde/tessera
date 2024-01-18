@@ -1,6 +1,6 @@
 /* istanbul ignore file */
 
-import { context as otlContext, createContextKey, SpanStatusCode, trace } from '@opentelemetry/api';
+import { context as otlContext, SpanStatusCode, trace } from '@opentelemetry/api';
 import type {
   Exception,
   Context as OtlContext,
@@ -33,12 +33,8 @@ interface OpentelemetryOptions {
   resource?: Resource;
 }
 
-export let tracer: Tracer;
-export let provider: NodeTracerProvider;
-
-export const otlContextAttributes = {
-  requestId: createContextKey('requestId'),
-};
+let tracer: Tracer;
+let provider: NodeTracerProvider;
 
 export function initializeOpentelemetry(config: {
   name: string;
@@ -63,7 +59,7 @@ export function initializeOpentelemetry(config: {
         '@opentelemetry/instrumentation-dns': { enabled: false },
         '@opentelemetry/instrumentation-net': { enabled: false },
         '@opentelemetry/instrumentation-pino': {
-          logHook: (span, record, level) => {
+          logHook: (_, record) => {
             record['resource.service.name'] = provider.resource.attributes['service.name'];
           },
         },
@@ -160,19 +156,6 @@ function createSpanProcessor(endpoint: string | undefined) {
       url: endpoint,
     }),
   );
-}
-
-async function forceFlushTraces() {
-  try {
-    await provider.forceFlush();
-  } catch (e) {
-    logger.error({
-      message: 'Failed to export logs to the OTEL Collector',
-      data: {
-        requestId: otlContext.active().getValue(otlContextAttributes.requestId),
-      },
-    });
-  }
 }
 
 function createResource(config: {

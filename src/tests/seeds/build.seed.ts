@@ -1,5 +1,4 @@
 import { Build, BuildAttributes } from '../../models';
-import { Stage, Status } from '../../types';
 
 export function seedBuild(overrides: Partial<BuildAttributes> = {}) {
   const defaults = {

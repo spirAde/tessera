@@ -56,7 +56,7 @@ export async function runPageDeletingPipeline(page: Page) {
   logger.debug(`page deleting pipeline is successfully finished`);
 }
 
-export async function runFetchingStage() {
+async function runFetchingStage() {
   logger.debug('page fetching stage');
 
   const project = await getProject();

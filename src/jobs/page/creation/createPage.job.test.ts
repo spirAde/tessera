@@ -1,8 +1,13 @@
 import { readdirSync } from 'fs-extra';
 import path from 'path';
 
-import { copyPrebuildProjectFixture } from '../../../tests/helpers';
+import { Stage, Status } from '../../../types';
 import { createPageJob } from './createPage.job';
+import {
+  persistentApplicationExportFolderRootPath,
+  temporaryApplicationBuildFolderRootPath,
+} from '../../../config';
+import { copyPrebuildProjectFixture } from '../../../tests/helpers';
 import {
   nockPlatformComponentSource,
   nockPlatformDesignSystem,
@@ -17,13 +22,8 @@ import {
   pageStructureServiceFixture,
 } from '../../../tests/fixtures/pageStructure.fixture';
 import { StrictProjectPageStructure } from '../../../sdk/platform.sdk';
-import {
-  persistentApplicationExportFolderRootPath,
-  temporaryApplicationBuildFolderRootPath,
-} from '../../../config';
 import { seedBuild } from '../../../tests/seeds/build.seed';
 import { seedPage } from '../../../tests/seeds/page.seed';
-import { Stage, Status } from '../../../types';
 
 describe('createPageJob', () => {
   beforeEach(() => {

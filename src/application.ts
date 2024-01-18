@@ -42,7 +42,7 @@ export async function runApplication() {
     await application.register(require('@fastify/swagger'), {
       mode: 'static',
       specification: {
-        path: './etc/openapi.json',
+        path: './openapi.json',
       },
     });
     await application.register(require('@fastify/swagger-ui'));
@@ -97,6 +97,7 @@ process.on('unhandledRejection', (error) => {
 });
 
 process.on('beforeExit', async () => {
+  await application.close();
   await sequelize.close();
   await pgQueue.stop({ graceful: true });
   process.exit(0);

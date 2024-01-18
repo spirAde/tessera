@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+npm run depcheck &&
 npm run unused-exports &&
 npm run type-check &&
 npm run lint &&

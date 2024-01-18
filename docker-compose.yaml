@@ -1,4 +1,4 @@
-version: "3.4"
+version: '3.4'
 
 networks:
   tessera-bridge:
@@ -9,9 +9,9 @@ services:
     image: postgres:12.3
     restart: always
     ports:
-      - "5432:5432"
+      - '5432:5432'
     expose:
-      - "5432"
+      - '5432'
     environment:
       - POSTGRES_USER=$PG_USER
       - POSTGRES_PASSWORD=$PG_PASSWORD

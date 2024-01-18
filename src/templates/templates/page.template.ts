@@ -1,6 +1,6 @@
 import { stripIndent } from 'common-tags';
 
-export const _pageTemplateContent = `
+const _pageTemplateContent = `
   import 'regenerator-runtime/runtime';
   import React, { useContext } from 'react';
 
@@ -21,7 +21,6 @@ export const _pageTemplateContent = `
 
 export function getApplicationPageFileContent({
   imports,
-  loadableComponents,
   pageName,
   pageContent,
   pageFooter,
@@ -30,7 +29,6 @@ export function getApplicationPageFileContent({
   businessTheme,
 }: {
   imports: string;
-  loadableComponents: string;
   pageName: string;
   pageContent: string;
   pageFooter: string;

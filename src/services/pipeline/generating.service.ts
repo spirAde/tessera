@@ -45,7 +45,6 @@ export async function createApplicationPageFile(
     pageContent: componentsTree,
     pageFooter: JSON.stringify({}),
     imports: componentsImports,
-    loadableComponents: '',
     businessTheme: "'main'",
     colorTheme: "'light'",
   });

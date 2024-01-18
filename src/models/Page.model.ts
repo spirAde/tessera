@@ -1,15 +1,4 @@
-import {
-  Association,
-  DataTypes,
-  Model,
-  BelongsToGetAssociationMixin,
-  BelongsToMany,
-  InferAttributes,
-  InferCreationAttributes,
-  CreationOptional,
-  ForeignKey,
-  Optional,
-} from 'sequelize';
+import { DataTypes, Model, BelongsToGetAssociationMixin, Optional } from 'sequelize';
 
 import { sequelize } from '../lib/sequelize';
 import { Build } from './Build.model';

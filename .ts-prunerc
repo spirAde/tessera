@@ -1,5 +1,5 @@
 {
   "error": true,
-  "ignore": "src/tests",
+  "ignore": "src/(tests|types)",
   "skip": ".*test.ts"
 }
