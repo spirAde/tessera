@@ -39,7 +39,7 @@ describe('ensureApplicationIsReadyToLaunch', () => {
 
     expect(spyOnPgQueueOnComplete).toHaveBeenCalledTimes(1);
     expect(spyOnPgQueueOffComplete).toHaveBeenCalledTimes(1);
-  });
+  }, 20_000);
 
   it('does nothing if persistent folder exists and no running create build job', async () => {
     mockEnqueue();

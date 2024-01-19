@@ -24,7 +24,7 @@ export async function compile(projectPageUrls: string[]) {
 
 function getCommonWebpackConfig(projectPageUrls: string[]) {
   return {
-    parallelism: undefined,
+    parallelism: 2,
     optimization: {
       emitOnErrors: true,
       moduleIds: 'deterministic',
@@ -76,7 +76,15 @@ function getCommonWebpackConfig(projectPageUrls: string[]) {
         {
           test: /\.(jsx)$/,
           exclude: /node_modules/,
-          use: ['thread-loader', 'babel-loader'],
+          use: [
+            'thread-loader',
+            {
+              loader: 'babel-loader',
+              options: {
+                cacheDirectory: true,
+              },
+            },
+          ],
         },
       ],
     },
@@ -91,10 +99,16 @@ function getCommonWebpackConfig(projectPageUrls: string[]) {
         cleanAfterEveryBuildPatterns: ['*.LICENSE.txt'],
       }),
     ],
-    experiments: { layers: true, cacheUnaffected: true, buildHttp: undefined },
+    experiments: { layers: true, cacheUnaffected: true },
     snapshot: { managedPaths: [/^(.+?[\\/]node_modules[\\/])/] },
     mode: 'production',
     devtool: false,
+    externals: {
+      react: 'React',
+      'react-dom': 'ReactDOM',
+      'react-router-dom': 'ReactRouterDOM',
+      'styled-components': 'StyledComponents',
+    },
   } as Configuration;
 }
 
@@ -142,13 +156,18 @@ function getClientWebpackConfig(config: Configuration) {
 
 // TODO: redo
 function getWebpackConfigEntries(projectPageUrls: string[]) {
-  return projectPageUrls.reduce((entries, pageUrl) => {
-    const key = pageUrl === '/' ? `pages/index` : `pages/${unslashPageUrl(pageUrl)}`;
-    const value =
-      pageUrl === '/' ? `./pages/index.jsx` : `./pages/${unslashPageUrl(pageUrl)}/index.jsx`;
+  return projectPageUrls.reduce(
+    (entries, pageUrl) => ({ ...entries, [getEntryName(pageUrl)]: getEntryFile(pageUrl) }),
+    {},
+  );
+}
 
-    return { ...entries, [key]: value };
-  }, {});
+function getEntryName(pageUrl: string) {
+  return pageUrl === '/' ? `pages/index` : `pages/${unslashPageUrl(pageUrl)}`;
+}
+
+function getEntryFile(pageUrl: string) {
+  return pageUrl === '/' ? `./pages/index.jsx` : `./pages/${unslashPageUrl(pageUrl)}/index.jsx`;
 }
 
 function unslashPageUrl(str: string) {

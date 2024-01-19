@@ -2,7 +2,7 @@ dist
 data
 node_modules
 .idea
-temp
+output
 coverage
 .env
 .DS_Store
