@@ -39,7 +39,7 @@ describe('createBuildJob', () => {
     expect(readdirSync(outputFolderPath)).toIncludeSameMembers(['temporary', 'persistent']);
 
     expect(readdirSync(temporaryApplicationBuildFolderRootPath)).toIncludeSameMembers([
-      '.babelrc',
+      '.babelrc.js',
       'build',
       'application',
       'cache',

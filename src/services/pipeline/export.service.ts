@@ -86,17 +86,10 @@ async function exportPage({
     ),
   );
   const html = renderToString(jsx);
-
-  const pageFolderPath = getPageFolderPathFromUrl(projectPageUrl);
-  const absolutePageFolderPath = path.join(
-    temporaryApplicationExportFolderRootPath,
-    'pages',
-    pageFolderPath,
-  );
-  const absolutePageFilePath = path.join(absolutePageFolderPath, 'index.html');
+  const pageFilePath = getPageFilePath(projectPageUrl);
 
   await outputFile(
-    absolutePageFilePath,
+    pageFilePath,
     minify(
       `
       <!doctype html>
@@ -126,4 +119,9 @@ async function exportPage({
       },
     ),
   );
+}
+
+function getPageFilePath(url: string) {
+  const pageFolderPath = getPageFolderPathFromUrl(url);
+  return path.join(temporaryApplicationExportFolderRootPath, 'pages', pageFolderPath, 'index.html');
 }

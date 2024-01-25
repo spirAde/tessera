@@ -20,8 +20,9 @@ import {
   runPageAdvisoryUnlock,
   cancelLinearPageProcessing,
 } from '../page.service';
-import { Status } from '../../../types';
+import { Stage, Status } from '../../../types';
 import { commit } from '../../pipeline/commit.service';
+import { Op } from 'sequelize';
 
 export async function runPageUpdating(page: Page) {
   try {
@@ -70,6 +71,10 @@ async function runGeneratingStage({
 }: PagePipelineContext) {
   logger.debug('page generating stage');
 
+  await updatePage(workInProgressPage, {
+    stage: Stage.generating,
+  });
+
   const pageStructure = await getProjectPageStructure(workInProgressPage.externalId);
 
   const { pageComponentsList } = await parseProjectPage(
@@ -87,11 +92,35 @@ async function runGeneratingStage({
 async function runCompilationStage({ projectPages, workInProgressPage }: PagePipelineContext) {
   logger.debug('page compilation stage');
 
+  await Page.update(
+    { stage: Stage.compilation },
+    {
+      where: {
+        id: [...projectPages.map(({ id }) => id), workInProgressPage.id],
+        status: {
+          [Op.ne]: Status.failed,
+        },
+      },
+    },
+  );
+
   return compile([...projectPages.map(({ url }) => url), workInProgressPage.url]);
 }
 
 async function runExportStage({ project, projectPages, workInProgressPage }: PagePipelineContext) {
   logger.debug('page export stage');
+
+  await Page.update(
+    { stage: Stage.export },
+    {
+      where: {
+        id: [...projectPages.map(({ id }) => id), workInProgressPage.id],
+        status: {
+          [Op.ne]: Status.failed,
+        },
+      },
+    },
+  );
 
   await exportPages(project!, [...projectPages.map((page) => page.url), workInProgressPage.url]);
   await exportClientStaticFiles();

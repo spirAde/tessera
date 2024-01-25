@@ -1,9 +1,10 @@
-import { Page, PageAttributesNew, PageAttributes } from '../../models';
+import { Page, PageAttributes, PageAttributesNew } from '../../models';
 import { ComponentLike, Project } from '../../sdk/platform.sdk';
 import { advisoryLock, advisoryUnlock } from '../../lib/lock';
 import { logger } from '../../lib/logger';
 import { getDesignSystemComponentsList, getProject } from '../pipeline/fetching.service';
 import { collectMissedComponents } from '../pipeline/preparing.service';
+import { Stage } from '../../types';
 
 type PageUpdate = Partial<PageAttributes>;
 
@@ -42,8 +43,12 @@ export function createPagePipelineContext(
   };
 }
 
-export async function runFetchingStage() {
+export async function runFetchingStage({ workInProgressPage }: PagePipelineContext) {
   logger.debug('page fetching stage');
+
+  await updatePage(workInProgressPage, {
+    stage: Stage.fetching,
+  });
 
   const project = await getProject();
   const designSystemComponentsList = await getDesignSystemComponentsList(
@@ -58,10 +63,15 @@ export async function runFetchingStage() {
 
 export async function runPreparingStage({
   project,
+  workInProgressPage,
   componentsRequiringBundles,
   designSystemComponentsList,
 }: PagePipelineContext) {
   logger.debug(`page preparing stage`);
+
+  await updatePage(workInProgressPage, {
+    stage: Stage.preparing,
+  });
 
   await collectMissedComponents({
     project: project!,

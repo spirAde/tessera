@@ -1,24 +1,34 @@
 const path = require('path');
 const fs = require('fs');
-const express = require('express');
+const fastify = require('fastify')();
 
-const application = express();
-
-application.use('/static', express.static(path.join(__dirname, './static')));
-application.use('/favicon.ico', () => {});
-
-application.get('*', (request, response) => {
-  const filePath = path.join(
-    __dirname,
-    'pages',
-    request.url === '/' ? 'index.html' : `${request.url}/index.html`,
-  );
-
-  response.writeHead(200);
-
-  fs.createReadStream(filePath).pipe(response);
+fastify.register(require('@fastify/static'), {
+  root: path.join(__dirname, './static'),
+  prefix: '/static/',
 });
 
-application.listen(3015, () => {
+fastify.get('*', (request, reply) => {
+  const stream = getFileStream(request.url);
+
+  if (!stream) {
+    return reply.code(400).send();
+  }
+
+  reply.header('Content-Type', 'text/html');
+  return reply.send(stream);
+});
+
+fastify.listen({ port: 3015 }, () => {
   console.log('Running on http://localhost:3015/');
 });
+
+function getFileStream(url) {
+  const indexHTMLFilePath = url === '/' ? 'index.html' : `${url}/index.html`;
+  const pageFilePath = path.join(__dirname, 'pages', indexHTMLFilePath);
+
+  if (!fs.existsSync(pageFilePath)) {
+    return null;
+  }
+
+  return fs.createReadStream(pageFilePath, 'utf8');
+}
