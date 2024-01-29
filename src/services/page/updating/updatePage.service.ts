@@ -126,8 +126,20 @@ async function runExportStage({ project, projectPages, workInProgressPage }: Pag
   await exportClientStaticFiles();
 }
 
-async function runCommitStage() {
+async function runCommitStage({ projectPages, workInProgressPage }: PagePipelineContext) {
   logger.debug(`page commit stage`);
+
+  await Page.update(
+    { stage: Stage.commit },
+    {
+      where: {
+        id: [...projectPages.map(({ id }) => id), workInProgressPage.id],
+        status: {
+          [Op.ne]: Status.failed,
+        },
+      },
+    },
+  );
 
   await commit();
 }

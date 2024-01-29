@@ -1,4 +1,4 @@
-import { readdirSync, existsSync } from 'fs-extra';
+import { readdirSync, existsSync, readFileSync } from 'fs-extra';
 import path from 'path';
 
 import { copyPrebuildProjectFixture } from '../../../tests/helpers';
@@ -57,6 +57,16 @@ describe('deletePageJob', () => {
         pageId: deletingServicePage.id,
       },
     });
+
+    expect(
+      readFileSync(
+        path.join(temporaryApplicationBuildFolderRootPath, 'application', 'application.jsx'),
+        'utf-8',
+      ),
+    ).toIncludeMultiple([
+      '<Route exact path="/" element={<Main />} />',
+      '<Route exact path="/about-company" element={<AboutCompany />} />',
+    ]);
 
     expect(
       readdirSync(path.join(temporaryApplicationBuildFolderRootPath, 'pages'), {

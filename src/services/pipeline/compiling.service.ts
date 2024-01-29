@@ -52,8 +52,6 @@ function getCommonWebpackConfig(projectPageUrls: string[]) {
       publicPath: '/static/',
       filename: isTest ? '[name].js' : /* istanbul ignore next */ '[name].[contenthash].js',
       chunkFilename: isTest ? '[id].chunk.js' : /* istanbul ignore next */ '[name].[id].chunk.js',
-      library: undefined,
-      libraryTarget: 'commonjs2',
       strictModuleExceptionHandling: true,
       clean: false,
     },
@@ -93,22 +91,16 @@ function getCommonWebpackConfig(projectPageUrls: string[]) {
       new DefinePlugin({
         'process.env.NODE_ENV': JSON.stringify('production'),
       }),
-      new CleanWebpackPlugin({
-        cleanStaleWebpackAssets: true,
-        protectWebpackAssets: true,
-        cleanAfterEveryBuildPatterns: ['*.LICENSE.txt'],
-      }),
+      // new CleanWebpackPlugin({
+      //   cleanStaleWebpackAssets: true,
+      //   protectWebpackAssets: true,
+      //   cleanAfterEveryBuildPatterns: ['*.LICENSE.txt'],
+      // }),
     ],
     experiments: { layers: true, cacheUnaffected: true },
     snapshot: { managedPaths: [/^(.+?[\\/]node_modules[\\/])/] },
     mode: 'production',
     devtool: false,
-    externals: {
-      react: 'React',
-      'react-dom': 'ReactDOM',
-      'react-router-dom': 'ReactRouterDOM',
-      'styled-components': 'StyledComponents',
-    },
   } as Configuration;
 }
 
@@ -120,6 +112,7 @@ function getServerWebpackConfig(config: Configuration) {
     },
     output: {
       path: `${temporaryApplicationBuildFolderRootPath}/build/server/`,
+      libraryTarget: 'commonjs',
     },
     cache: {
       type: 'filesystem',
@@ -128,7 +121,7 @@ function getServerWebpackConfig(config: Configuration) {
       compression: false,
       name: 'server-cache',
     },
-    externals: ['@loadable/component', nodeExternals()],
+    externals: ['@loadable/component', 'react-helmet', nodeExternals()],
     name: 'server',
     target: 'node',
   });
@@ -141,6 +134,7 @@ function getClientWebpackConfig(config: Configuration) {
     },
     output: {
       path: `${temporaryApplicationBuildFolderRootPath}/build/client/`,
+      libraryTarget: 'umd',
     },
     cache: {
       type: 'filesystem',
@@ -154,7 +148,6 @@ function getClientWebpackConfig(config: Configuration) {
   });
 }
 
-// TODO: redo
 function getWebpackConfigEntries(projectPageUrls: string[]) {
   return projectPageUrls.reduce(
     (entries, pageUrl) => ({ ...entries, [getEntryName(pageUrl)]: getEntryFile(pageUrl) }),
@@ -180,7 +173,13 @@ function runCompiler(config: Configuration) {
   return new Promise<Set<string>>((resolve, reject) => {
     compiler.run((error, stats) => {
       if (error) {
+        console.log('error', error);
         reject(error);
+      }
+
+      if (stats?.hasErrors()) {
+        console.log('stats error', stats.toJson().errors);
+        reject(stats.toJson().errors);
       }
 
       compiler.close(() => {

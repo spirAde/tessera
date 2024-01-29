@@ -66,7 +66,6 @@ describe('createBuildJob', () => {
       readdirSync(path.join(temporaryApplicationBuildFolderRootPath, 'components')),
     ).toIncludeSameMembers([
       'Body.jsx',
-      'PlatformProvider.jsx',
       'banner-bubble@1.0.7.js',
       'banner-head@1.0.5.js',
       'card-solution@1.0.6.js',
@@ -91,7 +90,24 @@ describe('createBuildJob', () => {
       '<Route exact path="/about-company" element={<AboutCompany />} />',
     ]);
 
-    await expectSuccessfulBuild();
+    const builds = await Build.findAll();
+
+    expect(builds.length).toEqual(1);
+    expect(builds[0].status).toEqual(Status.success);
+    expect(builds[0].stage).toEqual(Stage.commit);
+
+    const buildPages = await builds[0].getPages();
+
+    expect(buildPages).toIncludeSameMembers(
+      [pageStructureMainFixture, pageStructureServiceFixture, pageStructureAboutFixture].map(
+        (page) =>
+          expect.objectContaining({
+            url: page.url,
+            status: Status.success,
+            stage: Stage.commit,
+          }),
+      ),
+    );
   });
 
   it('does not stop building if some pages throw error', async () => {
@@ -135,7 +151,31 @@ describe('createBuildJob', () => {
       '<Route exact path="/about-company" element={<AboutCompany />} />',
     ]);
 
-    await expectSuccessfulBuild();
+    const builds = await Build.findAll();
+
+    expect(builds.length).toEqual(1);
+    expect(builds[0].status).toEqual(Status.success);
+    expect(builds[0].stage).toEqual(Stage.commit);
+
+    const buildPages = await builds[0].getPages();
+
+    expect(buildPages).toIncludeSameMembers([
+      expect.objectContaining({
+        url: pageStructureMainFixture.url,
+        status: Status.success,
+        stage: Stage.commit,
+      }),
+      expect.objectContaining({
+        url: pageStructureServiceFixture.url,
+        status: Status.failed,
+        stage: Stage.fetching,
+      }),
+      expect.objectContaining({
+        url: pageStructureAboutFixture.url,
+        status: Status.success,
+        stage: Stage.commit,
+      }),
+    ]);
   });
 });
 
@@ -172,12 +212,4 @@ function nockProjectComponentsSources(pages: StrictProjectPageStructure[]) {
       designSystemId: projectT1CloudFixture.settings.designSystemId,
     });
   }
-}
-
-async function expectSuccessfulBuild() {
-  const builds = await Build.findAll();
-
-  expect(builds.length).toEqual(1);
-  expect(builds[0].status).toEqual(Status.success);
-  expect(builds[0].stage).toEqual(Stage.commit);
 }

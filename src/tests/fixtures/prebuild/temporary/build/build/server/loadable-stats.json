@@ -1,6 +1,6 @@
 {
   "name": "server",
-  "hash": "284ea0ea1f0008287587",
+  "hash": "9362d360594b9d89acfc",
   "publicPath": "/static/",
   "outputPath": "/home/spirade/WebstormProjects/tessera/output/temporary/build/build/server/",
   "assetsByChunkName": {
@@ -17,20 +17,43 @@
       "application-server.js"
     ],
     "home-spirade-WebstormProjects-tessera-output-temporary-build-pages-index-jsx": [
-      "home-spirade-WebstormProjects-tessera-output-temporary-build-pages-index-jsx.chunk.js"
+      "562.chunk.js"
     ],
     "home-spirade-WebstormProjects-tessera-output-temporary-build-pages-service-index-jsx": [
-      "home-spirade-WebstormProjects-tessera-output-temporary-build-pages-service-index-jsx.chunk.js"
+      "832.chunk.js"
     ],
     "home-spirade-WebstormProjects-tessera-output-temporary-build-pages-about-company-index-jsx": [
-      "home-spirade-WebstormProjects-tessera-output-temporary-build-pages-about-company-index-jsx.chunk.js"
+      "173.chunk.js"
     ]
   },
   "assets": [
     {
       "type": "asset",
+      "name": "application-server.js",
+      "size": 12648,
+      "emitted": false,
+      "comparedForEmit": false,
+      "cached": true,
+      "info": {
+        "javascriptModule": false,
+        "minimized": true
+      },
+      "chunkNames": [
+        "application-server"
+      ],
+      "chunkIdHints": [],
+      "auxiliaryChunkNames": [],
+      "auxiliaryChunkIdHints": [],
+      "chunks": [
+        344,
+        694
+      ],
+      "auxiliaryChunks": []
+    },
+    {
+      "type": "asset",
       "name": "pages/about-company.js",
-      "size": 8928,
+      "size": 12162,
       "emitted": false,
       "comparedForEmit": false,
       "cached": true,
@@ -52,8 +75,8 @@
     },
     {
       "type": "asset",
-      "name": "home-spirade-WebstormProjects-tessera-output-temporary-build-pages-about-company-index-jsx.chunk.js",
-      "size": 7132,
+      "name": "173.chunk.js",
+      "size": 9252,
       "emitted": false,
       "comparedForEmit": false,
       "cached": true,
@@ -74,30 +97,8 @@
     },
     {
       "type": "asset",
-      "name": "application-server.js",
-      "size": 5875,
-      "emitted": false,
-      "comparedForEmit": false,
-      "cached": true,
-      "info": {
-        "javascriptModule": false,
-        "minimized": true
-      },
-      "chunkNames": [
-        "application-server"
-      ],
-      "chunkIdHints": [],
-      "auxiliaryChunkNames": [],
-      "auxiliaryChunkIdHints": [],
-      "chunks": [
-        694
-      ],
-      "auxiliaryChunks": []
-    },
-    {
-      "type": "asset",
       "name": "pages/index.js",
-      "size": 4902,
+      "size": 8220,
       "emitted": false,
       "comparedForEmit": false,
       "cached": true,
@@ -120,7 +121,7 @@
     {
       "type": "asset",
       "name": "pages/service.js",
-      "size": 3686,
+      "size": 7113,
       "emitted": false,
       "comparedForEmit": false,
       "cached": true,
@@ -136,6 +137,50 @@
       "auxiliaryChunkIdHints": [],
       "chunks": [
         423,
+        832
+      ],
+      "auxiliaryChunks": []
+    },
+    {
+      "type": "asset",
+      "name": "562.chunk.js",
+      "size": 5310,
+      "emitted": false,
+      "comparedForEmit": false,
+      "cached": true,
+      "info": {
+        "javascriptModule": false,
+        "minimized": true
+      },
+      "chunkNames": [
+        "home-spirade-WebstormProjects-tessera-output-temporary-build-pages-index-jsx"
+      ],
+      "chunkIdHints": [],
+      "auxiliaryChunkNames": [],
+      "auxiliaryChunkIdHints": [],
+      "chunks": [
+        562
+      ],
+      "auxiliaryChunks": []
+    },
+    {
+      "type": "asset",
+      "name": "832.chunk.js",
+      "size": 3930,
+      "emitted": false,
+      "comparedForEmit": false,
+      "cached": true,
+      "info": {
+        "javascriptModule": false,
+        "minimized": true
+      },
+      "chunkNames": [
+        "home-spirade-WebstormProjects-tessera-output-temporary-build-pages-service-index-jsx"
+      ],
+      "chunkIdHints": [],
+      "auxiliaryChunkNames": [],
+      "auxiliaryChunkIdHints": [],
+      "chunks": [
         832
       ],
       "auxiliaryChunks": []
@@ -182,28 +227,6 @@
     },
     {
       "type": "asset",
-      "name": "home-spirade-WebstormProjects-tessera-output-temporary-build-pages-index-jsx.chunk.js",
-      "size": 3106,
-      "emitted": false,
-      "comparedForEmit": false,
-      "cached": true,
-      "info": {
-        "javascriptModule": false,
-        "minimized": true
-      },
-      "chunkNames": [
-        "home-spirade-WebstormProjects-tessera-output-temporary-build-pages-index-jsx"
-      ],
-      "chunkIdHints": [],
-      "auxiliaryChunkNames": [],
-      "auxiliaryChunkIdHints": [],
-      "chunks": [
-        562
-      ],
-      "auxiliaryChunks": []
-    },
-    {
-      "type": "asset",
       "name": "997.js",
       "size": 2574,
       "emitted": false,
@@ -224,8 +247,8 @@
     },
     {
       "type": "asset",
-      "name": "home-spirade-WebstormProjects-tessera-output-temporary-build-pages-service-index-jsx.chunk.js",
-      "size": 1851,
+      "name": "344.js",
+      "size": 507,
       "emitted": false,
       "comparedForEmit": false,
       "cached": true,
@@ -233,14 +256,12 @@
         "javascriptModule": false,
         "minimized": true
       },
-      "chunkNames": [
-        "home-spirade-WebstormProjects-tessera-output-temporary-build-pages-service-index-jsx"
-      ],
+      "chunkNames": [],
       "chunkIdHints": [],
       "auxiliaryChunkNames": [],
       "auxiliaryChunkIdHints": [],
       "chunks": [
-        832
+        344
       ],
       "auxiliaryChunks": []
     }
@@ -250,12 +271,16 @@
       "name": "pages/index",
       "chunks": [
         456,
+        344,
         997,
         405
       ],
       "assets": [
         {
           "name": "456.js"
+        },
+        {
+          "name": "344.js"
         },
         {
           "name": "997.js"
@@ -275,11 +300,15 @@
       "name": "pages/service",
       "chunks": [
         456,
+        344,
         423
       ],
       "assets": [
         {
           "name": "456.js"
+        },
+        {
+          "name": "344.js"
         },
         {
           "name": "pages/service.js"
@@ -296,12 +325,16 @@
       "name": "pages/about-company",
       "chunks": [
         456,
+        344,
         175,
         220
       ],
       "assets": [
         {
           "name": "456.js"
+        },
+        {
+          "name": "344.js"
         },
         {
           "name": "175.js"
@@ -349,7 +382,7 @@
           "name": "997.js"
         },
         {
-          "name": "home-spirade-WebstormProjects-tessera-output-temporary-build-pages-index-jsx.chunk.js"
+          "name": "562.chunk.js"
         }
       ],
       "filteredAssets": 0,
@@ -370,7 +403,7 @@
           "name": "456.js"
         },
         {
-          "name": "home-spirade-WebstormProjects-tessera-output-temporary-build-pages-service-index-jsx.chunk.js"
+          "name": "832.chunk.js"
         }
       ],
       "filteredAssets": 0,
@@ -395,7 +428,7 @@
           "name": "175.js"
         },
         {
-          "name": "home-spirade-WebstormProjects-tessera-output-temporary-build-pages-about-company-index-jsx.chunk.js"
+          "name": "173.chunk.js"
         }
       ],
       "filteredAssets": 0,
@@ -435,25 +468,31 @@
     {
       "id": 562,
       "files": [
-        "home-spirade-WebstormProjects-tessera-output-temporary-build-pages-index-jsx.chunk.js"
+        "562.chunk.js"
       ]
     },
     {
       "id": 832,
       "files": [
-        "home-spirade-WebstormProjects-tessera-output-temporary-build-pages-service-index-jsx.chunk.js"
+        "832.chunk.js"
       ]
     },
     {
       "id": 173,
       "files": [
-        "home-spirade-WebstormProjects-tessera-output-temporary-build-pages-about-company-index-jsx.chunk.js"
+        "173.chunk.js"
       ]
     },
     {
       "id": 456,
       "files": [
         "456.js"
+      ]
+    },
+    {
+      "id": 344,
+      "files": [
+        "344.js"
       ]
     },
     {

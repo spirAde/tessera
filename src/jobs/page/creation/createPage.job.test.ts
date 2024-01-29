@@ -55,7 +55,7 @@ describe('createPageJob', () => {
       id: '1',
       name: 'create-page-job',
       data: {
-        id: pageStructureServiceCDNFixture.id,
+        externalId: pageStructureServiceCDNFixture.id,
         url: pageStructureServiceCDNFixture.url,
       },
     });
@@ -95,7 +95,7 @@ describe('createPageJob', () => {
         id: '1',
         name: 'create-page-job',
         data: {
-          id: pageStructureServiceCDNFixture.id,
+          externalId: pageStructureServiceCDNFixture.id,
           url: pageStructureServiceCDNFixture.url,
         },
       }),

@@ -8,6 +8,10 @@ fastify.register(require('@fastify/static'), {
 });
 
 fastify.get('*', (request, reply) => {
+  if (request.url !== '/favicon.ico') {
+    console.log('request', request.url);
+  }
+
   const stream = getFileStream(request.url);
 
   if (!stream) {

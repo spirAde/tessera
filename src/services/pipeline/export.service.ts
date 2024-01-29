@@ -2,6 +2,7 @@ import path from 'path';
 import { copy, outputFile } from 'fs-extra';
 import React, { ComponentType } from 'react';
 import { renderToString } from 'react-dom/server';
+import { Helmet } from 'react-helmet';
 import { ServerStyleSheet } from 'styled-components';
 import { ChunkExtractor } from '@loadable/server';
 import { minify } from 'html-minifier';
@@ -86,21 +87,31 @@ async function exportPage({
     ),
   );
   const html = renderToString(jsx);
-  const pageFilePath = getPageFilePath(projectPageUrl);
+  const { htmlAttributes, title, base, meta, link, script } = Helmet.renderStatic();
 
   await outputFile(
-    pageFilePath,
+    getPageFilePath(projectPageUrl),
     minify(
       `
       <!doctype html>
-      <html lang="en">
+      <html ${htmlAttributes.toString()} lang="ru">
         <head>
-          <title>${project.title}</title>
-          <meta charset="utf-8">
-          <meta name="description" content="${project.description}"> 
+          <meta charset="utf-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+
+          ${title.toString()}
+          ${base.toString()}
+          ${meta.toString()}
+          ${link.toString()}
+          ${script.toString()}
+
           ${extractor.getLinkTags()}
           ${extractor.getStyleTags()}
+
           ${sheet.getStyleTags()}
+          <style>
+            #root { width: 100%; background: white; }
+          </style>
         </head>
         <body>
           <div id="app">${html}</div>

@@ -1,4 +1,5 @@
 output
+src/sdk/mocks
 src/templates
 src/tests/fixtures
 database

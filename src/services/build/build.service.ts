@@ -266,7 +266,7 @@ async function runCommitStage(context: BuildPipelineContext) {
   });
 
   await Page.update(
-    { stage: Stage.commit },
+    { stage: Stage.commit, status: Status.success },
     {
       where: {
         buildId: context.build.id,

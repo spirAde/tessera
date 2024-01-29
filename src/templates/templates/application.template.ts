@@ -8,7 +8,7 @@ const _applicationTemplateContent = `
 	import loadable from '@loadable/component';
 	
 	import { Body } from '@/components/Body';
-	import { PlatformProvider } from '@/components/PlatformProvider';
+	import { ProjectContextProvider } from '@/contexts/ProjectContext/ProjectContextProvider';
 
 	__PROJECT_PAGES_LOADABLE_COMPONENTS__
 
@@ -19,13 +19,13 @@ const _applicationTemplateContent = `
 	export default function Application() {
 		return (
 		  <ThemeProvider theme={{ theme: 'main' }}>
-		    <PlatformProvider store={__PROJECT_INITIAL_STORE__}>
+		    <ProjectContextProvider store={__PROJECT_INITIAL_STORE__}>
           <Body>
             <Routes>
               __PROJECT_ROUTES__
             </Routes>
           </Body>
-        </PlatformProvider>
+        </ProjectContextProvider>
       </ThemeProvider>
 		);
 	}

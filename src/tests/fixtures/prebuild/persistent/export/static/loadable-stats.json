@@ -1,6 +1,6 @@
 {
   "name": "client",
-  "hash": "f76ceceaeae729d23467",
+  "hash": "431e267b189b239dde36",
   "publicPath": "/static/",
   "outputPath": "/home/spirade/WebstormProjects/tessera/output/temporary/build/build/client/",
   "assetsByChunkName": {
@@ -17,20 +17,20 @@
       "application-client.js"
     ],
     "home-spirade-WebstormProjects-tessera-output-temporary-build-pages-index-jsx": [
-      "home-spirade-WebstormProjects-tessera-output-temporary-build-pages-index-jsx.chunk.js"
+      "562.chunk.js"
     ],
     "home-spirade-WebstormProjects-tessera-output-temporary-build-pages-service-index-jsx": [
-      "home-spirade-WebstormProjects-tessera-output-temporary-build-pages-service-index-jsx.chunk.js"
+      "832.chunk.js"
     ],
     "home-spirade-WebstormProjects-tessera-output-temporary-build-pages-about-company-index-jsx": [
-      "home-spirade-WebstormProjects-tessera-output-temporary-build-pages-about-company-index-jsx.chunk.js"
+      "173.chunk.js"
     ]
   },
   "assets": [
     {
       "type": "asset",
-      "name": "307.js",
-      "size": 273643,
+      "name": "807.js",
+      "size": 290273,
       "emitted": false,
       "comparedForEmit": false,
       "cached": true,
@@ -45,15 +45,82 @@
       "auxiliaryChunkNames": [],
       "auxiliaryChunkIdHints": [],
       "chunks": [
-        307,
-        735
+        735,
+        807
+      ],
+      "auxiliaryChunks": []
+    },
+    {
+      "type": "asset",
+      "name": "82.js",
+      "size": 41143,
+      "emitted": false,
+      "comparedForEmit": false,
+      "cached": true,
+      "info": {
+        "javascriptModule": false,
+        "minimized": true
+      },
+      "chunkNames": [],
+      "chunkIdHints": [
+        "vendors"
+      ],
+      "auxiliaryChunkNames": [],
+      "auxiliaryChunkIdHints": [],
+      "chunks": [
+        82
+      ],
+      "auxiliaryChunks": []
+    },
+    {
+      "type": "asset",
+      "name": "357.js",
+      "size": 16738,
+      "emitted": false,
+      "comparedForEmit": false,
+      "cached": true,
+      "info": {
+        "javascriptModule": false,
+        "minimized": true
+      },
+      "chunkNames": [],
+      "chunkIdHints": [
+        "vendors"
+      ],
+      "auxiliaryChunkNames": [],
+      "auxiliaryChunkIdHints": [],
+      "chunks": [
+        357
+      ],
+      "auxiliaryChunks": []
+    },
+    {
+      "type": "asset",
+      "name": "application-client.js",
+      "size": 12586,
+      "emitted": false,
+      "comparedForEmit": false,
+      "cached": true,
+      "info": {
+        "javascriptModule": false,
+        "minimized": true
+      },
+      "chunkNames": [
+        "application-client"
+      ],
+      "chunkIdHints": [],
+      "auxiliaryChunkNames": [],
+      "auxiliaryChunkIdHints": [],
+      "chunks": [
+        344,
+        400
       ],
       "auxiliaryChunks": []
     },
     {
       "type": "asset",
       "name": "pages/about-company.js",
-      "size": 8771,
+      "size": 11003,
       "emitted": false,
       "comparedForEmit": false,
       "cached": true,
@@ -75,52 +142,8 @@
     },
     {
       "type": "asset",
-      "name": "708.js",
-      "size": 7382,
-      "emitted": false,
-      "comparedForEmit": false,
-      "cached": true,
-      "info": {
-        "javascriptModule": false,
-        "minimized": true
-      },
-      "chunkNames": [],
-      "chunkIdHints": [
-        "vendors"
-      ],
-      "auxiliaryChunkNames": [],
-      "auxiliaryChunkIdHints": [],
-      "chunks": [
-        708
-      ],
-      "auxiliaryChunks": []
-    },
-    {
-      "type": "asset",
-      "name": "application-client.js",
-      "size": 7187,
-      "emitted": false,
-      "comparedForEmit": false,
-      "cached": true,
-      "info": {
-        "javascriptModule": false,
-        "minimized": true
-      },
-      "chunkNames": [
-        "application-client"
-      ],
-      "chunkIdHints": [],
-      "auxiliaryChunkNames": [],
-      "auxiliaryChunkIdHints": [],
-      "chunks": [
-        400
-      ],
-      "auxiliaryChunks": []
-    },
-    {
-      "type": "asset",
-      "name": "home-spirade-WebstormProjects-tessera-output-temporary-build-pages-about-company-index-jsx.chunk.js",
-      "size": 7167,
+      "name": "173.chunk.js",
+      "size": 9323,
       "emitted": false,
       "comparedForEmit": false,
       "cached": true,
@@ -135,36 +158,15 @@
       "auxiliaryChunkNames": [],
       "auxiliaryChunkIdHints": [],
       "chunks": [
-        173
-      ],
-      "auxiliaryChunks": []
-    },
-    {
-      "type": "asset",
-      "name": "735.js",
-      "size": 6531,
-      "emitted": false,
-      "comparedForEmit": false,
-      "cached": true,
-      "info": {
-        "javascriptModule": false,
-        "minimized": true
-      },
-      "chunkNames": [],
-      "chunkIdHints": [
-        "vendors"
-      ],
-      "auxiliaryChunkNames": [],
-      "auxiliaryChunkIdHints": [],
-      "chunks": [
-        735
+        173,
+        220
       ],
       "auxiliaryChunks": []
     },
     {
       "type": "asset",
       "name": "pages/index.js",
-      "size": 4745,
+      "size": 7060,
       "emitted": false,
       "comparedForEmit": false,
       "cached": true,
@@ -186,8 +188,30 @@
     },
     {
       "type": "asset",
+      "name": "735.js",
+      "size": 6534,
+      "emitted": false,
+      "comparedForEmit": false,
+      "cached": true,
+      "info": {
+        "javascriptModule": false,
+        "minimized": true
+      },
+      "chunkNames": [],
+      "chunkIdHints": [
+        "vendors"
+      ],
+      "auxiliaryChunkNames": [],
+      "auxiliaryChunkIdHints": [],
+      "chunks": [
+        735
+      ],
+      "auxiliaryChunks": []
+    },
+    {
+      "type": "asset",
       "name": "pages/service.js",
-      "size": 3499,
+      "size": 5676,
       "emitted": false,
       "comparedForEmit": false,
       "cached": true,
@@ -209,8 +233,54 @@
     },
     {
       "type": "asset",
+      "name": "562.chunk.js",
+      "size": 5380,
+      "emitted": false,
+      "comparedForEmit": false,
+      "cached": true,
+      "info": {
+        "javascriptModule": false,
+        "minimized": true
+      },
+      "chunkNames": [
+        "home-spirade-WebstormProjects-tessera-output-temporary-build-pages-index-jsx"
+      ],
+      "chunkIdHints": [],
+      "auxiliaryChunkNames": [],
+      "auxiliaryChunkIdHints": [],
+      "chunks": [
+        405,
+        562
+      ],
+      "auxiliaryChunks": []
+    },
+    {
+      "type": "asset",
+      "name": "832.chunk.js",
+      "size": 4000,
+      "emitted": false,
+      "comparedForEmit": false,
+      "cached": true,
+      "info": {
+        "javascriptModule": false,
+        "minimized": true
+      },
+      "chunkNames": [
+        "home-spirade-WebstormProjects-tessera-output-temporary-build-pages-service-index-jsx"
+      ],
+      "chunkIdHints": [],
+      "auxiliaryChunkNames": [],
+      "auxiliaryChunkIdHints": [],
+      "chunks": [
+        423,
+        832
+      ],
+      "auxiliaryChunks": []
+    },
+    {
+      "type": "asset",
       "name": "175.js",
-      "size": 3450,
+      "size": 3458,
       "emitted": false,
       "comparedForEmit": false,
       "cached": true,
@@ -230,7 +300,7 @@
     {
       "type": "asset",
       "name": "456.js",
-      "size": 3449,
+      "size": 3458,
       "emitted": false,
       "comparedForEmit": false,
       "cached": true,
@@ -249,30 +319,8 @@
     },
     {
       "type": "asset",
-      "name": "home-spirade-WebstormProjects-tessera-output-temporary-build-pages-index-jsx.chunk.js",
-      "size": 3141,
-      "emitted": false,
-      "comparedForEmit": false,
-      "cached": true,
-      "info": {
-        "javascriptModule": false,
-        "minimized": true
-      },
-      "chunkNames": [
-        "home-spirade-WebstormProjects-tessera-output-temporary-build-pages-index-jsx"
-      ],
-      "chunkIdHints": [],
-      "auxiliaryChunkNames": [],
-      "auxiliaryChunkIdHints": [],
-      "chunks": [
-        562
-      ],
-      "auxiliaryChunks": []
-    },
-    {
-      "type": "asset",
       "name": "997.js",
-      "size": 2609,
+      "size": 2615,
       "emitted": false,
       "comparedForEmit": false,
       "cached": true,
@@ -291,8 +339,8 @@
     },
     {
       "type": "asset",
-      "name": "home-spirade-WebstormProjects-tessera-output-temporary-build-pages-service-index-jsx.chunk.js",
-      "size": 1886,
+      "name": "344.js",
+      "size": 544,
       "emitted": false,
       "comparedForEmit": false,
       "cached": true,
@@ -300,14 +348,12 @@
         "javascriptModule": false,
         "minimized": true
       },
-      "chunkNames": [
-        "home-spirade-WebstormProjects-tessera-output-temporary-build-pages-service-index-jsx"
-      ],
+      "chunkNames": [],
       "chunkIdHints": [],
       "auxiliaryChunkNames": [],
       "auxiliaryChunkIdHints": [],
       "chunks": [
-        832
+        344
       ],
       "auxiliaryChunks": []
     }
@@ -316,21 +362,29 @@
     "pages/index": {
       "name": "pages/index",
       "chunks": [
-        708,
+        357,
+        82,
         735,
         456,
+        344,
         997,
         405
       ],
       "assets": [
         {
-          "name": "708.js"
+          "name": "357.js"
+        },
+        {
+          "name": "82.js"
         },
         {
           "name": "735.js"
         },
         {
           "name": "456.js"
+        },
+        {
+          "name": "344.js"
         },
         {
           "name": "997.js"
@@ -349,20 +403,28 @@
     "pages/service": {
       "name": "pages/service",
       "chunks": [
-        708,
+        357,
+        82,
         735,
         456,
+        344,
         423
       ],
       "assets": [
         {
-          "name": "708.js"
+          "name": "357.js"
+        },
+        {
+          "name": "82.js"
         },
         {
           "name": "735.js"
         },
         {
           "name": "456.js"
+        },
+        {
+          "name": "344.js"
         },
         {
           "name": "pages/service.js"
@@ -378,21 +440,29 @@
     "pages/about-company": {
       "name": "pages/about-company",
       "chunks": [
-        708,
+        357,
+        82,
         735,
         456,
+        344,
         175,
         220
       ],
       "assets": [
         {
-          "name": "708.js"
+          "name": "357.js"
+        },
+        {
+          "name": "82.js"
         },
         {
           "name": "735.js"
         },
         {
           "name": "456.js"
+        },
+        {
+          "name": "344.js"
         },
         {
           "name": "175.js"
@@ -411,16 +481,16 @@
     "application-client": {
       "name": "application-client",
       "chunks": [
-        708,
-        307,
+        82,
+        807,
         400
       ],
       "assets": [
         {
-          "name": "708.js"
+          "name": "82.js"
         },
         {
-          "name": "307.js"
+          "name": "807.js"
         },
         {
           "name": "application-client.js"
@@ -436,11 +506,15 @@
     "home-spirade-WebstormProjects-tessera-output-temporary-build-pages-index-jsx": {
       "name": "home-spirade-WebstormProjects-tessera-output-temporary-build-pages-index-jsx",
       "chunks": [
+        357,
         456,
         997,
         562
       ],
       "assets": [
+        {
+          "name": "357.js"
+        },
         {
           "name": "456.js"
         },
@@ -448,7 +522,7 @@
           "name": "997.js"
         },
         {
-          "name": "home-spirade-WebstormProjects-tessera-output-temporary-build-pages-index-jsx.chunk.js"
+          "name": "562.chunk.js"
         }
       ],
       "filteredAssets": 0,
@@ -461,15 +535,19 @@
     "home-spirade-WebstormProjects-tessera-output-temporary-build-pages-service-index-jsx": {
       "name": "home-spirade-WebstormProjects-tessera-output-temporary-build-pages-service-index-jsx",
       "chunks": [
+        357,
         456,
         832
       ],
       "assets": [
         {
+          "name": "357.js"
+        },
+        {
           "name": "456.js"
         },
         {
-          "name": "home-spirade-WebstormProjects-tessera-output-temporary-build-pages-service-index-jsx.chunk.js"
+          "name": "832.chunk.js"
         }
       ],
       "filteredAssets": 0,
@@ -482,11 +560,15 @@
     "home-spirade-WebstormProjects-tessera-output-temporary-build-pages-about-company-index-jsx": {
       "name": "home-spirade-WebstormProjects-tessera-output-temporary-build-pages-about-company-index-jsx",
       "chunks": [
+        357,
         456,
         175,
         173
       ],
       "assets": [
+        {
+          "name": "357.js"
+        },
         {
           "name": "456.js"
         },
@@ -494,7 +576,7 @@
           "name": "175.js"
         },
         {
-          "name": "home-spirade-WebstormProjects-tessera-output-temporary-build-pages-about-company-index-jsx.chunk.js"
+          "name": "173.chunk.js"
         }
       ],
       "filteredAssets": 0,
@@ -534,25 +616,31 @@
     {
       "id": 562,
       "files": [
-        "home-spirade-WebstormProjects-tessera-output-temporary-build-pages-index-jsx.chunk.js"
+        "562.chunk.js"
       ]
     },
     {
       "id": 832,
       "files": [
-        "home-spirade-WebstormProjects-tessera-output-temporary-build-pages-service-index-jsx.chunk.js"
+        "832.chunk.js"
       ]
     },
     {
       "id": 173,
       "files": [
-        "home-spirade-WebstormProjects-tessera-output-temporary-build-pages-about-company-index-jsx.chunk.js"
+        "173.chunk.js"
       ]
     },
     {
-      "id": 708,
+      "id": 357,
       "files": [
-        "708.js"
+        "357.js"
+      ]
+    },
+    {
+      "id": 82,
+      "files": [
+        "82.js"
       ]
     },
     {
@@ -562,15 +650,21 @@
       ]
     },
     {
-      "id": 307,
+      "id": 807,
       "files": [
-        "307.js"
+        "807.js"
       ]
     },
     {
       "id": 456,
       "files": [
         "456.js"
+      ]
+    },
+    {
+      "id": 344,
+      "files": [
+        "344.js"
       ]
     },
     {

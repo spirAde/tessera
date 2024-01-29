@@ -1,6 +1,10 @@
 /* istanbul ignore file */
 
 import got from 'got';
+import { isTest } from '../config';
+import { projectsMock } from './mocks/projects';
+import { designSystemMock } from './mocks/designSystem';
+import { pagesMock, projectPagesMock } from './mocks/pages';
 
 type ProjectInfoSysName =
   | 'PROGRESS_BAR_ENABLE'
@@ -22,7 +26,7 @@ interface RawProjectPageStructure {
   [key: string]: unknown;
 }
 
-interface ProjectPageStructureSeoProps {
+export interface ProjectPageStructureSeoProps {
   title: string;
   description: string;
   keywords: string;
@@ -52,13 +56,13 @@ interface ProjectPageStructureBreadcrumb {
   url: string;
 }
 
-interface ProjectPageStructureMetaProps {
+export interface ProjectPageStructureMetaProps {
   title: string;
   items: ProjectPageStructureMetaItemProps[];
   uiOrder: number;
 }
 
-interface ProjectPageStructureMetaItemProps {
+export interface ProjectPageStructureMetaItemProps {
   name: string;
   property: string;
   content: string;
@@ -160,26 +164,25 @@ const client = got.extend({
 });
 
 export async function getProjectPages(projectSysName: string) {
-  const response = await client
-    .get(`${process.env.PLATFORM_HOST}/api/sitepages/page/list?projectSysName=${projectSysName}`)
-    .json<{ pages: ProjectPage[] }>();
+  const response = isTest
+    ? await client
+        .get(
+          `${process.env.PLATFORM_HOST}/api/sitepages/page/list?projectSysName=${projectSysName}`,
+        )
+        .json<{ pages: ProjectPage[] }>()
+    : projectPagesMock;
 
   return response.pages;
   // return new Promise((resolve) => setTimeout(() => resolve(projectPagesMock), 1000));
 }
 
 export async function getProjectPageStructure(pageId: number) {
-  const projectPage: RawProjectPageStructure | StrictProjectPageStructure = await client
-    .get(`${process.env.PLATFORM_HOST}/api/sitepages/page/${pageId}/result`)
-    .json();
-  // const projectPage: RawProjectPageStructure | StrictProjectPageStructure = await new Promise(
-  //   (resolve) =>
-  //     setTimeout(
-  //       // @ts-ignore
-  //       () => resolve(pagesMock[pageId]),
-  //       1000,
-  //     ),
-  // );
+  const projectPage: RawProjectPageStructure | StrictProjectPageStructure = isTest
+    ? await client.get(`${process.env.PLATFORM_HOST}/api/sitepages/page/${pageId}/result`).json()
+    : await new Promise((resolve) =>
+        // @ts-ignore
+        setTimeout(() => resolve(pagesMock[pageId] as unknown as StrictProjectPageStructure), 1000),
+      );
 
   if (!projectPage) {
     throw new Error(`error: ${pageId}`);
@@ -195,30 +198,33 @@ export async function getProjectPageStructure(pageId: number) {
 export function getProjectDesignSystemComponents(
   designSystemId: number,
 ): Promise<DesignSystemComponent[]> {
-  return client
-    .get(`${process.env.PLATFORM_HOST}/api/sitepages/components?designSystemId=${designSystemId}`)
-    .json();
-  // return new Promise((resolve) =>
-  //   setTimeout(() => resolve(designSystemMock as unknown as DesignSystemComponent[]), 1000),
-  // );
+  return isTest
+    ? client
+        .get(
+          `${process.env.PLATFORM_HOST}/api/sitepages/components?designSystemId=${designSystemId}`,
+        )
+        .json()
+    : new Promise((resolve) =>
+        setTimeout(() => resolve(designSystemMock as unknown as DesignSystemComponent[]), 1000),
+      );
 }
 
 export function getDesignSystemComponentSource(designSystemId: number, component: ComponentLike) {
-  return client
-    .get(
-      `${process.env.PLATFORM_HOST}/api/mediastorage/media-files/system/design-systems/${designSystemId}/${component.name}/${component.name}@${component.version}.js`,
-    )
-    .text();
-  // return client
-  //   .get(`http://localhost:5000/dist/${component.name}/${component.name}@${component.version}.js`)
-  //   .text();
+  return isTest
+    ? client
+        .get(
+          `${process.env.PLATFORM_HOST}/api/mediastorage/media-files/system/design-systems/${designSystemId}/${component.name}/${component.name}@${component.version}.js`,
+        )
+        .text()
+    : client.get(`http://localhost:3025/api/${component.name}@${component.version}.js`).text();
 }
 
 export function getProjects(): Promise<Project[]> {
-  return client.get(`${process.env.PLATFORM_HOST}/api/app/project/list`).json();
-  // return new Promise((resolve) =>
-  //   setTimeout(() => resolve(projectsMock as unknown as Project[]), 1000),
-  // );
+  return isTest
+    ? client.get(`${process.env.PLATFORM_HOST}/api/app/project/list`).json()
+    : new Promise((resolve) =>
+        setTimeout(() => resolve(projectsMock as unknown as Project[]), 1000),
+      );
 }
 
 function isStrictProjectPageStructure(

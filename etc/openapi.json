@@ -1,0 +1,305 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/v1/builds": {
+      "post": {
+        "summary": "POST /builds",
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "operationId": "post--builds",
+        "tags": ["tessera"]
+      }
+    },
+    "/api/v1/pages": {
+      "delete": {
+        "summary": "DELETE /pages",
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeletePageRequestBody"
+              }
+            }
+          }
+        },
+        "operationId": "delete--pages",
+        "tags": ["tessera"]
+      },
+      "post": {
+        "summary": "POST /pages",
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePageRequestBody"
+              }
+            }
+          }
+        },
+        "operationId": "post--pages",
+        "tags": ["tessera"]
+      },
+      "put": {
+        "summary": "PUT /pages",
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePageRequestBody"
+              }
+            }
+          }
+        },
+        "operationId": "put--pages",
+        "tags": ["tessera"]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Build": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "stage": {
+            "$ref": "#/components/schemas/Stage"
+          },
+          "status": {
+            "$ref": "#/components/schemas/Status"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deletedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": ["id", "stage", "status", "createdAt", "updatedAt"],
+        "additionalProperties": false
+      },
+      "CreateBuildEndpoint": {
+        "type": "object",
+        "properties": {
+          "request": {
+            "$ref": "#/components/schemas/CreateBuildRequest"
+          }
+        },
+        "required": ["request"],
+        "additionalProperties": false
+      },
+      "CreateBuildRequest": {
+        "type": "object",
+        "properties": {}
+      },
+      "CreatePageEndpoint": {
+        "type": "object",
+        "properties": {
+          "request": {
+            "$ref": "#/components/schemas/CreatePageRequest"
+          }
+        },
+        "required": ["request"],
+        "additionalProperties": false
+      },
+      "CreatePageRequest": {
+        "type": "object",
+        "properties": {
+          "body": {
+            "$ref": "#/components/schemas/CreatePageRequestBody"
+          }
+        },
+        "required": ["body"]
+      },
+      "CreatePageRequestBody": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "url": {
+            "type": "string"
+          }
+        },
+        "required": ["id", "url"],
+        "additionalProperties": false
+      },
+      "DeletePageEndpoint": {
+        "type": "object",
+        "properties": {
+          "request": {
+            "$ref": "#/components/schemas/DeletePageRequest"
+          }
+        },
+        "required": ["request"],
+        "additionalProperties": false
+      },
+      "DeletePageRequest": {
+        "type": "object",
+        "properties": {
+          "body": {
+            "$ref": "#/components/schemas/DeletePageRequestBody"
+          }
+        },
+        "required": ["body"]
+      },
+      "DeletePageRequestBody": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          }
+        },
+        "required": ["id"],
+        "additionalProperties": false
+      },
+      "Page": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "buildId": {
+            "type": "integer"
+          },
+          "url": {
+            "type": "string"
+          },
+          "stage": {
+            "$ref": "#/components/schemas/Stage"
+          },
+          "status": {
+            "$ref": "#/components/schemas/Status"
+          },
+          "externalId": {
+            "type": "integer"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deletedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "buildId",
+          "url",
+          "stage",
+          "status",
+          "externalId",
+          "createdAt",
+          "updatedAt"
+        ],
+        "additionalProperties": false
+      },
+      "Stage": {
+        "type": "string",
+        "enum": [
+          "setup",
+          "fetching",
+          "generating",
+          "preparing",
+          "compilation",
+          "export",
+          "verification",
+          "teardown"
+        ]
+      },
+      "Status": {
+        "type": "string",
+        "enum": ["progress", "failed", "success"]
+      },
+      "TesseraHttp": {
+        "type": "string",
+        "enum": [
+          "create-page|post /pages",
+          "update-page|put /pages",
+          "delete-page|delete /pages",
+          "create-build|post /builds"
+        ]
+      },
+      "UpdatePageEndpoint": {
+        "type": "object",
+        "properties": {
+          "request": {
+            "$ref": "#/components/schemas/UpdatePageRequest"
+          }
+        },
+        "required": ["request"],
+        "additionalProperties": false
+      },
+      "UpdatePageRequest": {
+        "type": "object",
+        "properties": {
+          "body": {
+            "$ref": "#/components/schemas/UpdatePageRequestBody"
+          }
+        },
+        "required": ["body"]
+      },
+      "UpdatePageRequestBody": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          }
+        },
+        "required": ["id"],
+        "additionalProperties": false
+      }
+    }
+  }
+}

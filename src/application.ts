@@ -42,13 +42,15 @@ export async function runApplication() {
     await application.register(require('@fastify/swagger'), {
       mode: 'static',
       specification: {
-        path: './openapi.json',
+        path: './etc/openapi.json',
       },
     });
-    await application.register(require('@fastify/swagger-ui'));
-    await application.register(require('@fastify/helmet'), {
-      global: true,
+    await application.register(require('@fastify/swagger-ui'), {
+      routePrefix: '/swagger',
     });
+    // await application.register(require('@fastify/helmet'), {
+    //   global: true,
+    // });
     await application.register(require('fastify-metrics'), {
       endpoint: '/metrics',
     });

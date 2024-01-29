@@ -3,13 +3,14 @@ import { stripIndent } from 'common-tags';
 const _pageTemplateContent = `
   import 'regenerator-runtime/runtime';
   import React, { useContext } from 'react';
+  import { Helmet } from 'react-helmet';
 
 	__PAGE_IMPORTS__
 
-  import { PlatformContext } from '@/contexts/platform.context';
+  import { ProjectContext } from '@/contexts/ProjectContext/ProjectContext';
 	
 	export default function __PAGE_NAME__() {
-	  const platformContext = useContext(PlatformContext);
+	  const projectContext = useContext(ProjectContext);
 
 		return (
 		  <>
@@ -24,7 +25,6 @@ export function getApplicationPageFileContent({
   pageName,
   pageContent,
   pageFooter,
-  // pageBreadcrumbs,
   colorTheme,
   businessTheme,
 }: {
@@ -32,18 +32,14 @@ export function getApplicationPageFileContent({
   pageName: string;
   pageContent: string;
   pageFooter: string;
-  // pageBreadcrumbs: string;
   colorTheme: string;
   businessTheme: string;
 }) {
-  return (
-    stripIndent(_pageTemplateContent)
-      .replace('__PAGE_IMPORTS__', imports)
-      .replace('__PAGE_NAME__', pageName)
-      .replace('__PAGE_CONTENT__', pageContent)
-      .replace('__PAGE_FOOTER__', pageFooter)
-      // .replace('__PAGE_BREADCRUMBS__', pageBreadcrumbs)
-      .replace('__COLOR_THEME__', colorTheme)
-      .replace('__BUSINESS_THEME__', businessTheme)
-  );
+  return stripIndent(_pageTemplateContent)
+    .replace('__PAGE_IMPORTS__', imports)
+    .replace('__PAGE_NAME__', pageName)
+    .replace('__PAGE_CONTENT__', pageContent)
+    .replace('__PAGE_FOOTER__', pageFooter)
+    .replace('__COLOR_THEME__', colorTheme)
+    .replace('__BUSINESS_THEME__', businessTheme);
 }

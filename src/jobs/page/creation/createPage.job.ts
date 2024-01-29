@@ -10,7 +10,7 @@ import { Stage, Status } from '../../../types';
 import { otlContext, SemanticAttributes, withSafelyActiveSpan } from '../../../lib/opentelemetry';
 
 export async function createPageJob(
-  payload: Job<{ id: number; url: string; parentSpanContext?: SpanContext }>,
+  payload: Job<{ externalId: number; url: string; parentSpanContext?: SpanContext }>,
 ) {
   await withSafelyActiveSpan(
     {
@@ -42,7 +42,7 @@ export async function createPageJob(
         stage: Stage.setup,
         status: Status.progress,
         url: payload.data.url,
-        externalId: payload.data.id,
+        externalId: payload.data.externalId,
       });
 
       await runPageCreation(readyToRunPage);
