@@ -11,7 +11,10 @@ import {
   getMissedComponentsList,
   getPageComponentName,
 } from '../../pipeline/generating.service';
-import { parseProjectPage } from '../../pipeline/parsing.service';
+import {
+  normalizePageComponentsVersionsGivenDesignSystem,
+  parsePageStructureComponentsList,
+} from '../../pipeline/parsing.service';
 import { compile } from '../../pipeline/compiling.service';
 import { exportClientStaticFiles, exportPages } from '../../pipeline/export.service';
 import {
@@ -76,10 +79,11 @@ async function runGeneratingStage({
   logger.debug('page generating stage');
 
   const pageStructure = await getProjectPageStructure(workInProgressPage.externalId);
+  const designSystemComponentsMap = convertToMap(designSystemComponentsList);
 
-  const { pageComponentsList } = await parseProjectPage(
-    pageStructure,
-    convertToMap(designSystemComponentsList),
+  const pageComponentsList = normalizePageComponentsVersionsGivenDesignSystem(
+    designSystemComponentsMap,
+    parsePageStructureComponentsList(pageStructure),
   );
 
   const generatedPages = [...projectPages, workInProgressPage].map((page) => ({

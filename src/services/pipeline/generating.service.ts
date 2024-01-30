@@ -5,6 +5,7 @@ import escape from 'lodash/escape';
 import difference from 'lodash/difference';
 import { stripIndent } from 'common-tags';
 
+import { temporaryApplicationBuildFolderRootPath } from '../../config';
 import {
   ComponentLike,
   ProjectPageStructureComponent,
@@ -16,9 +17,9 @@ import {
 import { getApplicationPageFileContent } from '../../templates/templates/page.template';
 import { getApplicationFileContent } from '../../templates/templates/application.template';
 import { getPageFolderPathFromUrl } from '../../lib/url';
-import { temporaryApplicationBuildFolderRootPath } from '../../config';
+import { getRandomString } from '../../lib/random';
 
-interface GeneratedPage {
+export interface GeneratedPage {
   pageUrl: string;
   path: string;
   pageName: string;
@@ -243,8 +244,4 @@ function isBotSpecificTag(tag: ProjectPageStructureMetaItemProps) {
 
 function isValidTag(tag: ProjectPageStructureMetaItemProps) {
   return tag.content || tag.name || tag.property;
-}
-
-function getRandomString(size = 8) {
-  return [...Array(size)].map(() => (~~(Math.random() * 36)).toString(36)).join('');
 }

@@ -1,24 +1,18 @@
 import { Op } from 'sequelize';
+import piscina from 'piscina';
+import path from 'path';
+import chunk from 'lodash/chunk';
+import os from 'os';
 
+import { rootFolderPath } from '../../config';
 import { Stage, Status } from '../../types';
 import { Build, BuildAttributes, BuildAttributesNew, Page } from '../../models';
-import {
-  ComponentLike,
-  getProjectPages,
-  getProjectPageStructure,
-  Project,
-  ProjectPage,
-} from '../../sdk/platform.sdk';
+import { ComponentLike, getProjectPages, Project, ProjectPage } from '../../sdk/platform.sdk';
 import { logger } from '../../lib/logger';
 import { runPipeline } from '../pipeline/pipeline.service';
 import { setupApplicationFolderEnvironment } from '../pipeline/setup.service';
 import { getDesignSystemComponentsList, getProject } from '../pipeline/fetching.service';
-import {
-  convertToMap,
-  createApplicationFile,
-  createApplicationPageFile,
-} from '../pipeline/generating.service';
-import { parseProjectPage } from '../pipeline/parsing.service';
+import { convertToMap, createApplicationFile, GeneratedPage } from '../pipeline/generating.service';
 import { collectMissedComponents } from '../pipeline/preparing.service';
 import { compile } from '../pipeline/compiling.service';
 import {
@@ -26,12 +20,13 @@ import {
   exportPages,
   runExportServerFile,
 } from '../pipeline/export.service';
-import { createPage, updatePage } from '../page/page.service';
 import { commit } from '../pipeline/commit.service';
+
+const Piscina = piscina.Piscina;
 
 type BuildUpdate = Partial<BuildAttributes>;
 
-interface BuildPipelineContext {
+export interface BuildPipelineContext {
   build: Build;
   project: Project | null;
   projectPages: ProjectPage[];
@@ -124,71 +119,39 @@ async function runFetchingStage({ build }: BuildPipelineContext) {
 async function runGeneratingStage(context: BuildPipelineContext) {
   logger.debug(`build pipeline stage = generating`);
 
-  const componentsRequiringBundles = [];
-  const generatedPages = [];
-
   await updateBuild(context.build, {
     stage: Stage.generating,
   });
 
-  for (const projectPage of context.projectPages) {
-    logger.debug(
-      `build pipeline generating page: id: - ${projectPage.id}, url - ${projectPage.url}`,
-    );
+  const pool = new Piscina({
+    filename: path.join(rootFolderPath, 'dist/workers/generating.worker.js'),
+  });
+  const designSystemComponentsMap = convertToMap(context.designSystemComponentsList);
 
-    const page = await createPage({
-      buildId: context.build.id,
-      url: projectPage.url,
-      stage: Stage.setup,
-      status: Status.progress,
-      externalId: projectPage.id,
-    });
+  const tasksOutput = (await Promise.all(
+    chunkifyProjectPages(context.projectPages).map((projectPages) =>
+      pool.run({ projectPages, buildId: context.build.id, designSystemComponentsMap }),
+    ),
+  )) as { componentsRequiringBundles: ComponentLike[]; generatedPages: GeneratedPage[] }[];
 
-    try {
-      const { pageFilePath, pageComponentName, pageComponentsList } =
-        await runProjectPageGenerating(page, context);
-
-      componentsRequiringBundles.push(...pageComponentsList);
-
-      generatedPages.push({
-        pageUrl: page.url,
-        path: pageFilePath,
-        pageName: pageComponentName,
-      });
-    } catch (error) {
-      await updatePage(page, {
-        status: Status.failed,
-      });
-    }
-  }
+  const { componentsRequiringBundles, generatedPages } = tasksOutput.reduce(
+    (basket, taskOutput) => ({
+      ...basket,
+      componentsRequiringBundles: [
+        ...basket.componentsRequiringBundles,
+        ...taskOutput.componentsRequiringBundles,
+      ],
+      generatedPages: [...basket.generatedPages, ...taskOutput.generatedPages],
+    }),
+    {
+      componentsRequiringBundles: [],
+      generatedPages: [],
+    },
+  );
 
   await createApplicationFile(generatedPages);
 
   return { componentsRequiringBundles, generatedPages };
-}
-
-async function runProjectPageGenerating(page: Page, context: BuildPipelineContext) {
-  await updatePage(page, {
-    stage: Stage.fetching,
-  });
-
-  const pageStructure = await getProjectPageStructure(page.externalId);
-
-  const { pageComponentsList } = await parseProjectPage(
-    pageStructure,
-    convertToMap(context.designSystemComponentsList),
-  );
-
-  await updatePage(page, {
-    stage: Stage.generating,
-  });
-
-  const { pageFilePath, pageComponentName } = await createApplicationPageFile(
-    pageStructure,
-    pageComponentsList,
-  );
-
-  return { pageFilePath, pageComponentName, pageComponentsList };
 }
 
 async function runPreparingStage(context: BuildPipelineContext) {
@@ -297,4 +260,14 @@ function createBuild(values: BuildAttributesNew) {
 
 function updateBuild(build: Build, values: BuildUpdate) {
   return build.update(values);
+}
+
+function chunkifyProjectPages(projectPages: ProjectPage[]) {
+  const cpuCount = os.cpus().length - 1;
+
+  if (projectPages.length < cpuCount) {
+    return [projectPages];
+  }
+
+  return chunk(projectPages, Math.ceil(projectPages.length / cpuCount));
 }

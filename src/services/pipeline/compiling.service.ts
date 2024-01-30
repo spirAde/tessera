@@ -173,12 +173,10 @@ function runCompiler(config: Configuration) {
   return new Promise<Set<string>>((resolve, reject) => {
     compiler.run((error, stats) => {
       if (error) {
-        console.log('error', error);
         reject(error);
       }
 
       if (stats?.hasErrors()) {
-        console.log('stats error', stats.toJson().errors);
         reject(stats.toJson().errors);
       }
 

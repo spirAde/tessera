@@ -22,6 +22,16 @@ import { createBuildJob } from './createBuild.job';
 import { Build } from '../../models';
 import { Stage, Status } from '../../types';
 
+jest.mock('../../lib/random', () => {
+  const originalModule = jest.requireActual('../../lib/random');
+
+  return {
+    __esModule: true,
+    ...originalModule,
+    getRandomString: () => '',
+  };
+});
+
 describe('createBuildJob', () => {
   it('creates build', async () => {
     const pages = [

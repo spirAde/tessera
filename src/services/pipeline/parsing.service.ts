@@ -6,31 +6,7 @@ import {
   ComponentLike,
 } from '../../sdk/platform.sdk';
 
-export async function parseProjectPage(
-  page: StrictProjectPageStructure,
-  designSystemComponentsMap: Map<string, string>,
-) {
-  const pageMetadata = parsePageMetadata(page);
-  const pageComponentsList = normalizePageComponentsVersionsGivenDesignSystem(
-    designSystemComponentsMap,
-    parsePageStructureComponentsList(page),
-  );
-
-  return { pageMetadata, pageComponentsList };
-}
-
-function parsePageMetadata(pageStructure: StrictProjectPageStructure) {
-  return {
-    footerId: pageStructure.result?.footerId,
-    pageCode: pageStructure.code,
-    canonical: pageStructure.url,
-    breadcrumbs: pageStructure.breadcrumbs,
-    seo: pageStructure.seo?.result,
-    meta: pageStructure.meta?.result?.items,
-  };
-}
-
-function parsePageStructureComponentsList(pageStructure: StrictProjectPageStructure) {
+export function parsePageStructureComponentsList(pageStructure: StrictProjectPageStructure) {
   const components: ProjectPageStructureComponent[] = [];
 
   pageStructure.template.forEach((node) => {
@@ -40,7 +16,7 @@ function parsePageStructureComponentsList(pageStructure: StrictProjectPageStruct
   return uniqBy(components, 'componentName');
 }
 
-function normalizePageComponentsVersionsGivenDesignSystem(
+export function normalizePageComponentsVersionsGivenDesignSystem(
   designSystemComponentsMap: Map<string, string>,
   pageComponentsList: ProjectPageStructureComponent[],
 ): ComponentLike[] {
