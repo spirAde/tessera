@@ -64,8 +64,8 @@ describe('deletePageJob', () => {
         'utf-8',
       ),
     ).toIncludeMultiple([
-      '<Route exact path="/" element={<Main />} />',
-      '<Route exact path="/about-company" element={<AboutCompany />} />',
+      '<Route exact path="/" element={<PageMain />} />',
+      '<Route exact path="/about-company" element={<PageAboutCompany />} />',
     ]);
 
     expect(

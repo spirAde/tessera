@@ -13,6 +13,9 @@ export const pgConnectionString = `postgres://${pgConfig.user}:${pgConfig.passwo
 
 export const isTest = process.env.STAGE === 'test';
 
+export const isProcessingInWorkerThreadsAvailable =
+  Number(process.env.THREAD_PROCESSING_AVAILABLE) || 0;
+
 export const host = process.env.HOST || '0.0.0.0';
 export const port = Number(process.env.PORT || 3003);
 

@@ -1,16 +1,15 @@
+import path from 'path';
+import os from 'os';
 import { Op } from 'sequelize';
 import piscina from 'piscina';
-import path from 'path';
-import chunk from 'lodash/chunk';
-import os from 'os';
 
-import { rootFolderPath } from '../../config';
+import { isProcessingInWorkerThreadsAvailable, rootFolderPath } from '../../config';
 import { Stage, Status } from '../../types';
 import { Build, BuildAttributes, BuildAttributesNew, Page } from '../../models';
 import { ComponentLike, getProjectPages, Project, ProjectPage } from '../../sdk/platform.sdk';
 import { logger } from '../../lib/logger';
 import { runPipeline } from '../pipeline/pipeline.service';
-import { setupApplicationFolderEnvironment } from '../pipeline/setup.service';
+import { cleanBabelCache, setupApplicationFolderEnvironment } from '../pipeline/setup.service';
 import { getDesignSystemComponentsList, getProject } from '../pipeline/fetching.service';
 import { convertToMap, createApplicationFile, GeneratedPage } from '../pipeline/generating.service';
 import { collectMissedComponents } from '../pipeline/preparing.service';
@@ -21,6 +20,8 @@ import {
   runExportServerFile,
 } from '../pipeline/export.service';
 import { commit } from '../pipeline/commit.service';
+import { runProjectPageGenerating, updatePage } from '../page/page.service';
+import { isFulfilled } from '../../lib/promise';
 
 const Piscina = piscina.Piscina;
 
@@ -93,6 +94,7 @@ async function runSetupStage({ build }: BuildPipelineContext) {
     stage: Stage.setup,
   });
 
+  await cleanBabelCache();
   await setupApplicationFolderEnvironment();
 }
 
@@ -123,33 +125,137 @@ async function runGeneratingStage(context: BuildPipelineContext) {
     stage: Stage.generating,
   });
 
-  const pool = new Piscina({
-    filename: path.join(rootFolderPath, 'dist/workers/generating.worker.js'),
-  });
-  const designSystemComponentsMap = convertToMap(context.designSystemComponentsList);
+  const pages = await Page.bulkCreate(
+    context.projectPages.map((projectPage) => ({
+      buildId: context.build.id,
+      url: projectPage.url,
+      stage: Stage.setup,
+      status: Status.progress,
+      externalId: projectPage.id,
+    })),
+    { returning: true },
+  );
 
-  const tasksOutput = (await Promise.all(
-    chunkifyProjectPages(context.projectPages).map((projectPages) =>
-      pool.run({ projectPages, buildId: context.build.id, designSystemComponentsMap }),
-    ),
-  )) as { componentsRequiringBundles: ComponentLike[]; generatedPages: GeneratedPage[] }[];
-
-  const { componentsRequiringBundles, generatedPages } = tasksOutput.reduce(
-    (basket, taskOutput) => ({
-      ...basket,
-      componentsRequiringBundles: [
-        ...basket.componentsRequiringBundles,
-        ...taskOutput.componentsRequiringBundles,
-      ],
-      generatedPages: [...basket.generatedPages, ...taskOutput.generatedPages],
-    }),
-    {
-      componentsRequiringBundles: [],
-      generatedPages: [],
-    },
+  const { componentsRequiringBundles, generatedPages } = await runProjectPagesGenerating(
+    pages,
+    convertToMap(context.designSystemComponentsList),
   );
 
   await createApplicationFile(generatedPages);
+
+  return { componentsRequiringBundles, generatedPages };
+}
+
+async function runProjectPagesGenerating(
+  pages: Page[],
+  designSystemComponentsMap: Map<string, string>,
+) {
+  // nock supports only main thread catching request, as result we can skip this branch
+  /* istanbul ignore if */
+  if (isProcessingInWorkerThreadsAvailable) {
+    return processProjectPagesGeneratingInWorkerThreads(pages, designSystemComponentsMap);
+  }
+
+  return processProjectPagesGeneratingInMainThread(pages, designSystemComponentsMap);
+}
+
+async function processProjectPagesGeneratingInWorkerThreads(
+  pages: Page[],
+  designSystemComponentsMap: Map<string, string>,
+) {
+  const pool = new Piscina({
+    filename: path.join(rootFolderPath, 'dist/workers/generating.worker.js'),
+    maxThreads: os.cpus().length - 1,
+  });
+
+  const promises: Promise<{
+    pageFilePath: string;
+    pageComponentName: string;
+    pageComponentsList: ComponentLike[];
+  }>[] = pages.map((page) => pool.run({ pageId: page.id, designSystemComponentsMap }));
+
+  const tasksOutput = await Promise.allSettled(promises);
+
+  const groupedTasksOutput = tasksOutput.reduce<{
+    fulfilled: {
+      generatedPages: GeneratedPage[];
+      componentsRequiringBundles: ComponentLike[];
+    };
+    rejected: number[];
+  }>(
+    (groups, taskOutput, currentIndex) => {
+      if (isFulfilled(taskOutput)) {
+        return {
+          ...groups,
+          fulfilled: {
+            componentsRequiringBundles: [
+              ...groups.fulfilled.componentsRequiringBundles,
+              ...taskOutput.value.pageComponentsList,
+            ],
+            generatedPages: [
+              ...groups.fulfilled.generatedPages,
+              {
+                pageUrl: pages[currentIndex].url,
+                path: taskOutput.value.pageFilePath,
+                pageName: taskOutput.value.pageComponentName,
+              },
+            ],
+          },
+        };
+      }
+
+      return {
+        ...groups,
+        rejected: [...groups.rejected, pages[currentIndex].id],
+      };
+    },
+    {
+      fulfilled: {
+        componentsRequiringBundles: [],
+        generatedPages: [],
+      },
+      rejected: [],
+    },
+  );
+
+  groupedTasksOutput.rejected.length > 0 &&
+    (await Page.update(
+      { status: Status.failed },
+      {
+        where: {
+          id: groupedTasksOutput.rejected,
+        },
+      },
+    ));
+
+  return groupedTasksOutput.fulfilled;
+}
+
+async function processProjectPagesGeneratingInMainThread(
+  pages: Page[],
+  designSystemComponentsMap: Map<string, string>,
+) {
+  const componentsRequiringBundles: ComponentLike[] = [];
+  const generatedPages: GeneratedPage[] = [];
+
+  for (const page of pages) {
+    try {
+      const { pageFilePath, pageComponentName, pageComponentsList } =
+        await runProjectPageGenerating(page, designSystemComponentsMap);
+
+      componentsRequiringBundles.push(...pageComponentsList);
+
+      generatedPages.push({
+        pageUrl: page.url,
+        path: pageFilePath,
+        pageName: pageComponentName,
+      });
+    } catch (error) {
+      await updatePage(page, {
+        status: Status.failed,
+      });
+    }
+  }
 
   return { componentsRequiringBundles, generatedPages };
 }
@@ -260,14 +366,4 @@ function createBuild(values: BuildAttributesNew) {
 
 function updateBuild(build: Build, values: BuildUpdate) {
   return build.update(values);
-}
-
-function chunkifyProjectPages(projectPages: ProjectPage[]) {
-  const cpuCount = os.cpus().length - 1;
-
-  if (projectPages.length < cpuCount) {
-    return [projectPages];
-  }
-
-  return chunk(projectPages, Math.ceil(projectPages.length / cpuCount));
 }

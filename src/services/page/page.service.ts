@@ -1,10 +1,15 @@
 import { Page, PageAttributes, PageAttributesNew } from '../../models';
-import { ComponentLike, Project } from '../../sdk/platform.sdk';
+import { ComponentLike, getProjectPageStructure, Project } from '../../sdk/platform.sdk';
 import { advisoryLock, advisoryUnlock } from '../../lib/lock';
 import { logger } from '../../lib/logger';
 import { getDesignSystemComponentsList, getProject } from '../pipeline/fetching.service';
 import { collectMissedComponents } from '../pipeline/preparing.service';
 import { Stage } from '../../types';
+import {
+  normalizePageComponentsVersionsGivenDesignSystem,
+  parsePageStructureComponentsList,
+} from '../pipeline/parsing.service';
+import { createApplicationPageFile } from '../pipeline/generating.service';
 
 type PageUpdate = Partial<PageAttributes>;
 
@@ -92,6 +97,34 @@ export async function runPageAdvisoryUnlock({
   workInProgressPage,
 }: Partial<PagePipelineContext> & { workInProgressPage: Page }) {
   await cancelLinearPageProcessing(workInProgressPage);
+}
+
+export async function runProjectPageGenerating(
+  page: Page,
+  designSystemComponentsMap: Map<string, string>,
+) {
+  logger.debug(`generating page: id: - ${page.externalId}, url - ${page.url}`);
+
+  await updatePage(page, {
+    stage: Stage.fetching,
+  });
+
+  const pageStructure = await getProjectPageStructure(page.externalId);
+  const pageComponentsList = normalizePageComponentsVersionsGivenDesignSystem(
+    designSystemComponentsMap,
+    parsePageStructureComponentsList(pageStructure),
+  );
+
+  await updatePage(page, {
+    stage: Stage.generating,
+  });
+
+  const { pageFilePath, pageComponentName } = await createApplicationPageFile(
+    pageStructure,
+    pageComponentsList,
+  );
+
+  return { pageFilePath, pageComponentName, pageComponentsList };
 }
 
 async function enforceLinearPageProcessing(page: Page) {

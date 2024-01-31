@@ -22,16 +22,6 @@ import { createBuildJob } from './createBuild.job';
 import { Build } from '../../models';
 import { Stage, Status } from '../../types';
 
-jest.mock('../../lib/random', () => {
-  const originalModule = jest.requireActual('../../lib/random');
-
-  return {
-    __esModule: true,
-    ...originalModule,
-    getRandomString: () => '',
-  };
-});
-
 describe('createBuildJob', () => {
   it('creates build', async () => {
     const pages = [
@@ -95,9 +85,9 @@ describe('createBuildJob', () => {
         'utf-8',
       ),
     ).toIncludeMultiple([
-      '<Route exact path="/" element={<Main />} />',
-      '<Route exact path="/service" element={<Service />} />',
-      '<Route exact path="/about-company" element={<AboutCompany />} />',
+      '<Route exact path="/" element={<PageMain />} />',
+      '<Route exact path="/service" element={<PageService />} />',
+      '<Route exact path="/about-company" element={<PageAboutCompany />} />',
     ]);
 
     const builds = await Build.findAll();
@@ -157,8 +147,8 @@ describe('createBuildJob', () => {
         'utf-8',
       ),
     ).toIncludeMultiple([
-      '<Route exact path="/" element={<Main />} />',
-      '<Route exact path="/about-company" element={<AboutCompany />} />',
+      '<Route exact path="/" element={<PageMain />} />',
+      '<Route exact path="/about-company" element={<PageAboutCompany />} />',
     ]);
 
     const builds = await Build.findAll();
@@ -205,16 +195,16 @@ function nockProjectPages(pages: StrictProjectPageStructure[]) {
 }
 
 function nockProjectComponentsSources(pages: StrictProjectPageStructure[]) {
-  const components = uniqBy(
-    [
-      ...pages.reduce<ComponentLike[]>(
+  const components = [
+    ...uniqBy(
+      pages.reduce<ComponentLike[]>(
         (list, page) => [...list, ...pageComponentsByPageId[page.id]],
         [],
       ),
-      { name: 'foundation-kit', version: '1.0.18' },
-    ],
-    'name',
-  );
+      'name',
+    ),
+    { name: 'foundation-kit', version: '1.0.18' },
+  ];
 
   for (const component of components) {
     nockPlatformComponentSource({

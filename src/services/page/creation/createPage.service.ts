@@ -26,6 +26,7 @@ import {
   runFetchingStage,
   runPreparingStage,
   cancelLinearPageProcessing,
+  runProjectPageGenerating,
 } from '../page.service';
 import { Status } from '../../../types';
 import { commit } from '../../pipeline/commit.service';
@@ -78,12 +79,9 @@ async function runGeneratingStage({
 }: PagePipelineContext) {
   logger.debug('page generating stage');
 
-  const pageStructure = await getProjectPageStructure(workInProgressPage.externalId);
-  const designSystemComponentsMap = convertToMap(designSystemComponentsList);
-
-  const pageComponentsList = normalizePageComponentsVersionsGivenDesignSystem(
-    designSystemComponentsMap,
-    parsePageStructureComponentsList(pageStructure),
+  const { pageComponentsList } = await runProjectPageGenerating(
+    workInProgressPage,
+    convertToMap(designSystemComponentsList),
   );
 
   const generatedPages = [...projectPages, workInProgressPage].map((page) => ({
@@ -92,7 +90,6 @@ async function runGeneratingStage({
     pageName: getPageComponentName(getPageFolderPathFromUrl(page.url)),
   }));
 
-  await createApplicationPageFile(pageStructure, pageComponentsList);
   await createApplicationFile(generatedPages);
 
   return {

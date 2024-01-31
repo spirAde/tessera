@@ -22,6 +22,7 @@ import {
   runPageAdvisoryLock,
   runPageAdvisoryUnlock,
   cancelLinearPageProcessing,
+  runProjectPageGenerating,
 } from '../page.service';
 import { Stage, Status } from '../../../types';
 import { commit } from '../../pipeline/commit.service';
@@ -74,19 +75,10 @@ async function runGeneratingStage({
 }: PagePipelineContext) {
   logger.debug('page generating stage');
 
-  await updatePage(workInProgressPage, {
-    stage: Stage.generating,
-  });
-
-  const pageStructure = await getProjectPageStructure(workInProgressPage.externalId);
-  const designSystemComponentsMap = convertToMap(designSystemComponentsList);
-
-  const pageComponentsList = normalizePageComponentsVersionsGivenDesignSystem(
-    designSystemComponentsMap,
-    parsePageStructureComponentsList(pageStructure),
+  const { pageComponentsList } = await runProjectPageGenerating(
+    workInProgressPage,
+    convertToMap(designSystemComponentsList),
   );
-
-  await createApplicationPageFile(pageStructure, pageComponentsList);
 
   return {
     componentsRequiringBundles: getMissedComponentsList(pageComponentsList),
