@@ -1,17 +1,19 @@
 import { Page, PageAttributes, PageAttributesNew } from '../../models';
-import { ComponentLike, getProjectPageStructure, Project } from '../../sdk/platform.sdk';
-import { advisoryLock, advisoryUnlock } from '../../lib/lock';
+import { ComponentLike, Project } from '../../sdk/platform.sdk';
 import { logger } from '../../lib/logger';
 import { getDesignSystemComponentsList, getProject } from '../pipeline/fetching.service';
 import { collectMissedComponents } from '../pipeline/preparing.service';
 import { Stage } from '../../types';
-import {
-  normalizePageComponentsVersionsGivenDesignSystem,
-  parsePageStructureComponentsList,
-} from '../pipeline/parsing.service';
-import { createApplicationPageFile } from '../pipeline/generating.service';
+import { compile } from '../pipeline/compiling.service';
+import { exportClientStaticFiles, exportPages } from '../pipeline/export.service';
 
 type PageUpdate = Partial<PageAttributes>;
+
+export enum ProcessPagePipelineType {
+  create = 'create',
+  update = 'update',
+  remove = 'remove',
+}
 
 export interface PagePipelineContext {
   project: Project | null;
@@ -29,10 +31,6 @@ export function createPage(values: PageAttributesNew) {
 
 export function updatePage(page: Page, values: PageUpdate) {
   return page.update(values);
-}
-
-export async function cancelLinearPageProcessing(page: Page) {
-  await advisoryUnlock(getPageAdvisoryLockKey(page));
 }
 
 export function createPagePipelineContext(
@@ -87,50 +85,31 @@ export async function runPreparingStage({
   });
 }
 
-export async function runPageAdvisoryLock({
+export async function runCompilationStage({
+  projectPages,
   workInProgressPage,
-}: Partial<PagePipelineContext> & { workInProgressPage: Page }) {
-  await enforceLinearPageProcessing(workInProgressPage);
-}
+}: PagePipelineContext) {
+  logger.debug('page compilation stage');
 
-export async function runPageAdvisoryUnlock({
-  workInProgressPage,
-}: Partial<PagePipelineContext> & { workInProgressPage: Page }) {
-  await cancelLinearPageProcessing(workInProgressPage);
-}
-
-export async function runProjectPageGenerating(
-  page: Page,
-  designSystemComponentsMap: Map<string, string>,
-) {
-  logger.debug(`generating page: id: - ${page.externalId}, url - ${page.url}`);
-
-  await updatePage(page, {
-    stage: Stage.fetching,
+  await updatePage(workInProgressPage, {
+    stage: Stage.compilation,
   });
 
-  const pageStructure = await getProjectPageStructure(page.externalId);
-  const pageComponentsList = normalizePageComponentsVersionsGivenDesignSystem(
-    designSystemComponentsMap,
-    parsePageStructureComponentsList(pageStructure),
-  );
+  const { clientEmittedAssets, serverEmittedAssets } = await compile([
+    ...projectPages.map(({ url }) => url),
+    workInProgressPage.url,
+  ]);
 
-  await updatePage(page, {
-    stage: Stage.generating,
+  return { clientEmittedAssets, serverEmittedAssets };
+}
+
+export async function runExportStage({ projectPages, workInProgressPage }: PagePipelineContext) {
+  logger.debug('page export stage');
+
+  await updatePage(workInProgressPage, {
+    stage: Stage.export,
   });
 
-  const { pageFilePath, pageComponentName } = await createApplicationPageFile(
-    pageStructure,
-    pageComponentsList,
-  );
-
-  return { pageFilePath, pageComponentName, pageComponentsList };
-}
-
-async function enforceLinearPageProcessing(page: Page) {
-  await advisoryLock(getPageAdvisoryLockKey(page));
-}
-
-function getPageAdvisoryLockKey(page: Page) {
-  return `pages_${page.id}`;
+  await exportPages([...projectPages, workInProgressPage]);
+  await exportClientStaticFiles();
 }

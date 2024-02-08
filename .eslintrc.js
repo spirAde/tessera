@@ -12,6 +12,7 @@ module.exports = {
     'airbnb-typescript/base',
     'plugin:jest/recommended',
     'plugin:import/recommended',
+    // 'plugin:sonarjs/recommended',
     'plugin:@typescript-eslint/recommended',
     'plugin:eslint-comments/recommended',
     'prettier',
@@ -151,7 +152,6 @@ module.exports = {
   env: {
     node: true,
     es2020: true,
-    mocha: true,
   },
   settings: {
     'import/resolver': {

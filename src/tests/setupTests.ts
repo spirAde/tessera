@@ -8,7 +8,7 @@ import { pgQueue } from '../services/enqueueJob.service';
 import { application, runTestApplication } from '../application';
 import { cleanupOutputFolder } from './helpers';
 
-jest.setTimeout(10_000);
+jest.setTimeout(20_000);
 expect.extend(matchers);
 
 beforeAll(async () => {

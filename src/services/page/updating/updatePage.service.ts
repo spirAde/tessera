@@ -1,39 +1,47 @@
 import { Page } from '../../../models';
 import { logger } from '../../../lib/logger';
-import { getProjectPageStructure } from '../../../sdk/platform.sdk';
 import { runPipeline } from '../../pipeline/pipeline.service';
 import {
   convertToMap,
-  createApplicationPageFile,
   getMissedComponentsList,
+  generatePage,
 } from '../../pipeline/generating.service';
 import {
-  normalizePageComponentsVersionsGivenDesignSystem,
-  parsePageStructureComponentsList,
-} from '../../pipeline/parsing.service';
-import { compile } from '../../pipeline/compiling.service';
-import { exportClientStaticFiles, exportPages } from '../../pipeline/export.service';
-import {
-  PagePipelineContext,
   createPagePipelineContext,
-  updatePage,
+  PagePipelineContext,
   runFetchingStage,
   runPreparingStage,
-  runPageAdvisoryLock,
-  runPageAdvisoryUnlock,
-  cancelLinearPageProcessing,
-  runProjectPageGenerating,
+  runCompilationStage,
+  runExportStage,
+  updatePage,
 } from '../page.service';
 import { Stage, Status } from '../../../types';
 import { commit } from '../../pipeline/commit.service';
-import { Op } from 'sequelize';
 
-export async function runPageUpdating(page: Page) {
+export async function runPageUpdating({
+  buildId,
+  externalId,
+}: {
+  buildId: number;
+  externalId: number;
+}) {
+  const page = await Page.findOne({
+    where: {
+      buildId,
+      externalId,
+    },
+    rejectOnEmpty: true,
+  });
+
+  const readyToRunPage = await updatePage(page, {
+    status: Status.progress,
+    stage: Stage.setup,
+  });
+
   try {
-    await runPageUpdatingPipeline(page);
+    await runPageUpdatingPipeline(readyToRunPage);
   } catch (error) {
-    await cancelLinearPageProcessing(page);
-    await updatePage(page, {
+    await updatePage(readyToRunPage, {
       status: Status.failed,
     });
     throw error;
@@ -48,6 +56,10 @@ async function runPageUpdatingPipeline(page: Page) {
     },
   });
 
+  await updatePage(page, {
+    status: Status.progress,
+  });
+
   const pipelineContext = createPagePipelineContext({
     workInProgressPage: page,
     projectPages,
@@ -55,12 +67,10 @@ async function runPageUpdatingPipeline(page: Page) {
 
   const handlers = [
     runFetchingStage,
-    runPageAdvisoryLock,
     runGeneratingStage,
     runPreparingStage,
     runCompilationStage,
     runExportStage,
-    runPageAdvisoryUnlock,
     runCommitStage,
   ];
 
@@ -75,7 +85,11 @@ async function runGeneratingStage({
 }: PagePipelineContext) {
   logger.debug('page generating stage');
 
-  const { pageComponentsList } = await runProjectPageGenerating(
+  await updatePage(workInProgressPage, {
+    stage: Stage.generating,
+  });
+
+  const { pageComponentsList } = await generatePage(
     workInProgressPage,
     convertToMap(designSystemComponentsList),
   );
@@ -85,57 +99,16 @@ async function runGeneratingStage({
   };
 }
 
-async function runCompilationStage({ projectPages, workInProgressPage }: PagePipelineContext) {
-  logger.debug('page compilation stage');
-
-  await Page.update(
-    { stage: Stage.compilation },
-    {
-      where: {
-        id: [...projectPages.map(({ id }) => id), workInProgressPage.id],
-        status: {
-          [Op.ne]: Status.failed,
-        },
-      },
-    },
-  );
-
-  return compile([...projectPages.map(({ url }) => url), workInProgressPage.url]);
-}
-
-async function runExportStage({ project, projectPages, workInProgressPage }: PagePipelineContext) {
-  logger.debug('page export stage');
-
-  await Page.update(
-    { stage: Stage.export },
-    {
-      where: {
-        id: [...projectPages.map(({ id }) => id), workInProgressPage.id],
-        status: {
-          [Op.ne]: Status.failed,
-        },
-      },
-    },
-  );
-
-  await exportPages(project!, [...projectPages.map((page) => page.url), workInProgressPage.url]);
-  await exportClientStaticFiles();
-}
-
-async function runCommitStage({ projectPages, workInProgressPage }: PagePipelineContext) {
+async function runCommitStage({ workInProgressPage }: PagePipelineContext) {
   logger.debug(`page commit stage`);
 
-  await Page.update(
-    { stage: Stage.commit },
-    {
-      where: {
-        id: [...projectPages.map(({ id }) => id), workInProgressPage.id],
-        status: {
-          [Op.ne]: Status.failed,
-        },
-      },
-    },
-  );
+  await updatePage(workInProgressPage, {
+    stage: Stage.commit,
+  });
 
   await commit();
+
+  await updatePage(workInProgressPage, {
+    status: Status.success,
+  });
 }

@@ -1,7 +1,7 @@
-import { runProjectPageGenerating } from '../services/page/page.service';
 import { Page } from '../models';
+import { generatePage } from '../services/pipeline/generating.service';
 
-module.exports = async function processProjectPageGenerating({
+module.exports = async function generatePageInThread({
   pageId,
   designSystemComponentsMap,
 }: {
@@ -9,5 +9,5 @@ module.exports = async function processProjectPageGenerating({
   designSystemComponentsMap: Map<string, string>;
 }) {
   const page = await Page.findByPk(pageId, { rejectOnEmpty: true });
-  return runProjectPageGenerating(page, designSystemComponentsMap);
+  return generatePage(page, designSystemComponentsMap);
 };

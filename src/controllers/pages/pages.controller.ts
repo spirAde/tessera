@@ -6,6 +6,7 @@ import { getCurrentBuild } from '../../services/build/build.service';
 import { Page } from '../../models';
 import { throwBadRequest } from '../../lib/error';
 import { otlContext, SemanticAttributes, withSafelyActiveSpan } from '../../lib/opentelemetry';
+import { ProcessPagePipelineType } from '../../services/page/page.service';
 
 export const create: RouteHandler<{ Body: CreatePageRequestBody }> = async function (
   request,
@@ -28,11 +29,29 @@ export const create: RouteHandler<{ Body: CreatePageRequestBody }> = async funct
         return throwBadRequest();
       }
 
-      await enqueue(JobName.createPage, {
-        externalId: request.body.id,
-        url: request.body.url,
-        parentSpanContext: span?.spanContext() ?? null,
+      const page = await Page.findOne({
+        where: {
+          externalId: request.body.id,
+          buildId: build.id,
+        },
       });
+
+      if (page) {
+        return throwBadRequest();
+      }
+
+      await enqueue(
+        JobName.processPage,
+        {
+          type: ProcessPagePipelineType.create,
+          externalId: request.body.id,
+          url: request.body.url,
+          parentSpanContext: span?.spanContext() ?? null,
+        },
+        {
+          useSingletonQueue: true,
+        },
+      );
 
       return response.status(204).send();
     },
@@ -71,10 +90,17 @@ export const update: RouteHandler<{ Body: UpdatePageRequestBody }> = async funct
         return throwBadRequest();
       }
 
-      await enqueue(JobName.updatePage, {
-        pageId: page.id,
-        parentSpanContext: span?.spanContext() ?? null,
-      });
+      await enqueue(
+        JobName.processPage,
+        {
+          type: ProcessPagePipelineType.update,
+          externalId: request.body.id,
+          parentSpanContext: span?.spanContext() ?? null,
+        },
+        {
+          useSingletonQueue: true,
+        },
+      );
 
       return response.status(201).send();
     },
@@ -87,7 +113,7 @@ export const remove: RouteHandler<{ Body: DeletePageRequestBody }> = async funct
 ) {
   await withSafelyActiveSpan(
     {
-      name: 'update-page handler',
+      name: 'delete-page handler',
       context: otlContext.active(),
       options: {
         attributes: {
@@ -113,10 +139,17 @@ export const remove: RouteHandler<{ Body: DeletePageRequestBody }> = async funct
         return throwBadRequest();
       }
 
-      await enqueue(JobName.deletePage, {
-        pageId: page.id,
-        parentSpanContext: span?.spanContext() ?? null,
-      });
+      await enqueue(
+        JobName.processPage,
+        {
+          type: ProcessPagePipelineType.remove,
+          externalId: request.body.id,
+          parentSpanContext: span?.spanContext() ?? null,
+        },
+        {
+          useSingletonQueue: true,
+        },
+      );
 
       return response.status(200).send();
     },

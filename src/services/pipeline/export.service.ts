@@ -7,54 +7,18 @@ import { ServerStyleSheet } from 'styled-components';
 import { ChunkExtractor } from '@loadable/server';
 import { minify } from 'html-minifier';
 
+import { Page } from '../../models';
 import { getPageFolderPathFromUrl } from '../../lib/url';
-import { Project } from '../../sdk/platform.sdk';
 import {
   temporaryApplicationBuildFolderRootPath,
   temporaryApplicationExportFolderRootPath,
 } from '../../config';
+import { logger } from '../../lib/logger';
 
-const STATIC_URL = '/static/';
 const sheet = new ServerStyleSheet();
+const STATIC_URL = '/static/';
 
-export async function exportPages(project: Project, projectPageUrls: string[]) {
-  const serverStats = path.join(
-    temporaryApplicationBuildFolderRootPath,
-    'build/server/loadable-stats.json',
-  );
-  const clientStats = path.join(
-    temporaryApplicationBuildFolderRootPath,
-    'build/client/loadable-stats.json',
-  );
-
-  const nodeExtractor = new ChunkExtractor({
-    statsFile: serverStats,
-    entrypoints: 'application-server',
-  });
-  const webExtractor = new ChunkExtractor({
-    statsFile: clientStats,
-    publicPath: STATIC_URL,
-    entrypoints: 'application-client',
-  });
-
-  const { default: Application } = nodeExtractor.requireEntrypoint();
-
-  for (const projectPageUrl of projectPageUrls) {
-    await exportPage({
-      project,
-      projectPageUrl,
-      Application: Application as ComponentType<{ url: string }>,
-      extractor: webExtractor,
-    });
-  }
-
-  await copy(
-    path.join(temporaryApplicationBuildFolderRootPath, 'build/client'),
-    path.join(temporaryApplicationExportFolderRootPath, 'static'),
-  );
-}
-
-export async function runExportServerFile() {
+export async function exportServerFile() {
   await copy(
     path.join(temporaryApplicationBuildFolderRootPath, 'server.js'),
     path.join(temporaryApplicationExportFolderRootPath, 'server.js'),
@@ -68,21 +32,36 @@ export async function exportClientStaticFiles() {
   );
 }
 
+export async function exportPages(pages: Page[]) {
+  const { nodeExtractor, webExtractor } = getLoadableExtractors();
+  const { default: Application } = nodeExtractor.requireEntrypoint();
+
+  await Promise.all(
+    pages.map((page) =>
+      exportPage({
+        pageUrl: page.url,
+        extractor: webExtractor,
+        Application: Application as ComponentType<{ url: string }>,
+      }),
+    ),
+  );
+}
+
 async function exportPage({
   Application,
   extractor,
-  projectPageUrl,
-  project,
+  pageUrl,
 }: {
   Application: ComponentType<{ url: string }>;
   extractor: ChunkExtractor;
-  projectPageUrl: string;
-  project: Project;
+  pageUrl: string;
 }) {
+  logger.debug(`export page url: ${pageUrl}`);
+
   const jsx = extractor.collectChunks(
     sheet.collectStyles(
       React.createElement(Application, {
-        url: projectPageUrl,
+        url: pageUrl,
       }),
     ),
   );
@@ -90,7 +69,7 @@ async function exportPage({
   const { htmlAttributes, title, base, meta, link, script } = Helmet.renderStatic();
 
   await outputFile(
-    getPageFilePath(projectPageUrl),
+    getPageFilePath(pageUrl),
     minify(
       `
       <!doctype html>
@@ -130,6 +109,32 @@ async function exportPage({
       },
     ),
   );
+}
+
+function getLoadableExtractors() {
+  const serverStats = path.join(
+    temporaryApplicationBuildFolderRootPath,
+    'build/server/loadable-stats.json',
+  );
+  const clientStats = path.join(
+    temporaryApplicationBuildFolderRootPath,
+    'build/client/loadable-stats.json',
+  );
+
+  const nodeExtractor = new ChunkExtractor({
+    statsFile: serverStats,
+    entrypoints: 'application-server',
+  });
+  const webExtractor = new ChunkExtractor({
+    statsFile: clientStats,
+    publicPath: STATIC_URL,
+    entrypoints: 'application-client',
+  });
+
+  return {
+    nodeExtractor,
+    webExtractor,
+  };
 }
 
 function getPageFilePath(url: string) {

@@ -2,9 +2,9 @@
 
 import got from 'got';
 import { isTest } from '../config';
-import { projectsMock } from './mocks/projects';
-import { designSystemMock } from './mocks/designSystem';
-import { pagesMock, projectPagesMock } from './mocks/pages';
+import { projectsMock } from '../mocks/projects.mock';
+import { designSystemMock } from '../mocks/designSystem.mock';
+import { pagesMock, projectPagesMock } from '../mocks/pages.mock';
 
 type ProjectInfoSysName =
   | 'PROGRESS_BAR_ENABLE'

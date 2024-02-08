@@ -2,15 +2,19 @@ import path from 'path';
 import fastify, { errorCodes, FastifyError, FastifyReply, FastifyRequest } from 'fastify';
 import { fastifyAutoload } from '@fastify/autoload';
 
-import { host, port } from './config';
+import { host, isTest, port } from './config';
 import { sequelize } from './lib/sequelize';
 import { initializeOpentelemetry } from './lib/opentelemetry';
 import { logger } from './lib/logger';
 import { initializeJobs, pgQueue } from './services/enqueueJob.service';
-import { ensureApplicationIsReadyToLaunch } from './services/application/application.service';
+import {
+  ensureApplicationIsReadyToLaunch,
+  getHttpsServerOptions,
+} from './services/application/application.service';
 
 export const application = fastify({
   logger: true,
+  https: !isTest ? getHttpsServerOptions() : null,
 });
 
 async function handleErrors(error: FastifyError, _: FastifyRequest, reply: FastifyReply) {
@@ -39,6 +43,7 @@ export async function runApplication() {
     await initializeJobs();
     await ensureApplicationIsReadyToLaunch();
 
+    await application.register(require('@fastify/helmet'));
     await application.register(require('@fastify/swagger'), {
       mode: 'static',
       specification: {
@@ -48,9 +53,6 @@ export async function runApplication() {
     await application.register(require('@fastify/swagger-ui'), {
       routePrefix: '/swagger',
     });
-    // await application.register(require('@fastify/helmet'), {
-    //   global: true,
-    // });
     await application.register(require('fastify-metrics'), {
       endpoint: '/metrics',
     });

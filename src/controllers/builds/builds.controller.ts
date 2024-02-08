@@ -21,7 +21,6 @@ export const create: RouteHandler<{}> = async function (_, response) {
           parentSpanContext: span?.spanContext() ?? null,
         },
         {
-          singletonKey: 'build_key',
           useSingletonQueue: true,
         },
       );

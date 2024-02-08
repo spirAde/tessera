@@ -1,42 +1,49 @@
 import { Page } from '../../../models';
 import { logger } from '../../../lib/logger';
 import { getPageFolderPathFromUrl } from '../../../lib/url';
-import { getProjectPageStructure } from '../../../sdk/platform.sdk';
 import { runPipeline } from '../../pipeline/pipeline.service';
 import {
   convertToMap,
+  generatePage,
   createApplicationFile,
-  createApplicationPageFile,
   getAbsolutePageFilePath,
   getMissedComponentsList,
   getPageComponentName,
 } from '../../pipeline/generating.service';
 import {
-  normalizePageComponentsVersionsGivenDesignSystem,
-  parsePageStructureComponentsList,
-} from '../../pipeline/parsing.service';
-import { compile } from '../../pipeline/compiling.service';
-import { exportClientStaticFiles, exportPages } from '../../pipeline/export.service';
-import {
-  PagePipelineContext,
+  createPage,
   createPagePipelineContext,
-  updatePage,
-  runPageAdvisoryLock,
-  runPageAdvisoryUnlock,
+  PagePipelineContext,
   runFetchingStage,
   runPreparingStage,
-  cancelLinearPageProcessing,
-  runProjectPageGenerating,
+  runCompilationStage,
+  runExportStage,
+  updatePage,
 } from '../page.service';
-import { Status } from '../../../types';
+import { Stage, Status } from '../../../types';
 import { commit } from '../../pipeline/commit.service';
 
-export async function runPageCreation(page: Page) {
+export async function runPageCreation({
+  buildId,
+  externalId,
+  url,
+}: {
+  buildId: number;
+  externalId: number;
+  url: string;
+}) {
+  const readyToRunPage = await createPage({
+    buildId,
+    externalId,
+    url,
+    stage: Stage.setup,
+    status: Status.progress,
+  });
+
   try {
-    await runPageCreationPipeline(page);
+    await runPageCreationPipeline(readyToRunPage);
   } catch (error) {
-    await cancelLinearPageProcessing(page);
-    await updatePage(page, {
+    await updatePage(readyToRunPage, {
       status: Status.failed,
     });
     throw error;
@@ -58,12 +65,10 @@ async function runPageCreationPipeline(page: Page) {
 
   const handlers = [
     runFetchingStage,
-    runPageAdvisoryLock,
     runGeneratingStage,
     runPreparingStage,
     runCompilationStage,
     runExportStage,
-    runPageAdvisoryUnlock,
     runCommitStage,
   ];
 
@@ -79,7 +84,11 @@ async function runGeneratingStage({
 }: PagePipelineContext) {
   logger.debug('page generating stage');
 
-  const { pageComponentsList } = await runProjectPageGenerating(
+  await updatePage(workInProgressPage, {
+    stage: Stage.generating,
+  });
+
+  const { pageComponentsList } = await generatePage(
     workInProgressPage,
     convertToMap(designSystemComponentsList),
   );
@@ -98,21 +107,16 @@ async function runGeneratingStage({
   };
 }
 
-async function runCompilationStage({ projectPages, workInProgressPage }: PagePipelineContext) {
-  logger.debug('page compilation stage');
-
-  return compile([...projectPages.map(({ url }) => url), workInProgressPage.url]);
-}
-
-async function runExportStage({ project, projectPages, workInProgressPage }: PagePipelineContext) {
-  logger.debug('page export stage');
-
-  await exportPages(project!, [...projectPages.map((page) => page.url), workInProgressPage.url]);
-  await exportClientStaticFiles();
-}
-
-async function runCommitStage() {
+async function runCommitStage({ workInProgressPage }: PagePipelineContext) {
   logger.debug(`page commit stage`);
 
+  await updatePage(workInProgressPage, {
+    stage: Stage.commit,
+  });
+
   await commit();
+
+  await updatePage(workInProgressPage, {
+    status: Status.success,
+  });
 }

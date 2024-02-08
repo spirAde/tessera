@@ -91,11 +91,11 @@ function getCommonWebpackConfig(projectPageUrls: string[]) {
       new DefinePlugin({
         'process.env.NODE_ENV': JSON.stringify('production'),
       }),
-      // new CleanWebpackPlugin({
-      //   cleanStaleWebpackAssets: true,
-      //   protectWebpackAssets: true,
-      //   cleanAfterEveryBuildPatterns: ['*.LICENSE.txt'],
-      // }),
+      new CleanWebpackPlugin({
+        cleanStaleWebpackAssets: true,
+        protectWebpackAssets: true,
+        cleanAfterEveryBuildPatterns: ['*.LICENSE.txt'],
+      }),
     ],
     experiments: { layers: true, cacheUnaffected: true },
     snapshot: { managedPaths: [/^(.+?[\\/]node_modules[\\/])/] },
@@ -170,7 +170,7 @@ function unslashPageUrl(str: string) {
 function runCompiler(config: Configuration) {
   const compiler = webpack(config);
 
-  return new Promise<Set<string>>((resolve, reject) => {
+  return new Promise<Set<string>>((resolve, reject) =>
     compiler.run((error, stats) => {
       if (error) {
         reject(error);
@@ -180,9 +180,7 @@ function runCompiler(config: Configuration) {
         reject(stats.toJson().errors);
       }
 
-      compiler.close(() => {
-        resolve(stats?.compilation?.emittedAssets ?? new Set());
-      });
-    });
-  });
+      compiler.close(() => resolve(stats?.compilation?.emittedAssets ?? new Set()));
+    }),
+  );
 }

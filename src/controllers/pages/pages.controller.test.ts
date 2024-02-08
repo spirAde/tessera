@@ -13,6 +13,7 @@ import {
   CreatePageRequestBody,
   DeletePageRequestBody,
 } from '../../types';
+import { ProcessPagePipelineType } from '../../services/page/page.service';
 
 const applicationUrl = getApplicationUrl();
 
@@ -42,8 +43,8 @@ describe('POST /pages', () => {
 
     expectJobsWereEnqueued([
       {
-        jobName: JobName.createPage,
-        body: { externalId, url, parentSpanContext: null },
+        jobName: JobName.processPage,
+        body: { externalId, url, type: ProcessPagePipelineType.create, parentSpanContext: null },
       },
     ]);
   });
@@ -54,6 +55,24 @@ describe('POST /pages', () => {
     await expect(
       got.post<CreatePageRequestBody>(`${applicationUrl}/api/v1/pages`, {
         json: { id: 1, url: '/' },
+      }),
+    ).rejects.toThrow();
+  });
+
+  it('throws error if page already exists', async () => {
+    mockEnqueue();
+
+    mockEnqueue();
+
+    const externalId = 1;
+    const url = '/';
+
+    const build = await seedBuild({ status: Status.success, stage: Stage.commit });
+    await seedPage({ buildId: build.id, externalId, url });
+
+    await expect(
+      got.post<CreatePageRequestBody>(`${applicationUrl}/api/v1/pages`, {
+        json: { id: externalId, url },
       }),
     ).rejects.toThrow();
   });
@@ -84,8 +103,8 @@ describe('PUT /pages', () => {
 
     expectJobsWereEnqueued([
       {
-        jobName: JobName.updatePage,
-        body: { pageId: pages[0].id, parentSpanContext: null },
+        jobName: JobName.processPage,
+        body: { externalId, type: ProcessPagePipelineType.update, parentSpanContext: null },
       },
     ]);
   });
@@ -139,8 +158,8 @@ describe('DELETE /pages', () => {
 
     expectJobsWereEnqueued([
       {
-        jobName: JobName.deletePage,
-        body: { pageId: pages[0].id, parentSpanContext: null },
+        jobName: JobName.processPage,
+        body: { externalId, type: ProcessPagePipelineType.remove, parentSpanContext: null },
       },
     ]);
   });

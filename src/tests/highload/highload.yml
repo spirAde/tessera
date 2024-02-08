@@ -1,0 +1,64 @@
+config:
+  target: 'http://localhost:3003'
+  phases:
+    - arrivalRate: 1
+      duration: 4s
+
+scenarios:
+  - flow:
+    - post:
+        url: '/api/v1/pages'
+        json:
+          id: 111275
+          url: '/'
+        think: 1s
+
+    - post:
+        url: '/api/v1/pages'
+        json:
+          id: 111331
+          url: '/service'
+        think: 1s
+
+    - post:
+        url: '/api/v1/pages'
+        json:
+          id: 111365
+          url: '/solutions'
+        think: 1s
+
+    - post:
+        url: '/api/v1/pages'
+        json:
+          id: 111393
+          url: '/about-company'
+        think: 1s
+
+#    - put:
+#        url: '/api/v1/pages'
+#        json:
+#          id: 111506
+#        think: 1s
+#
+#    - put:
+#        url: '/api/v1/pages'
+#        json:
+#          id: 111506
+#        think: 1s
+#
+#    - put:
+#        url: '/api/v1/pages'
+#        json:
+#          id: 111331
+#        think: 1s
+#
+#    - delete:
+#        url: '/api/v1/pages'
+#        json:
+#          id: 114401
+#        think: 1s
+#
+#    - delete:
+#        url: '/api/v1/pages'
+#        json:
+#          id: 114527

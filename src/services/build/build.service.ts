@@ -1,29 +1,20 @@
 import path from 'path';
-import os from 'os';
 import { Op } from 'sequelize';
-import piscina from 'piscina';
+import { remove } from 'fs-extra';
 
-import { isProcessingInWorkerThreadsAvailable, rootFolderPath } from '../../config';
+import { outputFolderPath, rootFolderPath } from '../../config';
 import { Stage, Status } from '../../types';
 import { Build, BuildAttributes, BuildAttributesNew, Page } from '../../models';
 import { ComponentLike, getProjectPages, Project, ProjectPage } from '../../sdk/platform.sdk';
 import { logger } from '../../lib/logger';
 import { runPipeline } from '../pipeline/pipeline.service';
-import { cleanBabelCache, setupApplicationFolderEnvironment } from '../pipeline/setup.service';
+import { setupApplicationFolderEnvironment } from '../pipeline/setup.service';
 import { getDesignSystemComponentsList, getProject } from '../pipeline/fetching.service';
-import { convertToMap, createApplicationFile, GeneratedPage } from '../pipeline/generating.service';
+import { convertToMap, createApplicationFile, generatePages } from '../pipeline/generating.service';
 import { collectMissedComponents } from '../pipeline/preparing.service';
 import { compile } from '../pipeline/compiling.service';
-import {
-  exportClientStaticFiles,
-  exportPages,
-  runExportServerFile,
-} from '../pipeline/export.service';
+import { exportClientStaticFiles, exportPages, exportServerFile } from '../pipeline/export.service';
 import { commit } from '../pipeline/commit.service';
-import { runProjectPageGenerating, updatePage } from '../page/page.service';
-import { isFulfilled } from '../../lib/promise';
-
-const Piscina = piscina.Piscina;
 
 type BuildUpdate = Partial<BuildAttributes>;
 
@@ -46,6 +37,14 @@ export function getCurrentBuild() {
     order: [['id', 'desc']],
     paranoid: false,
   });
+}
+
+export async function prepareEnvironmentForBuild() {
+  await Build.destroy({ truncate: true });
+  await Page.destroy({ truncate: true });
+
+  await remove(path.join(rootFolderPath, 'node_modules/.cache/babel-loader'));
+  await remove(outputFolderPath);
 }
 
 export async function runProjectBuild() {
@@ -94,7 +93,6 @@ async function runSetupStage({ build }: BuildPipelineContext) {
     stage: Stage.setup,
   });
 
-  await cleanBabelCache();
   await setupApplicationFolderEnvironment();
 }
 
@@ -136,126 +134,12 @@ async function runGeneratingStage(context: BuildPipelineContext) {
     { returning: true },
   );
 
-  const { componentsRequiringBundles, generatedPages } = await runProjectPagesGenerating(
+  const { componentsRequiringBundles, generatedPages } = await generatePages(
     pages,
     convertToMap(context.designSystemComponentsList),
   );
 
   await createApplicationFile(generatedPages);
-
-  return { componentsRequiringBundles, generatedPages };
-}
-
-async function runProjectPagesGenerating(
-  pages: Page[],
-  designSystemComponentsMap: Map<string, string>,
-) {
-  // nock supports only main thread catching request, as result we can skip this branch
-  /* istanbul ignore if */
-  if (isProcessingInWorkerThreadsAvailable) {
-    return processProjectPagesGeneratingInWorkerThreads(pages, designSystemComponentsMap);
-  }
-
-  return processProjectPagesGeneratingInMainThread(pages, designSystemComponentsMap);
-}
-
-async function processProjectPagesGeneratingInWorkerThreads(
-  pages: Page[],
-  designSystemComponentsMap: Map<string, string>,
-) {
-  const pool = new Piscina({
-    filename: path.join(rootFolderPath, 'dist/workers/generating.worker.js'),
-    maxThreads: os.cpus().length - 1,
-  });
-
-  const promises: Promise<{
-    pageFilePath: string;
-    pageComponentName: string;
-    pageComponentsList: ComponentLike[];
-  }>[] = pages.map((page) => pool.run({ pageId: page.id, designSystemComponentsMap }));
-
-  const tasksOutput = await Promise.allSettled(promises);
-
-  const groupedTasksOutput = tasksOutput.reduce<{
-    fulfilled: {
-      generatedPages: GeneratedPage[];
-      componentsRequiringBundles: ComponentLike[];
-    };
-    rejected: number[];
-  }>(
-    (groups, taskOutput, currentIndex) => {
-      if (isFulfilled(taskOutput)) {
-        return {
-          ...groups,
-          fulfilled: {
-            componentsRequiringBundles: [
-              ...groups.fulfilled.componentsRequiringBundles,
-              ...taskOutput.value.pageComponentsList,
-            ],
-            generatedPages: [
-              ...groups.fulfilled.generatedPages,
-              {
-                pageUrl: pages[currentIndex].url,
-                path: taskOutput.value.pageFilePath,
-                pageName: taskOutput.value.pageComponentName,
-              },
-            ],
-          },
-        };
-      }
-
-      return {
-        ...groups,
-        rejected: [...groups.rejected, pages[currentIndex].id],
-      };
-    },
-    {
-      fulfilled: {
-        componentsRequiringBundles: [],
-        generatedPages: [],
-      },
-      rejected: [],
-    },
-  );
-
-  groupedTasksOutput.rejected.length > 0 &&
-    (await Page.update(
-      { status: Status.failed },
-      {
-        where: {
-          id: groupedTasksOutput.rejected,
-        },
-      },
-    ));
-
-  return groupedTasksOutput.fulfilled;
-}
-
-async function processProjectPagesGeneratingInMainThread(
-  pages: Page[],
-  designSystemComponentsMap: Map<string, string>,
-) {
-  const componentsRequiringBundles: ComponentLike[] = [];
-  const generatedPages: GeneratedPage[] = [];
-
-  for (const page of pages) {
-    try {
-      const { pageFilePath, pageComponentName, pageComponentsList } =
-        await runProjectPageGenerating(page, designSystemComponentsMap);
-
-      componentsRequiringBundles.push(...pageComponentsList);
-
-      generatedPages.push({
-        pageUrl: page.url,
-        path: pageFilePath,
-        pageName: pageComponentName,
-      });
-    } catch (error) {
-      await updatePage(page, {
-        status: Status.failed,
-      });
-    }
-  }
 
   return { componentsRequiringBundles, generatedPages };
 }
@@ -319,12 +203,9 @@ async function runExportStage(context: BuildPipelineContext) {
     },
   );
 
-  await exportPages(
-    context.project!,
-    readyToExportPages.map(({ url }) => url),
-  );
+  await exportPages(readyToExportPages);
   await exportClientStaticFiles();
-  await runExportServerFile();
+  await exportServerFile();
 }
 
 async function runCommitStage(context: BuildPipelineContext) {
@@ -335,7 +216,7 @@ async function runCommitStage(context: BuildPipelineContext) {
   });
 
   await Page.update(
-    { stage: Stage.commit, status: Status.success },
+    { stage: Stage.commit },
     {
       where: {
         buildId: context.build.id,
@@ -347,6 +228,18 @@ async function runCommitStage(context: BuildPipelineContext) {
   );
 
   await commit();
+
+  await Page.update(
+    { status: Status.success },
+    {
+      where: {
+        buildId: context.build.id,
+        status: {
+          [Op.ne]: Status.failed,
+        },
+      },
+    },
+  );
 }
 
 function createBuildPipelineContext(context: Partial<BuildPipelineContext> & { build: Build }) {

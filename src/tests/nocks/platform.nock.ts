@@ -7,9 +7,10 @@ import { ComponentLike, StrictProjectPageStructure } from '../../sdk/platform.sd
 
 const basePath = process.env.PLATFORM_HOST ?? 'https://admin.t1-academy.ru';
 
-export function nockPlatformProjects(status = 200) {
+export function nockPlatformProjects(status = 200, times = 1) {
   return nock(basePath)
     .get('/api/app/project/list')
+    .times(times)
     .reply(status, [projectT1Fixture, projectT1CloudFixture]);
 }
 

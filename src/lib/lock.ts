@@ -5,19 +5,19 @@ import { logger } from './logger';
 import { sequelize } from './sequelize';
 
 export async function advisoryLock(key: string): Promise<void> {
-  logger.debug('[advisoryLock] lock requested', { key });
+  logger.debug(`[advisoryLock] lock requested: ${key}`);
   await sequelize.query(`SELECT ${advisoryLockLiteral(Sequelize.literal('$key')).val}`, {
     bind: { key },
   });
-  logger.debug('[advisoryLock] lock acquired', { key });
+  logger.debug(`[advisoryLock] lock acquired: ${key}`);
 }
 
 export async function advisoryUnlock(key: string): Promise<void> {
-  logger.debug('[advisoryUnlock] unlock requested', { key });
+  logger.debug(`[advisoryUnlock] unlock requested: ${key}`);
   await sequelize.query(`SELECT ${advisoryUnlockLiteral(Sequelize.literal('$key')).val}`, {
     bind: { key },
   });
-  logger.debug('[advisoryUnlock] unlock successful', { key });
+  logger.debug(`[advisoryUnlock] unlock successful: ${key}`);
 }
 
 function advisoryLockLiteral(key: Literal): Literal {

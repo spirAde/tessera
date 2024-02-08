@@ -4,10 +4,16 @@ import upperFirst from 'lodash/upperFirst';
 import escape from 'lodash/escape';
 import difference from 'lodash/difference';
 import { stripIndent } from 'common-tags';
+import piscina from 'piscina';
 
-import { temporaryApplicationBuildFolderRootPath } from '../../config';
+import {
+  isProcessingInWorkerThreadsAvailable,
+  rootFolderPath,
+  temporaryApplicationBuildFolderRootPath,
+} from '../../config';
 import {
   ComponentLike,
+  getProjectPageStructure,
   ProjectPageStructureComponent,
   ProjectPageStructureMetaItemProps,
   ProjectPageStructureMetaProps,
@@ -18,6 +24,16 @@ import { getApplicationPageFileContent } from '../../templates/templates/page.te
 import { getApplicationFileContent } from '../../templates/templates/application.template';
 import { getPageFolderPathFromUrl } from '../../lib/url';
 import { getRandomString } from '../../lib/random';
+import { Page } from '../../models';
+import os from 'os';
+import { isFulfilled } from '../../lib/promise';
+import { Stage, Status } from '../../types';
+import { updatePage } from '../page/page.service';
+import { logger } from '../../lib/logger';
+import {
+  normalizePageComponentsVersionsGivenDesignSystem,
+  parsePageStructureComponentsList,
+} from './parsing.service';
 
 export interface GeneratedPage {
   pageUrl: string;
@@ -25,6 +41,7 @@ export interface GeneratedPage {
   pageName: string;
 }
 
+const Piscina = piscina.Piscina;
 const maxPageNameLength = 42;
 const ignoreProps = [
   'components',
@@ -34,6 +51,41 @@ const ignoreProps = [
   'uiOrder',
   'uuid',
 ];
+
+export async function generatePages(pages: Page[], designSystemComponentsMap: Map<string, string>) {
+  // nock supports only main thread catching request, as result we can skip this branch
+  /* istanbul ignore if */
+  if (isProcessingInWorkerThreadsAvailable) {
+    return processGeneratingInWorkerThreads(pages, designSystemComponentsMap);
+  }
+
+  return processGeneratingInMainThread(pages, designSystemComponentsMap);
+}
+
+export async function generatePage(page: Page, designSystemComponentsMap: Map<string, string>) {
+  logger.debug(`generating page: id: - ${page.externalId}, url - ${page.url}`);
+
+  await updatePage(page, {
+    stage: Stage.fetching,
+  });
+
+  const pageStructure = await getProjectPageStructure(page.externalId);
+  const pageComponentsList = normalizePageComponentsVersionsGivenDesignSystem(
+    designSystemComponentsMap,
+    parsePageStructureComponentsList(pageStructure),
+  );
+
+  await updatePage(page, {
+    stage: Stage.generating,
+  });
+
+  const { pageFilePath, pageComponentName } = await createApplicationPageFile(
+    pageStructure,
+    pageComponentsList,
+  );
+
+  return { pageFilePath, pageComponentName, pageComponentsList };
+}
 
 export async function createApplicationPageFile(
   pageStructure: StrictProjectPageStructure,
@@ -97,7 +149,7 @@ export function getPageComponentName(pageFolderPath: string) {
     ? getHumanReadableComponentName(`page-${folderName}`)
         .slice(0, maxPageNameLength)
         .concat(getRandomString())
-    : 'PageMain';
+    : 'PageMain'.concat(getRandomString());
 }
 
 export function getAbsolutePageFilePath(
@@ -121,6 +173,109 @@ export function getMissedComponentsList(componentsList: ComponentLike[]) {
     const [name, version] = componentFile.replace('.js', '').split('@');
     return { name, version };
   }) as ComponentLike[];
+}
+
+async function processGeneratingInWorkerThreads(
+  pages: Page[],
+  designSystemComponentsMap: Map<string, string>,
+) {
+  const pool = new Piscina({
+    filename: path.join(rootFolderPath, 'dist/workers/generating.worker.js'),
+    maxThreads: os.cpus().length - 1,
+  });
+
+  const promises: Promise<{
+    pageFilePath: string;
+    pageComponentName: string;
+    pageComponentsList: ComponentLike[];
+  }>[] = pages.map((page) => pool.run({ pageId: page.id, designSystemComponentsMap }));
+
+  const tasksOutput = await Promise.allSettled(promises);
+
+  const groupedTasksOutput = tasksOutput.reduce<{
+    fulfilled: {
+      generatedPages: GeneratedPage[];
+      componentsRequiringBundles: ComponentLike[];
+    };
+    rejected: number[];
+  }>(
+    (groups, taskOutput, currentIndex) => {
+      if (isFulfilled(taskOutput)) {
+        return {
+          ...groups,
+          fulfilled: {
+            componentsRequiringBundles: [
+              ...groups.fulfilled.componentsRequiringBundles,
+              ...taskOutput.value.pageComponentsList,
+            ],
+            generatedPages: [
+              ...groups.fulfilled.generatedPages,
+              {
+                pageUrl: pages[currentIndex].url,
+                path: taskOutput.value.pageFilePath,
+                pageName: taskOutput.value.pageComponentName,
+              },
+            ],
+          },
+        };
+      }
+
+      return {
+        ...groups,
+        rejected: [...groups.rejected, pages[currentIndex].id],
+      };
+    },
+    {
+      fulfilled: {
+        componentsRequiringBundles: [],
+        generatedPages: [],
+      },
+      rejected: [],
+    },
+  );
+
+  groupedTasksOutput.rejected.length > 0 &&
+    (await Page.update(
+      { status: Status.failed },
+      {
+        where: {
+          id: groupedTasksOutput.rejected,
+        },
+      },
+    ));
+
+  return groupedTasksOutput.fulfilled;
+}
+
+async function processGeneratingInMainThread(
+  pages: Page[],
+  designSystemComponentsMap: Map<string, string>,
+) {
+  const componentsRequiringBundles: ComponentLike[] = [];
+  const generatedPages: GeneratedPage[] = [];
+
+  for (const page of pages) {
+    try {
+      const { pageFilePath, pageComponentName, pageComponentsList } = await generatePage(
+        page,
+        designSystemComponentsMap,
+      );
+
+      componentsRequiringBundles.push(...pageComponentsList);
+
+      generatedPages.push({
+        pageUrl: page.url,
+        path: pageFilePath,
+        pageName: pageComponentName,
+      });
+    } catch (error) {
+      await updatePage(page, {
+        status: Status.failed,
+      });
+    }
+  }
+
+  return { componentsRequiringBundles, generatedPages };
 }
 
 function getPageComponentsTree(
