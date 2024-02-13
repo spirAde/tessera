@@ -11,6 +11,7 @@ import {
   temporaryApplicationFolderRootPath,
   temporaryApplicationBuildFolderRootPath,
   temporaryApplicationExportFolderRootPath,
+  useS3BucketForStatic,
 } from '../../config';
 import { Page } from '../../models';
 import { getExportPageIndexHtmlFilePath } from '../page/page.service';
@@ -39,18 +40,20 @@ export async function commit(pages: Page[]) {
   const clientDiff = await getLoadableStatsDiff('client');
   const serverDiff = await getLoadableStatsDiff('server');
 
-  const exportedPagesDiff = await getExportedPagesDiff(pages);
-
   await updateTemporaryFolderState(clientDiff, serverDiff);
   await updatePersistentFolderState(clientDiff);
 
   // Currently all exported pages are copying every time
   // It should be reimplemented and supposed to copy only created/updated pages
   // and related to this one pages
-  await updateS3BucketState(clientDiff, {
-    add: pages.map((page) => getExportPageIndexHtmlFilePath(page)),
-    remove: exportedPagesDiff.remove,
-  });
+  if (useS3BucketForStatic) {
+    const exportedPagesDiff = await getExportedPagesDiff(pages);
+
+    await updateS3BucketState(clientDiff, {
+      add: pages.map((page) => getExportPageIndexHtmlFilePath(page)),
+      remove: exportedPagesDiff.remove,
+    });
+  }
 }
 
 async function updateTemporaryFolderState(

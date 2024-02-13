@@ -98722,8 +98722,8 @@ export const pagesMock = {
 
 export const projectPagesMock = {
   pages: [
-    // { id: 111275, url: '/' },
-    // { id: 111331, url: '/service' },
+    { id: 111275, url: '/' },
+    { id: 111331, url: '/service' },
     // { id: 111365, url: '/solutions' },
     // { id: 111393, url: '/about-company' },
     // { id: 111442, url: '/contact' },

@@ -2,7 +2,7 @@ import path from 'path';
 import fastify, { errorCodes, FastifyError, FastifyReply, FastifyRequest } from 'fastify';
 import { fastifyAutoload } from '@fastify/autoload';
 
-import { host, isTest, port } from './config';
+import { host, isTest, port, useS3BucketForStatic } from './config';
 import { sequelize } from './lib/sequelize';
 import { initializeOpentelemetry } from './lib/opentelemetry';
 import { logger } from './lib/logger';
@@ -42,7 +42,7 @@ export async function runApplication() {
     await pgQueue.start();
 
     await initializeJobs();
-    await ensureS3BucketExists();
+    useS3BucketForStatic && (await ensureS3BucketExists());
     await ensureApplicationIsReadyToLaunch();
 
     await application.register(require('@fastify/helmet'));

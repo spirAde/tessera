@@ -13,11 +13,12 @@ import {
   temporaryApplicationBuildFolderRootPath,
   useS3BucketForStatic,
   projectSysName,
+  s3StaticUrl,
 } from '../../config';
 import { logger } from '../../lib/logger';
 
 const STATIC_URL = useS3BucketForStatic
-  ? `http://localhost:9001/${projectSysName.toLowerCase()}/static/`
+  ? `${s3StaticUrl}/${projectSysName.toLowerCase()}/static/`
   : '/static/';
 
 const sheet = new ServerStyleSheet();

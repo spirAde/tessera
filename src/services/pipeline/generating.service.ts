@@ -123,6 +123,7 @@ export async function createApplicationFile(generatedPages: GeneratedPage[]) {
     projectInitialStore: JSON.stringify({
       systemData: {
         mediaHost: 'https://admin.t1-academy.ru/api/mediastorage',
+        // TODO: project config
       },
     }),
     routes: getApplicationRoutes(generatedPages),

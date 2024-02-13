@@ -1,7 +1,7 @@
 import { Client, ItemBucketMetadata } from 'minio';
 import { lookup } from 'mime-types';
 
-import { minioConfig, projectSysName, useS3BucketForStatic } from '../config';
+import { minioConfig, projectSysName } from '../config';
 import { logger } from '../lib/logger';
 
 const minioSdk = new Client({
@@ -12,10 +12,6 @@ const minioSdk = new Client({
 const bucketName = projectSysName.toLowerCase();
 
 export async function ensureS3BucketExists() {
-  if (!useS3BucketForStatic) {
-    return Promise.resolve();
-  }
-
   try {
     const bucketExists = await minioSdk.bucketExists(bucketName);
 
