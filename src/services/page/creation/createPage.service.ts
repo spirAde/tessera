@@ -1,11 +1,14 @@
+import { copy, remove } from 'fs-extra';
+import path from 'path';
+
 import { Page } from '../../../models';
 import { logger } from '../../../lib/logger';
 import { getPageFolderPathFromUrl } from '../../../lib/url';
 import { runPipeline } from '../../pipeline/pipeline.service';
 import {
   convertToMap,
-  generatePage,
   createApplicationFile,
+  generatePage,
   getAbsolutePageFilePath,
   getMissedComponentsList,
   getPageComponentName,
@@ -14,14 +17,21 @@ import {
   createPage,
   createPagePipelineContext,
   PagePipelineContext,
-  runFetchingStage,
-  runPreparingStage,
+  PipelineType,
+  rollbackCompilationStage,
   runCompilationStage,
   runExportStage,
+  runFetchingStage,
+  runPreparingStage,
   updatePage,
 } from '../page.service';
 import { Stage, Status } from '../../../types';
 import { commit } from '../../pipeline/commit.service';
+import { rollback } from '../../pipeline/rollback.service';
+import {
+  persistentApplicationBuildFolderRootPath,
+  temporaryApplicationBuildFolderRootPath,
+} from '../../../config';
 
 export async function runPageCreation({
   buildId,
@@ -32,7 +42,7 @@ export async function runPageCreation({
   externalId: number;
   url: string;
 }) {
-  const readyToRunPage = await createPage({
+  const workInProgressPage = await createPage({
     buildId,
     externalId,
     url,
@@ -40,41 +50,39 @@ export async function runPageCreation({
     status: Status.progress,
   });
 
-  try {
-    await runPageCreationPipeline(readyToRunPage);
-  } catch (error) {
-    await updatePage(readyToRunPage, {
-      status: Status.failed,
-    });
-    throw error;
-  }
-}
-
-async function runPageCreationPipeline(page: Page) {
   const projectPages = await Page.findAll({
     where: {
-      buildId: page.buildId,
+      buildId,
       status: Status.success,
     },
   });
 
   const pipelineContext = createPagePipelineContext({
-    workInProgressPage: page,
+    workInProgressPage,
     projectPages,
   });
 
-  const handlers = [
-    runFetchingStage,
-    runGeneratingStage,
-    runPreparingStage,
-    runCompilationStage,
-    runExportStage,
-    runCommitStage,
-  ];
+  const stageToHandleMap = {
+    [Stage.fetching]: runFetchingStage,
+    [Stage.generating]: runGeneratingStage,
+    [Stage.preparing]: runPreparingStage,
+    [Stage.compilation]: runCompilationStage,
+    [Stage.export]: runExportStage,
+    [Stage.commit]: runCommitStage,
+  };
 
-  await runPipeline(pipelineContext, handlers);
+  try {
+    await runPipeline(pipelineContext, Object.values(stageToHandleMap));
 
-  logger.debug(`page creation pipeline is successfully finished`);
+    logger.debug('page creation pipeline is successfully finished');
+  } catch (error) {
+    await rollback({
+      context: pipelineContext,
+      stages: Object.keys(stageToHandleMap) as Stage[],
+      rollbackFns: { rollbackGeneratingStage, rollbackCompilationStage, rollbackExportStage },
+    });
+    throw error;
+  }
 }
 
 async function runGeneratingStage({
@@ -107,16 +115,31 @@ async function runGeneratingStage({
   };
 }
 
-async function runCommitStage({ workInProgressPage }: PagePipelineContext) {
+async function runCommitStage({ workInProgressPage, projectPages }: PagePipelineContext) {
   logger.debug(`page commit stage`);
 
   await updatePage(workInProgressPage, {
     stage: Stage.commit,
   });
 
-  await commit();
+  await commit([...projectPages, workInProgressPage]);
 
   await updatePage(workInProgressPage, {
     status: Status.success,
   });
+}
+
+async function rollbackGeneratingStage({ workInProgressPage }: PagePipelineContext) {
+  const pageFolderPath = getPageFolderPathFromUrl(workInProgressPage.url);
+  const absolutePageFilePath = getAbsolutePageFilePath(pageFolderPath);
+
+  await remove(absolutePageFilePath);
+  await copy(
+    path.join(persistentApplicationBuildFolderRootPath, 'application/application.jsx'),
+    path.join(temporaryApplicationBuildFolderRootPath, 'application/application.jsx'),
+  );
+}
+
+async function rollbackExportStage(context: PagePipelineContext) {
+  return Promise.resolve();
 }

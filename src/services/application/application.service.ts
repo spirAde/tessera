@@ -1,6 +1,7 @@
 import path from 'path';
 import fs, { pathExists } from 'fs-extra';
 
+import { logger } from '../../lib/logger';
 import { persistentApplicationExportFolderRootPath, rootFolderPath } from '../../config';
 import { enqueue, JobName, pgQueue, waitJobCompletion } from '../enqueueJob.service';
 
@@ -18,12 +19,15 @@ export async function ensureApplicationIsReadyToLaunch() {
   const isProjectBuildCreationQueueEmpty = projectBuildCreationQueueSize === 0;
 
   if (existsPersistentFolder && isProjectBuildCreationQueueEmpty) {
+    logger.debug('[ensureApplicationIsReadyToLaunch] application is ready to launch');
     return Promise.resolve();
   }
 
   if (!existsPersistentFolder && isProjectBuildCreationQueueEmpty) {
+    logger.debug('[ensureApplicationIsReadyToLaunch] application requires the project build');
     await enqueue(JobName.createBuild);
   }
 
   await waitJobCompletion(JobName.createBuild);
+  logger.debug('[ensureApplicationIsReadyToLaunch] application is ready to launch');
 }

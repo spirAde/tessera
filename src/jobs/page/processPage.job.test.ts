@@ -25,7 +25,7 @@ import {
 import { StrictProjectPageStructure } from '../../sdk/platform.sdk';
 import { seedBuild } from '../../tests/seeds/build.seed';
 import { seedPage } from '../../tests/seeds/page.seed';
-import { ProcessPagePipelineType } from '../../services/page/page.service';
+import { PipelineType } from '../../services/page/page.service';
 
 describe('processPageJob', () => {
   beforeEach(() => {
@@ -58,7 +58,7 @@ describe('processPageJob', () => {
         id: '1',
         name: 'create-page-job',
         data: {
-          type: ProcessPagePipelineType.create,
+          type: PipelineType.create,
           externalId: pageStructureServiceCDNFixture.id,
           url: pageStructureServiceCDNFixture.url,
         },
@@ -99,7 +99,7 @@ describe('processPageJob', () => {
           id: '1',
           name: 'create-page-job',
           data: {
-            type: ProcessPagePipelineType.create,
+            type: PipelineType.create,
             externalId: pageStructureServiceCDNFixture.id,
             url: pageStructureServiceCDNFixture.url,
           },
@@ -151,7 +151,7 @@ describe('processPageJob', () => {
         id: '1',
         name: 'update-page-job',
         data: {
-          type: ProcessPagePipelineType.update,
+          type: PipelineType.update,
           externalId: updatingServicePage.externalId,
         },
       });
@@ -203,7 +203,7 @@ describe('processPageJob', () => {
           id: '1',
           name: 'update-page-job',
           data: {
-            type: ProcessPagePipelineType.update,
+            type: PipelineType.update,
             externalId: 1,
           },
         }),
@@ -244,7 +244,7 @@ describe('processPageJob', () => {
         id: '1',
         name: 'delete-page-job',
         data: {
-          type: ProcessPagePipelineType.remove,
+          type: PipelineType.remove,
           externalId: deletingServicePage.externalId,
         },
       });
@@ -292,7 +292,7 @@ describe('processPageJob', () => {
           id: '1',
           name: 'delete-page-job',
           data: {
-            type: ProcessPagePipelineType.remove,
+            type: PipelineType.remove,
             externalId: 1,
           },
         }),

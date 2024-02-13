@@ -3,7 +3,7 @@ import { SpanKind } from '@opentelemetry/api';
 import { SpanContext } from '@opentelemetry/api/build/src/trace/span_context';
 
 import { logger } from '../../lib/logger';
-import { ProcessPagePipelineType } from '../../services/page/page.service';
+import { PipelineType } from '../../services/page/page.service';
 import { getCurrentBuild } from '../../services/build/build.service';
 import { otlContext, SemanticAttributes, withSafelyActiveSpan } from '../../lib/opentelemetry';
 import { runPageCreation } from '../../services/page/creation/createPage.service';
@@ -13,7 +13,7 @@ import { runPageDeleting } from '../../services/page/deleting/deletePage.service
 export async function processPageJob(
   payload: Job<{
     externalId: number;
-    type: ProcessPagePipelineType;
+    type: PipelineType;
     parentSpanContext?: SpanContext;
     url?: string;
   }>,
@@ -51,7 +51,7 @@ export async function processPageJob(
       // create/update/remove handlers for pages should be enqueued as singleton.
       // Maybe after MVP this behaviour will be changed
       switch (payload.data.type) {
-        case ProcessPagePipelineType.create: {
+        case PipelineType.create: {
           await runPageCreation({
             buildId: build.id,
             externalId: payload.data.externalId,
@@ -59,14 +59,14 @@ export async function processPageJob(
           });
           return;
         }
-        case ProcessPagePipelineType.update: {
+        case PipelineType.update: {
           await runPageUpdating({
             buildId: build.id,
             externalId: payload.data.externalId,
           });
           return;
         }
-        case ProcessPagePipelineType.remove: {
+        case PipelineType.remove: {
           await runPageDeleting({
             buildId: build.id,
             externalId: payload.data.externalId,

@@ -11,10 +11,11 @@ import {
   ensureApplicationIsReadyToLaunch,
   getHttpsServerOptions,
 } from './services/application/application.service';
+import { ensureS3BucketExists, removeS3BucketFiles } from './sdk/minio.sdk';
 
 export const application = fastify({
   logger: true,
-  https: !isTest ? getHttpsServerOptions() : null,
+  // https: !isTest ? getHttpsServerOptions() : null,
 });
 
 async function handleErrors(error: FastifyError, _: FastifyRequest, reply: FastifyReply) {
@@ -41,6 +42,7 @@ export async function runApplication() {
     await pgQueue.start();
 
     await initializeJobs();
+    await ensureS3BucketExists();
     await ensureApplicationIsReadyToLaunch();
 
     await application.register(require('@fastify/helmet'));

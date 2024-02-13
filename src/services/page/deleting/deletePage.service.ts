@@ -4,8 +4,8 @@ import { Page } from '../../../models';
 import { logger } from '../../../lib/logger';
 import { runPipeline } from '../../pipeline/pipeline.service';
 import { compile } from '../../pipeline/compiling.service';
-import { exportClientStaticFiles, exportPages } from '../../pipeline/export.service';
-import { createPagePipelineContext, PagePipelineContext } from '../page.service';
+import { exportPages } from '../../pipeline/export.service';
+import { createPagePipelineContext, PagePipelineContext, PipelineType } from '../page.service';
 import { Stage, Status } from '../../../types';
 import { commit } from '../../pipeline/commit.service';
 import {
@@ -15,11 +15,6 @@ import {
 } from '../../pipeline/generating.service';
 import { getPageFolderPathFromUrl } from '../../../lib/url';
 import { getProject } from '../../pipeline/fetching.service';
-import {
-  removeDeletedPageFiles,
-  removeEmptyFoldersRecursively,
-} from '../../pipeline/cleanup.service';
-import { outputFolderPath } from '../../../config';
 
 export async function runPageDeleting({
   buildId,
@@ -66,7 +61,6 @@ async function runPageDeletingPipeline(page: Page) {
     runGeneratingStage,
     runCompilationStage,
     runExportStage,
-    runCleanupStage,
     runCommitStage,
   ];
 
@@ -103,32 +97,14 @@ async function runGeneratingStage({ projectPages, workInProgressPage }: PagePipe
   };
 }
 
-async function runCompilationStage({ projectPages, workInProgressPage }: PagePipelineContext) {
-  logger.debug(`page compilation stage: ${workInProgressPage.url}`);
-
-  const { clientEmittedAssets, serverEmittedAssets } = await compile(
-    projectPages.map(({ url }) => url),
-  );
-
-  return { clientEmittedAssets, serverEmittedAssets };
+async function runCompilationStage({ projectPages }: PagePipelineContext) {
+  await compile(projectPages.map(({ url }) => url));
 }
 
-async function runExportStage({ projectPages, workInProgressPage }: PagePipelineContext) {
-  logger.debug(`page export stage: ${workInProgressPage.url}`);
-
+async function runExportStage({ projectPages }: PagePipelineContext) {
   await exportPages(projectPages);
-  await exportClientStaticFiles();
 }
 
-async function runCleanupStage({ workInProgressPage }: PagePipelineContext) {
-  logger.debug(`page cleanup stage: ${workInProgressPage.url}`);
-
-  await removeDeletedPageFiles(workInProgressPage);
-  await removeEmptyFoldersRecursively(outputFolderPath);
-}
-
-async function runCommitStage({ workInProgressPage }: PagePipelineContext) {
-  logger.debug(`page commit stage: ${workInProgressPage.url}`);
-
-  await commit();
+async function runCommitStage({ projectPages }: PagePipelineContext) {
+  await commit(projectPages);
 }

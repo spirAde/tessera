@@ -1,5 +1,5 @@
 import path from 'path';
-import { copy, outputFile } from 'fs-extra';
+import { outputFile } from 'fs-extra';
 import React, { ComponentType } from 'react';
 import { renderToString } from 'react-dom/server';
 import { Helmet } from 'react-helmet';
@@ -8,29 +8,19 @@ import { ChunkExtractor } from '@loadable/server';
 import { minify } from 'html-minifier';
 
 import { Page } from '../../models';
-import { getPageFolderPathFromUrl } from '../../lib/url';
+import { getExportPageFilePath } from '../page/page.service';
 import {
   temporaryApplicationBuildFolderRootPath,
-  temporaryApplicationExportFolderRootPath,
+  useS3BucketForStatic,
+  projectSysName,
 } from '../../config';
 import { logger } from '../../lib/logger';
 
+const STATIC_URL = useS3BucketForStatic
+  ? `http://localhost:9001/${projectSysName.toLowerCase()}/static/`
+  : '/static/';
+
 const sheet = new ServerStyleSheet();
-const STATIC_URL = '/static/';
-
-export async function exportServerFile() {
-  await copy(
-    path.join(temporaryApplicationBuildFolderRootPath, 'server.js'),
-    path.join(temporaryApplicationExportFolderRootPath, 'server.js'),
-  );
-}
-
-export async function exportClientStaticFiles() {
-  await copy(
-    path.join(temporaryApplicationBuildFolderRootPath, 'build/client'),
-    path.join(temporaryApplicationExportFolderRootPath, 'static'),
-  );
-}
 
 export async function exportPages(pages: Page[]) {
   const { nodeExtractor, webExtractor } = getLoadableExtractors();
@@ -39,7 +29,7 @@ export async function exportPages(pages: Page[]) {
   await Promise.all(
     pages.map((page) =>
       exportPage({
-        pageUrl: page.url,
+        page,
         extractor: webExtractor,
         Application: Application as ComponentType<{ url: string }>,
       }),
@@ -50,18 +40,18 @@ export async function exportPages(pages: Page[]) {
 async function exportPage({
   Application,
   extractor,
-  pageUrl,
+  page,
 }: {
   Application: ComponentType<{ url: string }>;
   extractor: ChunkExtractor;
-  pageUrl: string;
+  page: Page;
 }) {
-  logger.debug(`export page url: ${pageUrl}`);
+  logger.debug(`export page url: ${page.url}`);
 
   const jsx = extractor.collectChunks(
     sheet.collectStyles(
       React.createElement(Application, {
-        url: pageUrl,
+        url: page.url,
       }),
     ),
   );
@@ -69,7 +59,7 @@ async function exportPage({
   const { htmlAttributes, title, base, meta, link, script } = Helmet.renderStatic();
 
   await outputFile(
-    getPageFilePath(pageUrl),
+    getExportPageFilePath(page),
     minify(
       `
       <!doctype html>
@@ -135,9 +125,4 @@ function getLoadableExtractors() {
     nodeExtractor,
     webExtractor,
   };
-}
-
-function getPageFilePath(url: string) {
-  const pageFolderPath = getPageFolderPathFromUrl(url);
-  return path.join(temporaryApplicationExportFolderRootPath, 'pages', pageFolderPath, 'index.html');
 }

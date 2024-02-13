@@ -1,6 +1,5 @@
 import webpack, { Configuration, DefinePlugin } from 'webpack';
 import { merge } from 'webpack-merge';
-import { CleanWebpackPlugin } from 'clean-webpack-plugin';
 import TerserPlugin from 'terser-webpack-plugin';
 import nodeExternals from 'webpack-node-externals';
 import LoadablePlugin from '@loadable/webpack-plugin';
@@ -12,14 +11,9 @@ export async function compile(projectPageUrls: string[]) {
   const serverWebpackConfig = getServerWebpackConfig(commonWebpackConfig);
   const clientWebpackConfig = getClientWebpackConfig(commonWebpackConfig);
 
-  const [serverEmittedAssets, clientEmittedAssets] = await Promise.all(
+  await Promise.all(
     [serverWebpackConfig, clientWebpackConfig].map((config) => runCompiler(config)),
   );
-
-  return {
-    serverEmittedAssets: Array.from(serverEmittedAssets),
-    clientEmittedAssets: Array.from(clientEmittedAssets),
-  };
 }
 
 function getCommonWebpackConfig(projectPageUrls: string[]) {
@@ -90,11 +84,6 @@ function getCommonWebpackConfig(projectPageUrls: string[]) {
       new LoadablePlugin(),
       new DefinePlugin({
         'process.env.NODE_ENV': JSON.stringify('production'),
-      }),
-      new CleanWebpackPlugin({
-        cleanStaleWebpackAssets: true,
-        protectWebpackAssets: true,
-        cleanAfterEveryBuildPatterns: ['*.LICENSE.txt'],
       }),
     ],
     experiments: { layers: true, cacheUnaffected: true },
@@ -170,7 +159,7 @@ function unslashPageUrl(str: string) {
 function runCompiler(config: Configuration) {
   const compiler = webpack(config);
 
-  return new Promise<Set<string>>((resolve, reject) =>
+  return new Promise<void>((resolve, reject) =>
     compiler.run((error, stats) => {
       if (error) {
         reject(error);
@@ -180,7 +169,7 @@ function runCompiler(config: Configuration) {
         reject(stats.toJson().errors);
       }
 
-      compiler.close(() => resolve(stats?.compilation?.emittedAssets ?? new Set()));
+      compiler.close(() => resolve());
     }),
   );
 }

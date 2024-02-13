@@ -1,8 +1,14 @@
 import path from 'path';
 import { Op } from 'sequelize';
-import { remove } from 'fs-extra';
+import { copy, remove } from 'fs-extra';
 
-import { outputFolderPath, rootFolderPath } from '../../config';
+import {
+  outputFolderPath,
+  persistentApplicationExportFolderRootPath,
+  rootFolderPath,
+  temporaryApplicationBuildFolderRootPath,
+  temporaryApplicationExportFolderRootPath,
+} from '../../config';
 import { Stage, Status } from '../../types';
 import { Build, BuildAttributes, BuildAttributesNew, Page } from '../../models';
 import { ComponentLike, getProjectPages, Project, ProjectPage } from '../../sdk/platform.sdk';
@@ -13,8 +19,11 @@ import { getDesignSystemComponentsList, getProject } from '../pipeline/fetching.
 import { convertToMap, createApplicationFile, generatePages } from '../pipeline/generating.service';
 import { collectMissedComponents } from '../pipeline/preparing.service';
 import { compile } from '../pipeline/compiling.service';
-import { exportClientStaticFiles, exportPages, exportServerFile } from '../pipeline/export.service';
+import { exportPages } from '../pipeline/export.service';
 import { commit } from '../pipeline/commit.service';
+import { removeS3BucketFiles } from '../../sdk/minio.sdk';
+import { getPageFolderPathFromUrl } from '../../lib/url';
+import { getExportPageFilePath } from '../page/page.service';
 
 type BuildUpdate = Partial<BuildAttributes>;
 
@@ -24,7 +33,6 @@ export interface BuildPipelineContext {
   projectPages: ProjectPage[];
   designSystemComponentsList: ComponentLike[];
   componentsRequiringBundles: ComponentLike[];
-  clientEmittedAssets: string[];
 }
 
 export function getCurrentBuild() {
@@ -45,6 +53,7 @@ export async function prepareEnvironmentForBuild() {
 
   await remove(path.join(rootFolderPath, 'node_modules/.cache/babel-loader'));
   await remove(outputFolderPath);
+  await removeS3BucketFiles();
 }
 
 export async function runProjectBuild() {
@@ -204,36 +213,40 @@ async function runExportStage(context: BuildPipelineContext) {
   );
 
   await exportPages(readyToExportPages);
-  await exportClientStaticFiles();
-  await exportServerFile();
 }
 
-async function runCommitStage(context: BuildPipelineContext) {
+async function runCommitStage({ build }: BuildPipelineContext) {
   logger.debug(`build pipeline stage = commit`);
 
-  await updateBuild(context.build, {
+  await updateBuild(build, {
     stage: Stage.commit,
   });
 
-  await Page.update(
+  const [_, readyToCommitPages] = await Page.update(
     { stage: Stage.commit },
     {
       where: {
-        buildId: context.build.id,
+        buildId: build.id,
         status: {
           [Op.ne]: Status.failed,
         },
       },
+      returning: true,
     },
   );
 
-  await commit();
+  await commit(readyToCommitPages);
+
+  await copy(
+    path.join(temporaryApplicationBuildFolderRootPath, 'server.js'),
+    path.join(persistentApplicationExportFolderRootPath, 'server.js'),
+  );
 
   await Page.update(
     { status: Status.success },
     {
       where: {
-        buildId: context.build.id,
+        buildId: build.id,
         status: {
           [Op.ne]: Status.failed,
         },
@@ -249,6 +262,7 @@ function createBuildPipelineContext(context: Partial<BuildPipelineContext> & { b
     designSystemComponentsList: [],
     componentsRequiringBundles: [],
     clientEmittedAssets: [],
+    serverEmittedAssets: [],
     ...context,
   };
 }

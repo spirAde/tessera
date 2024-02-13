@@ -13,7 +13,7 @@ import {
   CreatePageRequestBody,
   DeletePageRequestBody,
 } from '../../types';
-import { ProcessPagePipelineType } from '../../services/page/page.service';
+import { PipelineType } from '../../services/page/page.service';
 
 const applicationUrl = getApplicationUrl();
 
@@ -44,7 +44,7 @@ describe('POST /pages', () => {
     expectJobsWereEnqueued([
       {
         jobName: JobName.processPage,
-        body: { externalId, url, type: ProcessPagePipelineType.create, parentSpanContext: null },
+        body: { externalId, url, type: PipelineType.create, parentSpanContext: null },
       },
     ]);
   });
@@ -104,7 +104,7 @@ describe('PUT /pages', () => {
     expectJobsWereEnqueued([
       {
         jobName: JobName.processPage,
-        body: { externalId, type: ProcessPagePipelineType.update, parentSpanContext: null },
+        body: { externalId, type: PipelineType.update, parentSpanContext: null },
       },
     ]);
   });
@@ -159,7 +159,7 @@ describe('DELETE /pages', () => {
     expectJobsWereEnqueued([
       {
         jobName: JobName.processPage,
-        body: { externalId, type: ProcessPagePipelineType.remove, parentSpanContext: null },
+        body: { externalId, type: PipelineType.remove, parentSpanContext: null },
       },
     ]);
   });

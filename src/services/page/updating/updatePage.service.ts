@@ -14,6 +14,8 @@ import {
   runCompilationStage,
   runExportStage,
   updatePage,
+  PipelineType,
+  getExportPageFilePath,
 } from '../page.service';
 import { Stage, Status } from '../../../types';
 import { commit } from '../../pipeline/commit.service';
@@ -99,14 +101,14 @@ async function runGeneratingStage({
   };
 }
 
-async function runCommitStage({ workInProgressPage }: PagePipelineContext) {
+async function runCommitStage({ projectPages, workInProgressPage }: PagePipelineContext) {
   logger.debug(`page commit stage`);
 
   await updatePage(workInProgressPage, {
     stage: Stage.commit,
   });
 
-  await commit();
+  await commit([...projectPages, workInProgressPage]);
 
   await updatePage(workInProgressPage, {
     status: Status.success,

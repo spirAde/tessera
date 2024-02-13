@@ -1,3 +1,6 @@
+import { copy, remove } from 'fs-extra';
+import path from 'path';
+
 import { Page, PageAttributes, PageAttributesNew } from '../../models';
 import { ComponentLike, Project } from '../../sdk/platform.sdk';
 import { logger } from '../../lib/logger';
@@ -5,11 +8,17 @@ import { getDesignSystemComponentsList, getProject } from '../pipeline/fetching.
 import { collectMissedComponents } from '../pipeline/preparing.service';
 import { Stage } from '../../types';
 import { compile } from '../pipeline/compiling.service';
-import { exportClientStaticFiles, exportPages } from '../pipeline/export.service';
+import { exportPages } from '../pipeline/export.service';
+import {
+  persistentApplicationBuildFolderRootPath,
+  temporaryApplicationBuildFolderRootPath,
+  temporaryApplicationExportFolderRootPath,
+} from '../../config';
+import { getPageFolderPathFromUrl } from '../../lib/url';
 
 type PageUpdate = Partial<PageAttributes>;
 
-export enum ProcessPagePipelineType {
+export enum PipelineType {
   create = 'create',
   update = 'update',
   remove = 'remove',
@@ -21,8 +30,6 @@ export interface PagePipelineContext {
   workInProgressPage: Page;
   designSystemComponentsList: ComponentLike[];
   componentsRequiringBundles: ComponentLike[];
-  serverEmittedAssets: string[];
-  clientEmittedAssets: string[];
 }
 
 export function createPage(values: PageAttributesNew) {
@@ -95,12 +102,7 @@ export async function runCompilationStage({
     stage: Stage.compilation,
   });
 
-  const { clientEmittedAssets, serverEmittedAssets } = await compile([
-    ...projectPages.map(({ url }) => url),
-    workInProgressPage.url,
-  ]);
-
-  return { clientEmittedAssets, serverEmittedAssets };
+  await compile([...projectPages.map(({ url }) => url), workInProgressPage.url]);
 }
 
 export async function runExportStage({ projectPages, workInProgressPage }: PagePipelineContext) {
@@ -111,5 +113,20 @@ export async function runExportStage({ projectPages, workInProgressPage }: PageP
   });
 
   await exportPages([...projectPages, workInProgressPage]);
-  await exportClientStaticFiles();
+}
+
+export async function rollbackCompilationStage() {
+  await remove(path.join(temporaryApplicationBuildFolderRootPath, 'build'));
+  await copy(
+    path.join(persistentApplicationBuildFolderRootPath, 'build'),
+    path.join(temporaryApplicationBuildFolderRootPath, 'build'),
+  );
+}
+
+export function getExportPageIndexHtmlFilePath(page: Page) {
+  return path.join('pages', getPageFolderPathFromUrl(page.url), 'index.html');
+}
+
+export function getExportPageFilePath(page: Page) {
+  return path.join(temporaryApplicationExportFolderRootPath, getExportPageIndexHtmlFilePath(page));
 }

@@ -6,7 +6,7 @@ import { getCurrentBuild } from '../../services/build/build.service';
 import { Page } from '../../models';
 import { throwBadRequest } from '../../lib/error';
 import { otlContext, SemanticAttributes, withSafelyActiveSpan } from '../../lib/opentelemetry';
-import { ProcessPagePipelineType } from '../../services/page/page.service';
+import { PipelineType } from '../../services/page/page.service';
 
 export const create: RouteHandler<{ Body: CreatePageRequestBody }> = async function (
   request,
@@ -43,7 +43,7 @@ export const create: RouteHandler<{ Body: CreatePageRequestBody }> = async funct
       await enqueue(
         JobName.processPage,
         {
-          type: ProcessPagePipelineType.create,
+          type: PipelineType.create,
           externalId: request.body.id,
           url: request.body.url,
           parentSpanContext: span?.spanContext() ?? null,
@@ -93,7 +93,7 @@ export const update: RouteHandler<{ Body: UpdatePageRequestBody }> = async funct
       await enqueue(
         JobName.processPage,
         {
-          type: ProcessPagePipelineType.update,
+          type: PipelineType.update,
           externalId: request.body.id,
           parentSpanContext: span?.spanContext() ?? null,
         },
@@ -142,7 +142,7 @@ export const remove: RouteHandler<{ Body: DeletePageRequestBody }> = async funct
       await enqueue(
         JobName.processPage,
         {
-          type: ProcessPagePipelineType.remove,
+          type: PipelineType.remove,
           externalId: request.body.id,
           parentSpanContext: span?.spanContext() ?? null,
         },

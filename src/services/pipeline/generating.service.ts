@@ -7,7 +7,7 @@ import { stripIndent } from 'common-tags';
 import piscina from 'piscina';
 
 import {
-  isProcessingInWorkerThreadsAvailable,
+  useWorkerThreadsProcessing,
   rootFolderPath,
   temporaryApplicationBuildFolderRootPath,
 } from '../../config';
@@ -55,7 +55,7 @@ const ignoreProps = [
 export async function generatePages(pages: Page[], designSystemComponentsMap: Map<string, string>) {
   // nock supports only main thread catching request, as result we can skip this branch
   /* istanbul ignore if */
-  if (isProcessingInWorkerThreadsAvailable) {
+  if (useWorkerThreadsProcessing) {
     return processGeneratingInWorkerThreads(pages, designSystemComponentsMap);
   }
 

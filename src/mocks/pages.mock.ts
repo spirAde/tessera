@@ -98722,17 +98722,17 @@ export const pagesMock = {
 
 export const projectPagesMock = {
   pages: [
-    { id: 111275, url: '/' },
+    // { id: 111275, url: '/' },
     // { id: 111331, url: '/service' },
     // { id: 111365, url: '/solutions' },
     // { id: 111393, url: '/about-company' },
-    { id: 111442, url: '/contact' },
-    { id: 111475, url: '/about-company/licenses-and-sertificates' },
-    { id: 111506, url: '/documents' },
-    { id: 111536, url: '/about-company/news' },
-    { id: 111568, url: '/about-company/events' },
-    { id: 111596, url: '/about-company/career' },
-    { id: 111632, url: '/about-company/awards' },
+    // { id: 111442, url: '/contact' },
+    // { id: 111475, url: '/about-company/licenses-and-sertificates' },
+    // { id: 111506, url: '/documents' },
+    // { id: 111536, url: '/about-company/news' },
+    // { id: 111568, url: '/about-company/events' },
+    // { id: 111596, url: '/about-company/career' },
+    // { id: 111632, url: '/about-company/awards' },
     // { id: 111685, url: '/marketing/posadka' },
     // {
     //   id: 111880,
@@ -98769,8 +98769,8 @@ export const projectPagesMock = {
     // },
     // { id: 114269, url: '/search' },
     // { id: 114303, url: '/service/openstack' },
-    { id: 114401, url: '/service/cdn' },
-    { id: 114527, url: '/service/dion' },
+    // { id: 114401, url: '/service/cdn' },
+    // { id: 114527, url: '/service/dion' },
     // {
     //   id: 114957,
     //   url: '/about-company/news/t1-cloud-v-top-3-reytinga-sla-iaas-2023',

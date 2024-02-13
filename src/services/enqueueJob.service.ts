@@ -5,6 +5,7 @@ import PgBoss, { JobWithMetadata, SendOptions, WorkHandler } from 'pg-boss';
 import { pgConnectionString } from '../config';
 import { createBuildJob } from '../jobs/build/createBuild.job';
 import { processPageJob } from '../jobs/page/processPage.job';
+import { logger } from '../lib/logger';
 
 export enum JobName {
   createBuild = 'createBuild',
@@ -49,11 +50,13 @@ export async function flushPendingTasks(jobName: JobName) {
 }
 
 export async function stopPageJobs() {
+  logger.debug('[stopPageJobs] stop page jobs');
   await stopJob(JobName.processPage);
   await flushPendingTasks(JobName.processPage);
 }
 
 export async function runPageJobs() {
+  logger.debug('[runPageJobs] run page jobs');
   await runJob(JobName.processPage);
 }
 
@@ -62,6 +65,8 @@ export function getJobFunction(jobName: JobName) {
 }
 
 export async function waitJobCompletion(jobName: JobName) {
+  logger.debug('[waitJobCompletion] waiting the project building...');
+
   return new Promise((resolve) =>
     pgQueue.onComplete(jobName, (job: JobWithMetadata) => {
       void (isJobCompletedSuccessfully(job) && pgQueue.offComplete(jobName).then(resolve));

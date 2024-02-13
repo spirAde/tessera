@@ -15,33 +15,32 @@ const config = [
     endpoint: '/api/v1/pages',
     method: 'post',
     body: { id: 111331, url: '/service' },
-    delay: 20_000,
-  },
-
-  { endpoint: '/api/v1/pages', method: 'put', body: { id: 111506 }, delay: 0 },
-  { endpoint: '/api/v1/pages', method: 'put', body: { id: 111536 }, delay: 0 },
-
-  {
-    endpoint: '/api/v1/pages',
-    method: 'post',
-    body: { id: 111365, url: '/solutions' },
     delay: 0,
   },
-  {
-    endpoint: '/api/v1/pages',
-    method: 'post',
-    body: { id: 111393, url: '/about-company' },
-    delay: 20_000,
-  },
-
-  { endpoint: '/api/v1/pages', method: 'put', body: { id: 111568 }, delay: 0 },
-  { endpoint: '/api/v1/pages', method: 'put', body: { id: 111596 }, delay: 0 },
-  { endpoint: '/api/v1/pages', method: 'put', body: { id: 111632 }, delay: 30_000 },
-
-  { endpoint: '/api/v1/pages', method: 'delete', body: { id: 111275 }, delay: 0 },
-  { endpoint: '/api/v1/pages', method: 'delete', body: { id: 111568 }, delay: 0 },
-  { endpoint: '/api/v1/pages', method: 'delete', body: { id: 111596 }, delay: 0 },
-  { endpoint: '/api/v1/pages', method: 'delete', body: { id: 111632 }, delay: 0 },
+  // { endpoint: '/api/v1/pages', method: 'put', body: { id: 111506 }, delay: 0 },
+  // { endpoint: '/api/v1/pages', method: 'put', body: { id: 111536 }, delay: 0 },
+  //
+  // {
+  //   endpoint: '/api/v1/pages',
+  //   method: 'post',
+  //   body: { id: 111365, url: '/solutions' },
+  //   delay: 0,
+  // },
+  // {
+  //   endpoint: '/api/v1/pages',
+  //   method: 'post',
+  //   body: { id: 111393, url: '/about-company' },
+  //   delay: 20_000,
+  // },
+  //
+  // { endpoint: '/api/v1/pages', method: 'put', body: { id: 111568 }, delay: 0 },
+  // { endpoint: '/api/v1/pages', method: 'put', body: { id: 111596 }, delay: 0 },
+  // { endpoint: '/api/v1/pages', method: 'put', body: { id: 111632 }, delay: 30_000 },
+  //
+  // { endpoint: '/api/v1/pages', method: 'delete', body: { id: 111275 }, delay: 0 },
+  // { endpoint: '/api/v1/pages', method: 'delete', body: { id: 111568 }, delay: 0 },
+  // { endpoint: '/api/v1/pages', method: 'delete', body: { id: 111596 }, delay: 0 },
+  // { endpoint: '/api/v1/pages', method: 'delete', body: { id: 111632 }, delay: 0 },
 ];
 
 function delay(ms = 1000) {
