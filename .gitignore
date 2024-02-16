@@ -4,6 +4,7 @@ node_modules
 .idea
 output
 coverage
+sandbox
 .env
 .DS_Store
 

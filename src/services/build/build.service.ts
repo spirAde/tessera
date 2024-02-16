@@ -1,33 +1,26 @@
+import { remove } from 'fs-extra';
 import path from 'path';
 import { Op } from 'sequelize';
-import { copy, remove } from 'fs-extra';
 
-import {
-  outputFolderPath,
-  persistentApplicationExportFolderRootPath,
-  rootFolderPath,
-  temporaryApplicationBuildFolderRootPath,
-  temporaryApplicationExportFolderRootPath,
-} from '../../config';
-import { Stage, Status } from '../../types';
-import { Build, BuildAttributes, BuildAttributesNew, Page } from '../../models';
-import { ComponentLike, getProjectPages, Project, ProjectPage } from '../../sdk/platform.sdk';
+import { outputFolderPath, rootFolderPath, useS3BucketForStatic } from '../../config';
 import { logger } from '../../lib/logger';
-import { runPipeline } from '../pipeline/pipeline.service';
-import { setupApplicationFolderEnvironment } from '../pipeline/setup.service';
-import { getDesignSystemComponentsList, getProject } from '../pipeline/fetching.service';
-import { convertToMap, createApplicationFile, generatePages } from '../pipeline/generating.service';
-import { collectMissedComponents } from '../pipeline/preparing.service';
+import { Build, BuildAttributes, BuildAttributesNew, Page } from '../../models';
+import { removeS3BucketFiles } from '../../sdk/minio.sdk';
+import { getProjectPages } from '../../sdk/platform/platform.sdk';
+import { ComponentLike, Project, ProjectPage } from '../../sdk/platform/types';
+import { Stage, Status } from '../../types';
+import { commit } from '../pipeline/commit.service';
 import { compile } from '../pipeline/compiling.service';
 import { exportPages } from '../pipeline/export.service';
-import { commit } from '../pipeline/commit.service';
-import { removeS3BucketFiles } from '../../sdk/minio.sdk';
-import { getPageFolderPathFromUrl } from '../../lib/url';
-import { getExportPageFilePath } from '../page/page.service';
+import { getDesignSystemComponentsList, getProject } from '../pipeline/fetching.service';
+import { convertToMap, createApplicationFile, generatePages } from '../pipeline/generating.service';
+import { runPipeline } from '../pipeline/pipeline.service';
+import { collectMissedComponents } from '../pipeline/preparing.service';
+import { setupApplicationFolderEnvironment } from '../pipeline/setup.service';
 
 type BuildUpdate = Partial<BuildAttributes>;
 
-export interface BuildPipelineContext {
+interface BuildPipelineContext {
   build: Build;
   project: Project | null;
   projectPages: ProjectPage[];
@@ -47,13 +40,14 @@ export function getCurrentBuild() {
   });
 }
 
-export async function prepareEnvironmentForBuild() {
+export async function cleanUpBeforeBuild() {
   await Build.destroy({ truncate: true });
   await Page.destroy({ truncate: true });
 
   await remove(path.join(rootFolderPath, 'node_modules/.cache/babel-loader'));
   await remove(outputFolderPath);
-  await removeS3BucketFiles();
+
+  useS3BucketForStatic && (await removeS3BucketFiles());
 }
 
 export async function runProjectBuild() {
@@ -236,11 +230,6 @@ async function runCommitStage({ build }: BuildPipelineContext) {
   );
 
   await commit(readyToCommitPages);
-
-  await copy(
-    path.join(temporaryApplicationBuildFolderRootPath, 'server.js'),
-    path.join(persistentApplicationExportFolderRootPath, 'server.js'),
-  );
 
   await Page.update(
     { status: Status.success },

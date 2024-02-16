@@ -4,7 +4,7 @@ import {
   ProjectPageStructureComponent,
   StrictProjectPageStructure,
   ComponentLike,
-} from '../../sdk/platform.sdk';
+} from '../../sdk/platform/types';
 
 export function parsePageStructureComponentsList(pageStructure: StrictProjectPageStructure) {
   const components: ProjectPageStructureComponent[] = [];
@@ -28,7 +28,7 @@ export function normalizePageComponentsVersionsGivenDesignSystem(
   }));
 }
 
-export function traverseComponentsTree(
+function traverseComponentsTree(
   node: ProjectPageStructureComponent,
   callback: (component: ProjectPageStructureComponent) => void,
 ) {
@@ -40,13 +40,20 @@ export function traverseComponentsTree(
     callback(node);
   }
 
+  traverseNodeComponents(node, callback);
+}
+
+function traverseNodeComponents(
+  node: ProjectPageStructureComponent,
+  callback: (component: ProjectPageStructureComponent) => void,
+) {
   if (Array.isArray(node.components) && node.components.length > 0) {
     node.components.forEach((childNode) => {
       traverseComponentsTree(childNode, callback);
     });
   }
 
-  if (node.result && Array.isArray(node.result.components) && node.result.components.length > 0) {
+  if (Array.isArray(node.result?.components) && node.result.components.length > 0) {
     node.result.components.forEach((childNode) => {
       traverseComponentsTree(childNode, callback);
     });

@@ -1,14 +1,14 @@
-import { Job } from 'pg-boss';
 import { SpanKind } from '@opentelemetry/api';
 import { SpanContext } from '@opentelemetry/api/build/src/trace/span_context';
+import { Job } from 'pg-boss';
 
 import { logger } from '../../lib/logger';
-import { PipelineType } from '../../services/page/page.service';
-import { getCurrentBuild } from '../../services/build/build.service';
 import { otlContext, SemanticAttributes, withSafelyActiveSpan } from '../../lib/opentelemetry';
+import { getCurrentBuild } from '../../services/build/build.service';
 import { runPageCreation } from '../../services/page/creation/createPage.service';
-import { runPageUpdating } from '../../services/page/updating/updatePage.service';
 import { runPageDeleting } from '../../services/page/deleting/deletePage.service';
+import { PipelineType } from '../../services/page/page.service';
+import { runPageUpdating } from '../../services/page/updating/updatePage.service';
 
 export async function processPageJob(
   payload: Job<{

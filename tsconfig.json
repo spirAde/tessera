@@ -17,5 +17,5 @@
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true
   },
-  "include": ["src/**/*.ts", "src/index.d.ts", "src/types/*.js", "src/workers/*.ts"],
+  "include": ["src/**/*.ts", "src/index.d.ts", "src/types/*.js", "src/workers/*.ts"]
 }

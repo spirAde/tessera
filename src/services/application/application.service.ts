@@ -1,8 +1,8 @@
-import path from 'path';
 import fs, { pathExists } from 'fs-extra';
+import path from 'path';
 
-import { logger } from '../../lib/logger';
 import { persistentApplicationExportFolderRootPath, rootFolderPath } from '../../config';
+import { logger } from '../../lib/logger';
 import { enqueue, JobName, pgQueue, waitJobCompletion } from '../enqueueJob.service';
 
 export function getHttpsServerOptions() {

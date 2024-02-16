@@ -1,10 +1,15 @@
 import { copy, remove } from 'fs-extra';
 import path from 'path';
 
-import { Page } from '../../../models';
+import {
+  persistentApplicationBuildFolderRootPath,
+  temporaryApplicationBuildFolderRootPath,
+} from '../../../config';
 import { logger } from '../../../lib/logger';
 import { getPageFolderPathFromUrl } from '../../../lib/url';
-import { runPipeline } from '../../pipeline/pipeline.service';
+import { Page } from '../../../models';
+import { Stage, Status } from '../../../types';
+import { commit } from '../../pipeline/commit.service';
 import {
   convertToMap,
   createApplicationFile,
@@ -13,11 +18,12 @@ import {
   getMissedComponentsList,
   getPageComponentName,
 } from '../../pipeline/generating.service';
+import { runPipeline } from '../../pipeline/pipeline.service';
+import { rollback } from '../../pipeline/rollback.service';
 import {
   createPage,
   createPagePipelineContext,
   PagePipelineContext,
-  PipelineType,
   rollbackCompilationStage,
   runCompilationStage,
   runExportStage,
@@ -25,13 +31,6 @@ import {
   runPreparingStage,
   updatePage,
 } from '../page.service';
-import { Stage, Status } from '../../../types';
-import { commit } from '../../pipeline/commit.service';
-import { rollback } from '../../pipeline/rollback.service';
-import {
-  persistentApplicationBuildFolderRootPath,
-  temporaryApplicationBuildFolderRootPath,
-} from '../../../config';
 
 export async function runPageCreation({
   buildId,
@@ -140,6 +139,6 @@ async function rollbackGeneratingStage({ workInProgressPage }: PagePipelineConte
   );
 }
 
-async function rollbackExportStage(context: PagePipelineContext) {
+async function rollbackExportStage() {
   return Promise.resolve();
 }

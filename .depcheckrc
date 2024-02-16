@@ -2,6 +2,7 @@
   "ignores": [
     "--type-ignores--",
     "@types/jest",
+    "eslint-import-resolver-typescript",
     "babel-loader",
     "thread-loader",
     "--unused-ignores--",

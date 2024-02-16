@@ -8,9 +8,11 @@ import type {
   SpanOptions,
   Tracer,
 } from '@opentelemetry/api';
+import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
 import { ExportResultCode, hrTimeToMicroseconds } from '@opentelemetry/core';
 import type { ExportResult } from '@opentelemetry/core';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-grpc';
+import { registerInstrumentations } from '@opentelemetry/instrumentation';
 import { B3Propagator } from '@opentelemetry/propagator-b3';
 import { Resource } from '@opentelemetry/resources';
 import { BatchSpanProcessor } from '@opentelemetry/sdk-trace-base';
@@ -20,9 +22,7 @@ import {
   SemanticAttributes,
   SemanticResourceAttributes,
 } from '@opentelemetry/semantic-conventions';
-import { registerInstrumentations } from '@opentelemetry/instrumentation';
 import { SequelizeInstrumentation } from 'opentelemetry-instrumentation-sequelize';
-import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
 
 import { logger } from './logger';
 

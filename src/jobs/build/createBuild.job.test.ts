@@ -1,7 +1,18 @@
-import path from 'path';
 import { readdirSync, readFileSync } from 'fs-extra';
 import uniqBy from 'lodash/uniqBy';
+import path from 'path';
 
+import { createBuildJob } from './createBuild.job';
+import { outputFolderPath, temporaryApplicationBuildFolderRootPath } from '../../config';
+import { Build } from '../../models';
+import { ComponentLike, StrictProjectPageStructure } from '../../sdk/platform/types';
+import {
+  pageStructureMainFixture,
+  pageStructureServiceFixture,
+  pageStructureAboutFixture,
+  pageComponentsByPageId,
+} from '../../tests/fixtures/pageStructure.fixture';
+import { projectT1CloudFixture } from '../../tests/fixtures/project.fixture';
 import {
   nockPlatformProjects,
   nockPlatformProjectPages,
@@ -9,17 +20,6 @@ import {
   nockPlatformProjectPage,
   nockPlatformComponentSource,
 } from '../../tests/nocks/platform.nock';
-import { outputFolderPath, temporaryApplicationBuildFolderRootPath } from '../../config';
-import { projectT1CloudFixture } from '../../tests/fixtures/project.fixture';
-import {
-  pageStructureMainFixture,
-  pageStructureServiceFixture,
-  pageStructureAboutFixture,
-  pageComponentsByPageId,
-} from '../../tests/fixtures/pageStructure.fixture';
-import { ComponentLike, StrictProjectPageStructure } from '../../sdk/platform.sdk';
-import { createBuildJob } from './createBuild.job';
-import { Build } from '../../models';
 import { Stage, Status } from '../../types';
 
 describe('createBuildJob', () => {
@@ -47,7 +47,6 @@ describe('createBuildJob', () => {
       'components',
       'pages',
       'public',
-      'server.js',
     ]);
 
     expect(

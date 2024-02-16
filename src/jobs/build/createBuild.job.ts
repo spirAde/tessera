@@ -1,10 +1,10 @@
-import { Job } from 'pg-boss';
-import { SpanContext } from '@opentelemetry/api/build/src/trace/span_context';
 import { SpanKind } from '@opentelemetry/api';
+import { SpanContext } from '@opentelemetry/api/build/src/trace/span_context';
+import { Job } from 'pg-boss';
 
-import { prepareEnvironmentForBuild, runProjectBuild } from '../../services/build/build.service';
 import { logger } from '../../lib/logger';
 import { otlContext, SemanticAttributes, withSafelyActiveSpan } from '../../lib/opentelemetry';
+import { cleanUpBeforeBuild, runProjectBuild } from '../../services/build/build.service';
 import { runPageJobs, stopPageJobs } from '../../services/enqueueJob.service';
 
 export async function createBuildJob(payload: Job<{ parentSpanContext?: SpanContext }>) {
@@ -27,7 +27,7 @@ export async function createBuildJob(payload: Job<{ parentSpanContext?: SpanCont
     async () => {
       logger.debug(`[createBuildJob] start job`);
 
-      await prepareEnvironmentForBuild();
+      await cleanUpBeforeBuild();
 
       await stopPageJobs();
       await runProjectBuild();

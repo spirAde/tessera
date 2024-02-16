@@ -2,24 +2,25 @@ module.exports = {
   root: true,
   parser: '@typescript-eslint/parser',
   parserOptions: {
-    ecmaVersion: 2020, // Allows for the parsing of modern ECMAScript features
-    sourceType: 'module', // Allows for the use of imports
+    ecmaVersion: 2020,
+    sourceType: 'module',
     project: `./tsconfig.json`,
   },
-  plugins: ['@typescript-eslint'],
+  plugins: ['@typescript-eslint', 'import'],
   extends: [
     'eslint:recommended',
     'airbnb-typescript/base',
-    'plugin:jest/recommended',
-    'plugin:import/recommended',
-    // 'plugin:sonarjs/recommended',
-    'plugin:@typescript-eslint/recommended',
-    'plugin:eslint-comments/recommended',
     'prettier',
+    'plugin:@typescript-eslint/recommended',
+    'plugin:sonarjs/recommended',
+    'plugin:eslint-comments/recommended',
+    'plugin:jest/recommended',
+    'plugin:import/errors',
+    'plugin:import/warnings',
+    'plugin:import/typescript',
   ],
   ignorePatterns: ['**/*.d.ts'],
   rules: {
-    '@next/next/no-document-import-in-page': 'off',
     '@typescript-eslint/consistent-type-definitions': ['error', 'interface'],
     '@typescript-eslint/explicit-module-boundary-types': 'off',
     '@typescript-eslint/lines-between-class-members': 'off',
@@ -68,7 +69,7 @@ module.exports = {
     'no-unused-vars': 'off',
     'no-return-await': 'error',
     'object-shorthand': ['error', 'always'],
-    'max-params': ['error', 3], // TODO fix and change to error
+    'max-params': ['error', 3],
   },
   overrides: [
     {
@@ -96,7 +97,6 @@ module.exports = {
         'jest/no-identical-title': 'off',
         'jest/no-deprecated-functions': 'off',
         'jest/no-standalone-expect': 'off',
-        'import/order': 'off',
         'import/first': 'off',
         'require-await': 'off',
         'no-buffer-constructor': 'off',
@@ -126,6 +126,9 @@ module.exports = {
         'no-void': 'off',
         'sonarjs/no-collapsible-if': 'off',
         'sonarjs/no-small-switch': 'off',
+        'sonarjs/cognitive-complexity': ['error', 5],
+        'sonarjs/no-duplicate-string': 'off',
+        'sonarjs/prefer-immediate-return': 'off',
         'no-unneeded-ternary': 'off',
         'new-cap': 'off',
         'no-lonely-if': 'off',
@@ -136,6 +139,8 @@ module.exports = {
         'no-var': 'off',
         'global-require': 'off',
         'import/no-named-default': 'off',
+        'import/no-named-as-default': 'off',
+        'import/no-named-as-default-member': 'off',
         'prefer-promise-reject-errors': 'off',
         '@typescript-eslint/no-unused-vars': 'off',
         radix: 'off',
@@ -153,12 +158,13 @@ module.exports = {
     node: true,
     es2020: true,
   },
-  settings: {
-    'import/resolver': {
-      node: {
-        extensions: ['.js', '.jsx', '.ts', '.tsx'],
-        moduleDirectory: ['node_modules', 'src/'],
-      },
-    },
-  },
+  // settings: {
+  //   'import/resolver': {
+  //     typescript: true,
+  //     node: {
+  //       extensions: ['.js', '.jsx', '.ts', '.tsx'],
+  //       moduleDirectory: ['node_modules', 'src/'],
+  //     },
+  //   },
+  // },
 };

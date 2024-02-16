@@ -1,9 +1,8 @@
 import { copy, pathExistsSync, readJson, remove, readFileSync } from 'fs-extra';
 import { glob } from 'glob';
-import path from 'path';
 import { diff } from 'json-diff';
+import path from 'path';
 
-import { uploadFileToS3Bucket, removeFilesFromS3Bucket } from '../../sdk/minio.sdk';
 import {
   persistentApplicationFolderRootPath,
   persistentApplicationBuildFolderRootPath,
@@ -14,6 +13,7 @@ import {
   useS3BucketForStatic,
 } from '../../config';
 import { Page } from '../../models';
+import { uploadFileToS3Bucket, removeFilesFromS3Bucket } from '../../sdk/minio.sdk';
 import { getExportPageIndexHtmlFilePath } from '../page/page.service';
 
 interface Chunk {

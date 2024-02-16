@@ -1,8 +1,8 @@
 import got from 'got';
 
 import { JobName } from '../../services/enqueueJob.service';
-import { expectJobsWereEnqueued, mockEnqueue } from '../../tests/queue.mock';
 import { getApplicationUrl } from '../../tests/helpers';
+import { expectJobsWereEnqueued, mockEnqueue } from '../../tests/queue.mock';
 
 const applicationUrl = getApplicationUrl();
 

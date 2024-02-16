@@ -1,21 +1,21 @@
 import { mkdir } from 'fs-extra';
 
-import {
-  expectJobsWereEnqueued,
-  expectJobsWereNotEnqueued,
-  mockEnqueue,
-} from '../../tests/queue.mock';
-import { persistentApplicationExportFolderRootPath } from '../../config';
-import { JobName, pgQueue } from '../enqueueJob.service';
-import * as enqueueJob from '../enqueueJob.service';
 import { ensureApplicationIsReadyToLaunch } from './application.service';
+import { persistentApplicationExportFolderRootPath } from '../../config';
+import { projectT1CloudFixture } from '../../tests/fixtures/project.fixture';
 import {
   nockPlatformProjects,
   nockPlatformProjectPages,
   nockPlatformDesignSystem,
   nockPlatformComponentSource,
 } from '../../tests/nocks/platform.nock';
-import { projectT1CloudFixture } from '../../tests/fixtures/project.fixture';
+import {
+  expectJobsWereEnqueued,
+  expectJobsWereNotEnqueued,
+  mockEnqueue,
+} from '../../tests/queue.mock';
+import { JobName, pgQueue } from '../enqueueJob.service';
+import * as enqueueJob from '../enqueueJob.service';
 
 describe('ensureApplicationIsReadyToLaunch', () => {
   it('waits completion of running create build job if no persistent folder and there is running job', async () => {

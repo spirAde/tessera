@@ -1,7 +1,7 @@
-import { copySync, remove } from 'fs-extra';
-import { readFileSync } from 'fs';
-import path from 'path';
 import crypto from 'crypto';
+import { readFileSync } from 'fs';
+import { copySync, remove } from 'fs-extra';
+import path from 'path';
 
 import { outputFolderPath, rootFolderPath } from '../../config';
 

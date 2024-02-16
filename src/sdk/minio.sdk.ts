@@ -1,5 +1,6 @@
-import { Client, ItemBucketMetadata } from 'minio';
+// eslint-disable-next-line import/named
 import { lookup } from 'mime-types';
+import { Client, ItemBucketMetadata } from 'minio';
 
 import { minioConfig, projectSysName } from '../config';
 import { logger } from '../lib/logger';

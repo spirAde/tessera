@@ -1,20 +1,20 @@
 import { copy, remove } from 'fs-extra';
 import path from 'path';
 
-import { Page, PageAttributes, PageAttributesNew } from '../../models';
-import { ComponentLike, Project } from '../../sdk/platform.sdk';
-import { logger } from '../../lib/logger';
-import { getDesignSystemComponentsList, getProject } from '../pipeline/fetching.service';
-import { collectMissedComponents } from '../pipeline/preparing.service';
-import { Stage } from '../../types';
-import { compile } from '../pipeline/compiling.service';
-import { exportPages } from '../pipeline/export.service';
 import {
   persistentApplicationBuildFolderRootPath,
   temporaryApplicationBuildFolderRootPath,
   temporaryApplicationExportFolderRootPath,
 } from '../../config';
+import { logger } from '../../lib/logger';
 import { getPageFolderPathFromUrl } from '../../lib/url';
+import { Page, PageAttributes, PageAttributesNew } from '../../models';
+import { ComponentLike, Project } from '../../sdk/platform/types';
+import { Stage } from '../../types';
+import { compile } from '../pipeline/compiling.service';
+import { exportPages } from '../pipeline/export.service';
+import { getDesignSystemComponentsList, getProject } from '../pipeline/fetching.service';
+import { collectMissedComponents } from '../pipeline/preparing.service';
 
 type PageUpdate = Partial<PageAttributes>;
 

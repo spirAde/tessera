@@ -2,10 +2,11 @@ import got from 'got';
 
 import { Page } from '../../models';
 import { JobName } from '../../services/enqueueJob.service';
-import { expectJobsWereEnqueued, mockEnqueue } from '../../tests/queue.mock';
+import { PipelineType } from '../../services/page/page.service';
 import { getApplicationUrl } from '../../tests/helpers';
-import { seedPage } from '../../tests/seeds/page.seed';
+import { expectJobsWereEnqueued, mockEnqueue } from '../../tests/queue.mock';
 import { seedBuild } from '../../tests/seeds/build.seed';
+import { seedPage } from '../../tests/seeds/page.seed';
 import {
   Stage,
   Status,
@@ -13,7 +14,6 @@ import {
   CreatePageRequestBody,
   DeletePageRequestBody,
 } from '../../types';
-import { PipelineType } from '../../services/page/page.service';
 
 const applicationUrl = getApplicationUrl();
 

@@ -1,8 +1,8 @@
+import LoadablePlugin from '@loadable/webpack-plugin';
+import TerserPlugin from 'terser-webpack-plugin';
 import webpack, { Configuration, DefinePlugin } from 'webpack';
 import { merge } from 'webpack-merge';
-import TerserPlugin from 'terser-webpack-plugin';
 import nodeExternals from 'webpack-node-externals';
-import LoadablePlugin from '@loadable/webpack-plugin';
 
 import { temporaryApplicationBuildFolderRootPath, isTest } from '../../config';
 

@@ -1,20 +1,13 @@
 import { existsSync, readdirSync, readFileSync } from 'fs-extra';
 import path from 'path';
 
-import { Stage, Status } from '../../types';
 import { processPageJob } from './processPage.job';
 import {
   persistentApplicationExportFolderRootPath,
   temporaryApplicationBuildFolderRootPath,
 } from '../../config';
-import { copyPrebuildProjectFixture, hashFileSync } from '../../tests/helpers';
-import {
-  nockPlatformComponentSource,
-  nockPlatformDesignSystem,
-  nockPlatformProjectPage,
-  nockPlatformProjects,
-} from '../../tests/nocks/platform.nock';
-import { projectT1CloudFixture } from '../../tests/fixtures/project.fixture';
+import { StrictProjectPageStructure } from '../../sdk/platform/types';
+import { PipelineType } from '../../services/page/page.service';
 import {
   pageStructureAboutFixture,
   pageStructureMainFixture,
@@ -22,10 +15,17 @@ import {
   pageStructureServiceFixture,
   pageStructureServiceUpdateFixture,
 } from '../../tests/fixtures/pageStructure.fixture';
-import { StrictProjectPageStructure } from '../../sdk/platform.sdk';
+import { projectT1CloudFixture } from '../../tests/fixtures/project.fixture';
+import { copyPrebuildProjectFixture, hashFileSync } from '../../tests/helpers';
+import {
+  nockPlatformComponentSource,
+  nockPlatformDesignSystem,
+  nockPlatformProjectPage,
+  nockPlatformProjects,
+} from '../../tests/nocks/platform.nock';
 import { seedBuild } from '../../tests/seeds/build.seed';
 import { seedPage } from '../../tests/seeds/page.seed';
-import { PipelineType } from '../../services/page/page.service';
+import { Stage, Status } from '../../types';
 
 describe('processPageJob', () => {
   beforeEach(() => {

@@ -1,5 +1,5 @@
-import { Page, PageAttributes } from '../../models';
 import { seedBuild } from './build.seed';
+import { Page, PageAttributes } from '../../models';
 
 export async function seedPage(overrides: Partial<PageAttributes> = {}) {
   let { buildId } = overrides;

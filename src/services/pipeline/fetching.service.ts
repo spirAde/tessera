@@ -1,11 +1,7 @@
-import {
-  ComponentLike,
-  DesignSystemComponent,
-  getProjectDesignSystemComponents,
-  getProjects,
-} from '../../sdk/platform.sdk';
-import { logger } from '../../lib/logger';
 import { projectSysName } from '../../config';
+import { logger } from '../../lib/logger';
+import { getProjectDesignSystemComponents, getProjects } from '../../sdk/platform/platform.sdk';
+import { ComponentLike, DesignSystemComponent } from '../../sdk/platform/types';
 
 export async function getProject() {
   logger.debug('fetch project');

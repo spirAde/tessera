@@ -1,20 +1,20 @@
 import { Op } from 'sequelize';
 
-import { Page } from '../../../models';
 import { logger } from '../../../lib/logger';
-import { runPipeline } from '../../pipeline/pipeline.service';
-import { compile } from '../../pipeline/compiling.service';
-import { exportPages } from '../../pipeline/export.service';
-import { createPagePipelineContext, PagePipelineContext, PipelineType } from '../page.service';
+import { getPageFolderPathFromUrl } from '../../../lib/url';
+import { Page } from '../../../models';
 import { Stage, Status } from '../../../types';
 import { commit } from '../../pipeline/commit.service';
+import { compile } from '../../pipeline/compiling.service';
+import { exportPages } from '../../pipeline/export.service';
+import { getProject } from '../../pipeline/fetching.service';
 import {
   createApplicationFile,
   getAbsolutePageFilePath,
   getPageComponentName,
 } from '../../pipeline/generating.service';
-import { getPageFolderPathFromUrl } from '../../../lib/url';
-import { getProject } from '../../pipeline/fetching.service';
+import { runPipeline } from '../../pipeline/pipeline.service';
+import { createPagePipelineContext, PagePipelineContext } from '../page.service';
 
 export async function runPageDeleting({
   buildId,

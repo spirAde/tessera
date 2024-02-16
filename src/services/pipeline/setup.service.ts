@@ -1,10 +1,10 @@
 import { copy } from 'fs-extra';
 
-import { logger } from '../../lib/logger';
 import {
   applicationTemplateFolderPath,
   temporaryApplicationBuildFolderRootPath,
 } from '../../config';
+import { logger } from '../../lib/logger';
 
 export async function setupApplicationFolderEnvironment() {
   logger.debug('copy application environment folder');

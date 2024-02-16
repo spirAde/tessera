@@ -1,11 +1,13 @@
-import { Page } from '../../../models';
 import { logger } from '../../../lib/logger';
-import { runPipeline } from '../../pipeline/pipeline.service';
+import { Page } from '../../../models';
+import { Stage, Status } from '../../../types';
+import { commit } from '../../pipeline/commit.service';
 import {
   convertToMap,
   getMissedComponentsList,
   generatePage,
 } from '../../pipeline/generating.service';
+import { runPipeline } from '../../pipeline/pipeline.service';
 import {
   createPagePipelineContext,
   PagePipelineContext,
@@ -14,11 +16,7 @@ import {
   runCompilationStage,
   runExportStage,
   updatePage,
-  PipelineType,
-  getExportPageFilePath,
 } from '../page.service';
-import { Stage, Status } from '../../../types';
-import { commit } from '../../pipeline/commit.service';
 
 export async function runPageUpdating({
   buildId,

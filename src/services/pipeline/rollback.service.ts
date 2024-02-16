@@ -1,5 +1,6 @@
 import takeWhile from 'lodash/takeWhile';
 
+import { logger } from '../../lib/logger';
 import { Page } from '../../models';
 import { Stage } from '../../types';
 import { PagePipelineContext } from '../page/page.service';
@@ -21,6 +22,8 @@ export async function rollback({
   stages: Stage[];
   rollbackFns: RollbackFns;
 }) {
+  logger.debug(`[rollback] run rollback for pipeline with context: ${context}`);
+
   await context.workInProgressPage.reload();
 
   const previousStages = getPreviousStages(context.workInProgressPage, stages);

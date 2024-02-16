@@ -1,7 +1,7 @@
 import { Association, DataTypes, HasManyGetAssociationsMixin, Model, Optional } from 'sequelize';
 
-import { sequelize } from '../lib/sequelize';
 import { Page } from './Page.model';
+import { sequelize } from '../lib/sequelize';
 import { Stage, Status } from '../types';
 
 export interface BuildAttributes {

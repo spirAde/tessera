@@ -1,12 +1,12 @@
 import { RouteHandler } from 'fastify';
 
-import { CreatePageRequestBody, DeletePageRequestBody, UpdatePageRequestBody } from '../../types';
-import { enqueue, JobName } from '../../services/enqueueJob.service';
-import { getCurrentBuild } from '../../services/build/build.service';
-import { Page } from '../../models';
 import { throwBadRequest } from '../../lib/error';
 import { otlContext, SemanticAttributes, withSafelyActiveSpan } from '../../lib/opentelemetry';
+import { Page } from '../../models';
+import { getCurrentBuild } from '../../services/build/build.service';
+import { enqueue, JobName } from '../../services/enqueueJob.service';
 import { PipelineType } from '../../services/page/page.service';
+import { CreatePageRequestBody, DeletePageRequestBody, UpdatePageRequestBody } from '../../types';
 
 export const create: RouteHandler<{ Body: CreatePageRequestBody }> = async function (
   request,

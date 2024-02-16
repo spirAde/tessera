@@ -1,14 +1,12 @@
-import path from 'path';
+import { ChunkExtractor } from '@loadable/server';
 import { outputFile } from 'fs-extra';
+import { minify } from 'html-minifier';
+import path from 'path';
 import React, { ComponentType } from 'react';
 import { renderToString } from 'react-dom/server';
 import { Helmet } from 'react-helmet';
 import { ServerStyleSheet } from 'styled-components';
-import { ChunkExtractor } from '@loadable/server';
-import { minify } from 'html-minifier';
 
-import { Page } from '../../models';
-import { getExportPageFilePath } from '../page/page.service';
 import {
   temporaryApplicationBuildFolderRootPath,
   useS3BucketForStatic,
@@ -16,6 +14,8 @@ import {
   s3StaticUrl,
 } from '../../config';
 import { logger } from '../../lib/logger';
+import { Page } from '../../models';
+import { getExportPageFilePath } from '../page/page.service';
 
 const STATIC_URL = useS3BucketForStatic
   ? `${s3StaticUrl}/${projectSysName.toLowerCase()}/static/`

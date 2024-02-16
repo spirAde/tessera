@@ -1,21 +1,21 @@
-import path from 'path';
-import fastify, { errorCodes, FastifyError, FastifyReply, FastifyRequest } from 'fastify';
 import { fastifyAutoload } from '@fastify/autoload';
+import fastify, { errorCodes, FastifyError, FastifyReply, FastifyRequest } from 'fastify';
+import path from 'path';
 
 import { host, isTest, port, useS3BucketForStatic } from './config';
-import { sequelize } from './lib/sequelize';
-import { initializeOpentelemetry } from './lib/opentelemetry';
 import { logger } from './lib/logger';
-import { initializeJobs, pgQueue } from './services/enqueueJob.service';
+import { initializeOpentelemetry } from './lib/opentelemetry';
+import { sequelize } from './lib/sequelize';
+import { ensureS3BucketExists } from './sdk/minio.sdk';
 import {
   ensureApplicationIsReadyToLaunch,
   getHttpsServerOptions,
 } from './services/application/application.service';
-import { ensureS3BucketExists, removeS3BucketFiles } from './sdk/minio.sdk';
+import { initializeJobs, pgQueue } from './services/enqueueJob.service';
 
 export const application = fastify({
   logger: true,
-  // https: !isTest ? getHttpsServerOptions() : null,
+  https: !isTest ? getHttpsServerOptions() : null,
 });
 
 async function handleErrors(error: FastifyError, _: FastifyRequest, reply: FastifyReply) {

@@ -1,41 +1,41 @@
-import { outputFile, readdirSync } from 'fs-extra';
-import path from 'path';
-import upperFirst from 'lodash/upperFirst';
-import escape from 'lodash/escape';
-import difference from 'lodash/difference';
 import { stripIndent } from 'common-tags';
+import { outputFile, readdirSync } from 'fs-extra';
+import difference from 'lodash/difference';
+import escape from 'lodash/escape';
+import upperFirst from 'lodash/upperFirst';
+import os from 'os';
+import path from 'path';
 import piscina from 'piscina';
 
+import {
+  normalizePageComponentsVersionsGivenDesignSystem,
+  parsePageStructureComponentsList,
+} from './parsing.service';
 import {
   useWorkerThreadsProcessing,
   rootFolderPath,
   temporaryApplicationBuildFolderRootPath,
 } from '../../config';
+import { logger } from '../../lib/logger';
+import { isFulfilled } from '../../lib/promise';
+import { getRandomString } from '../../lib/random';
+import { getPageFolderPathFromUrl } from '../../lib/url';
+import { Page } from '../../models';
+import { getProjectPageStructure } from '../../sdk/platform/platform.sdk';
 import {
   ComponentLike,
-  getProjectPageStructure,
   ProjectPageStructureComponent,
   ProjectPageStructureMetaItemProps,
   ProjectPageStructureMetaProps,
   ProjectPageStructureSeoProps,
   StrictProjectPageStructure,
-} from '../../sdk/platform.sdk';
-import { getApplicationPageFileContent } from '../../templates/templates/page.template';
+} from '../../sdk/platform/types';
 import { getApplicationFileContent } from '../../templates/templates/application.template';
-import { getPageFolderPathFromUrl } from '../../lib/url';
-import { getRandomString } from '../../lib/random';
-import { Page } from '../../models';
-import os from 'os';
-import { isFulfilled } from '../../lib/promise';
+import { getApplicationPageFileContent } from '../../templates/templates/page.template';
 import { Stage, Status } from '../../types';
 import { updatePage } from '../page/page.service';
-import { logger } from '../../lib/logger';
-import {
-  normalizePageComponentsVersionsGivenDesignSystem,
-  parsePageStructureComponentsList,
-} from './parsing.service';
 
-export interface GeneratedPage {
+interface GeneratedPage {
   pageUrl: string;
   path: string;
   pageName: string;
@@ -85,36 +85,6 @@ export async function generatePage(page: Page, designSystemComponentsMap: Map<st
   );
 
   return { pageFilePath, pageComponentName, pageComponentsList };
-}
-
-export async function createApplicationPageFile(
-  pageStructure: StrictProjectPageStructure,
-  componentsList: ComponentLike[],
-) {
-  const pageFolderPath = getPageFolderPathFromUrl(pageStructure.url);
-  const absolutePageFilePath = getAbsolutePageFilePath(pageFolderPath);
-
-  const pageHelmetComponent = getPageHelmetComponent({
-    url: pageStructure.url,
-    seo: pageStructure.seo.result,
-    meta: pageStructure.meta.result,
-  });
-  const pageComponentsTree = getPageComponentsTree(pageStructure.template, [pageHelmetComponent]);
-  const pageComponentsImports = getPageComponentsImports(componentsList);
-  const pageComponentName = getPageComponentName(pageFolderPath);
-
-  const pageFileContent = getApplicationPageFileContent({
-    pageName: pageComponentName,
-    pageContent: pageComponentsTree,
-    pageFooter: JSON.stringify({}),
-    imports: pageComponentsImports,
-    businessTheme: "'main'",
-    colorTheme: "'light'",
-  });
-
-  await outputFile(absolutePageFilePath, stripIndent(pageFileContent));
-
-  return { pageComponentName, pageFilePath: absolutePageFilePath };
 }
 
 export async function createApplicationFile(generatedPages: GeneratedPage[]) {
@@ -174,6 +144,36 @@ export function getMissedComponentsList(componentsList: ComponentLike[]) {
     const [name, version] = componentFile.replace('.js', '').split('@');
     return { name, version };
   }) as ComponentLike[];
+}
+
+async function createApplicationPageFile(
+  pageStructure: StrictProjectPageStructure,
+  componentsList: ComponentLike[],
+) {
+  const pageFolderPath = getPageFolderPathFromUrl(pageStructure.url);
+  const absolutePageFilePath = getAbsolutePageFilePath(pageFolderPath);
+
+  const pageHelmetComponent = getPageHelmetComponent({
+    url: pageStructure.url,
+    seo: pageStructure.seo.result,
+    meta: pageStructure.meta.result,
+  });
+  const pageComponentsTree = getPageComponentsTree(pageStructure.template, [pageHelmetComponent]);
+  const pageComponentsImports = getPageComponentsImports(componentsList);
+  const pageComponentName = getPageComponentName(pageFolderPath);
+
+  const pageFileContent = getApplicationPageFileContent({
+    pageName: pageComponentName,
+    pageContent: pageComponentsTree,
+    pageFooter: JSON.stringify({}),
+    imports: pageComponentsImports,
+    businessTheme: "'main'",
+    colorTheme: "'light'",
+  });
+
+  await outputFile(absolutePageFilePath, stripIndent(pageFileContent));
+
+  return { pageComponentName, pageFilePath: absolutePageFilePath };
 }
 
 async function processGeneratingInWorkerThreads(

@@ -1,9 +1,9 @@
 import nock from 'nock';
 
-import { projectT1Fixture, projectT1CloudFixture } from '../fixtures/project.fixture';
-import { designSystemFixture } from '../fixtures/designSystem.fixture';
+import { ComponentLike, StrictProjectPageStructure } from '../../sdk/platform/types';
 import { componentFixture } from '../fixtures/component.fixture';
-import { ComponentLike, StrictProjectPageStructure } from '../../sdk/platform.sdk';
+import { designSystemFixture } from '../fixtures/designSystem.fixture';
+import { projectT1Fixture, projectT1CloudFixture } from '../fixtures/project.fixture';
 
 const basePath = process.env.PLATFORM_HOST ?? 'https://admin.t1-academy.ru';
 

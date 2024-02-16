@@ -15,13 +15,13 @@ const pgConfig = {
 export const pgConnectionString = `postgres://${pgConfig.user}:${pgConfig.password}@${pgConfig.host}:${pgConfig.port}/${pgConfig.database}`;
 
 export const minioConfig = {
-  endPoint: process.env.MINIO_HOST || 'localhost',
+  endPoint: process.env.MINIO_HOST || '0.0.0.0',
   port: Number(process.env.MINIO_PORT) || 9000,
   accessKey: process.env.MINIO_ACCESS_KEY || '',
   secretKey: process.env.MINIO_SECRET_KEY || '',
 };
 
-export const s3StaticUrl = `${minioConfig.endPoint}:${Number(process.env.MINIO_PORT_STATIC) || 9001}`;
+export const s3StaticUrl = `http://${minioConfig.endPoint}:${Number(process.env.MINIO_PORT_STATIC) || 9001}`;
 
 export const isTest = process.env.STAGE === 'test';
 
