@@ -52,17 +52,34 @@ const ignoreProps = [
   'uuid',
 ];
 
-export async function generatePages(pages: Page[], designSystemComponentsMap: Map<string, string>) {
-  // nock supports only main thread catching request, as result we can skip this branch
-  /* istanbul ignore if */
-  if (useWorkerThreadsProcessing) {
-    return processGeneratingInWorkerThreads(pages, designSystemComponentsMap);
-  }
+export async function createApplicationFile(generatedPages: GeneratedPage[]): Promise<void> {
+  const applicationFileContent = getApplicationFileContent({
+    loadableComponents: getApplicationLoadableComponents(generatedPages),
+    projectInitialStore: JSON.stringify({
+      systemData: {
+        mediaHost: 'https://admin.t1-academy.ru/api/mediastorage',
+        // TODO: project config
+      },
+    }),
+    routes: getApplicationRoutes(generatedPages),
+  });
 
-  return processGeneratingInMainThread(pages, designSystemComponentsMap);
+  const absoluteApplicationFilePath = path.join(
+    temporaryApplicationBuildFolderRootPath,
+    'application/application.jsx',
+  );
+
+  await outputFile(absoluteApplicationFilePath, stripIndent(applicationFileContent));
 }
 
-export async function generatePage(page: Page, designSystemComponentsMap: Map<string, string>) {
+export async function generatePage(
+  page: Page,
+  designSystemComponentsMap: Map<string, string>,
+): Promise<{
+  pageFilePath: string;
+  pageComponentName: string;
+  pageComponentsList: ComponentLike[];
+}> {
   logger.debug(`generating page: id: - ${page.externalId}, url - ${page.url}`);
 
   await updatePage(page, {
@@ -87,34 +104,30 @@ export async function generatePage(page: Page, designSystemComponentsMap: Map<st
   return { pageFilePath, pageComponentName, pageComponentsList };
 }
 
-export async function createApplicationFile(generatedPages: GeneratedPage[]) {
-  const applicationFileContent = getApplicationFileContent({
-    loadableComponents: getApplicationLoadableComponents(generatedPages),
-    projectInitialStore: JSON.stringify({
-      systemData: {
-        mediaHost: 'https://admin.t1-academy.ru/api/mediastorage',
-        // TODO: project config
-      },
-    }),
-    routes: getApplicationRoutes(generatedPages),
-  });
+export function generatePages(
+  pages: Page[],
+  designSystemComponentsMap: Map<string, string>,
+): Promise<{
+  generatedPages: GeneratedPage[];
+  componentsRequiringBundles: ComponentLike[];
+}> {
+  // nock supports only main thread catching request, as result we can skip this branch
+  /* istanbul ignore if */
+  if (useWorkerThreadsProcessing) {
+    return processGeneratingInWorkerThreads(pages, designSystemComponentsMap);
+  }
 
-  const absoluteApplicationFilePath = path.join(
-    temporaryApplicationBuildFolderRootPath,
-    'application/application.jsx',
-  );
-
-  await outputFile(absoluteApplicationFilePath, stripIndent(applicationFileContent));
+  return processGeneratingInMainThread(pages, designSystemComponentsMap);
 }
 
-export function convertToMap(components: ComponentLike[]) {
+export function convertToMap(components: ComponentLike[]): Map<string, string> {
   return components.reduce(
     (map, component) => map.set(component.name, component.version),
     new Map<string, string>(),
   );
 }
 
-export function getPageComponentName(pageFolderPath: string) {
+export function getPageComponentName(pageFolderPath: string): string {
   const folderName = pageFolderPath.split('/').reverse()[0];
   return folderName
     ? getHumanReadableComponentName(`page-${folderName}`)
@@ -126,11 +139,11 @@ export function getPageComponentName(pageFolderPath: string) {
 export function getAbsolutePageFilePath(
   pageFolderPath: string,
   prefix = temporaryApplicationBuildFolderRootPath,
-) {
+): string {
   return path.join(prefix, 'pages', pageFolderPath, 'index.jsx');
 }
 
-export function getMissedComponentsList(componentsList: ComponentLike[]) {
+export function getMissedComponentsList(componentsList: ComponentLike[]): ComponentLike[] {
   const currentComponentFiles = readdirSync(
     path.join(temporaryApplicationBuildFolderRootPath, 'components'),
   );
@@ -338,8 +351,8 @@ function stringifyProps(props: Record<string, unknown>) {
 
 function getApplicationLoadableComponents(generatedPages: GeneratedPage[]) {
   return generatedPages
-    .map(({ path, pageName }) => {
-      return `const ${pageName} = loadable(() => import('${path}'))`;
+    .map(({ path: pagePath, pageName }) => {
+      return `const ${pageName} = loadable(() => import('${pagePath}'))`;
     })
     .join('\n');
 }

@@ -6,7 +6,9 @@ import {
   ComponentLike,
 } from '../../sdk/platform/types';
 
-export function parsePageStructureComponentsList(pageStructure: StrictProjectPageStructure) {
+export function parsePageStructureComponentsList(
+  pageStructure: StrictProjectPageStructure,
+): ProjectPageStructureComponent[] {
   const components: ProjectPageStructureComponent[] = [];
 
   pageStructure.template.forEach((node) => {

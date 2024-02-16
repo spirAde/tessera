@@ -1,18 +1,19 @@
 import fs, { pathExists } from 'fs-extra';
+import { ServerOptions } from 'https';
 import path from 'path';
 
 import { persistentApplicationExportFolderRootPath, rootFolderPath } from '../../config';
 import { logger } from '../../lib/logger';
 import { enqueue, JobName, pgQueue, waitJobCompletion } from '../enqueueJob.service';
 
-export function getHttpsServerOptions() {
+export function getHttpsServerOptions(): ServerOptions {
   return {
     key: fs.readFileSync(path.join(rootFolderPath, 'etc/certs/private-key.pem')),
     cert: fs.readFileSync(path.join(rootFolderPath, 'etc/certs/certificate.pem')),
   };
 }
 
-export async function ensureApplicationIsReadyToLaunch() {
+export async function ensureApplicationIsReadyToLaunch(): Promise<void> {
   const projectBuildCreationQueueSize = await pgQueue.getQueueSize(JobName.createBuild);
 
   const existsPersistentFolder = await pathExists(persistentApplicationExportFolderRootPath);

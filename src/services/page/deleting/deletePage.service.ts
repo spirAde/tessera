@@ -22,7 +22,7 @@ export async function runPageDeleting({
 }: {
   buildId: number;
   externalId: number;
-}) {
+}): Promise<void> {
   const page = await Page.findOne({
     where: {
       buildId,

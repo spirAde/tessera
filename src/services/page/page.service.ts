@@ -21,6 +21,7 @@ type PageUpdate = Partial<PageAttributes>;
 export enum PipelineType {
   create = 'create',
   update = 'update',
+  // eslint-disable-next-line @typescript-eslint/no-shadow
   remove = 'remove',
 }
 
@@ -32,28 +33,29 @@ export interface PagePipelineContext {
   componentsRequiringBundles: ComponentLike[];
 }
 
-export function createPage(values: PageAttributesNew) {
+export function createPage(values: PageAttributesNew): Promise<Page> {
   return Page.create(values);
 }
 
-export function updatePage(page: Page, values: PageUpdate) {
+export function updatePage(page: Page, values: PageUpdate): Promise<Page> {
   return page.update(values);
 }
 
 export function createPagePipelineContext(
   context: Partial<PagePipelineContext> & { workInProgressPage: Page; projectPages: Page[] },
-) {
+): PagePipelineContext {
   return {
     project: null,
     designSystemComponentsList: [],
     componentsRequiringBundles: [],
-    serverEmittedAssets: [],
-    clientEmittedAssets: [],
     ...context,
   };
 }
 
-export async function runFetchingStage({ workInProgressPage }: PagePipelineContext) {
+export async function runFetchingStage({ workInProgressPage }: PagePipelineContext): Promise<{
+  project: Project;
+  designSystemComponentsList: ComponentLike[];
+}> {
   logger.debug('page fetching stage');
 
   await updatePage(workInProgressPage, {
@@ -68,7 +70,7 @@ export async function runFetchingStage({ workInProgressPage }: PagePipelineConte
   return {
     project,
     designSystemComponentsList,
-  } as Partial<PagePipelineContext>;
+  };
 }
 
 export async function runPreparingStage({
@@ -76,7 +78,7 @@ export async function runPreparingStage({
   workInProgressPage,
   componentsRequiringBundles,
   designSystemComponentsList,
-}: PagePipelineContext) {
+}: PagePipelineContext): Promise<void> {
   logger.debug(`page preparing stage`);
 
   await updatePage(workInProgressPage, {
@@ -95,7 +97,7 @@ export async function runPreparingStage({
 export async function runCompilationStage({
   projectPages,
   workInProgressPage,
-}: PagePipelineContext) {
+}: PagePipelineContext): Promise<void> {
   logger.debug('page compilation stage');
 
   await updatePage(workInProgressPage, {
@@ -105,7 +107,10 @@ export async function runCompilationStage({
   await compile([...projectPages.map(({ url }) => url), workInProgressPage.url]);
 }
 
-export async function runExportStage({ projectPages, workInProgressPage }: PagePipelineContext) {
+export async function runExportStage({
+  projectPages,
+  workInProgressPage,
+}: PagePipelineContext): Promise<void> {
   logger.debug('page export stage');
 
   await updatePage(workInProgressPage, {
@@ -115,7 +120,7 @@ export async function runExportStage({ projectPages, workInProgressPage }: PageP
   await exportPages([...projectPages, workInProgressPage]);
 }
 
-export async function rollbackCompilationStage() {
+export async function rollbackCompilationStage(): Promise<void> {
   await remove(path.join(temporaryApplicationBuildFolderRootPath, 'build'));
   await copy(
     path.join(persistentApplicationBuildFolderRootPath, 'build'),
@@ -123,10 +128,10 @@ export async function rollbackCompilationStage() {
   );
 }
 
-export function getExportPageIndexHtmlFilePath(page: Page) {
+export function getExportPageIndexHtmlFilePath(page: Page): string {
   return path.join('pages', getPageFolderPathFromUrl(page.url), 'index.html');
 }
 
-export function getExportPageFilePath(page: Page) {
+export function getExportPageFilePath(page: Page): string {
   return path.join(temporaryApplicationExportFolderRootPath, getExportPageIndexHtmlFilePath(page));
 }

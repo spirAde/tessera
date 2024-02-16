@@ -6,7 +6,7 @@ import nodeExternals from 'webpack-node-externals';
 
 import { temporaryApplicationBuildFolderRootPath, isTest } from '../../config';
 
-export async function compile(projectPageUrls: string[]) {
+export async function compile(projectPageUrls: string[]): Promise<void> {
   const commonWebpackConfig = getCommonWebpackConfig(projectPageUrls);
   const serverWebpackConfig = getServerWebpackConfig(commonWebpackConfig);
   const clientWebpackConfig = getClientWebpackConfig(commonWebpackConfig);

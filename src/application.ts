@@ -1,4 +1,3 @@
-import { fastifyAutoload } from '@fastify/autoload';
 import fastify, { errorCodes, FastifyError, FastifyReply, FastifyRequest } from 'fastify';
 import path from 'path';
 
@@ -58,7 +57,7 @@ export async function runApplication() {
     await application.register(require('fastify-metrics'), {
       endpoint: '/metrics',
     });
-    await application.register(fastifyAutoload, {
+    await application.register(require('@fastify/autoload'), {
       dir: path.join(__dirname, 'routes', 'v1'),
       options: {
         prefix: '/api/v1',
@@ -79,7 +78,7 @@ export async function runTestApplication() {
 
     await initializeJobs();
 
-    await application.register(fastifyAutoload, {
+    await application.register(require('@fastify/autoload'), {
       dir: path.join(__dirname, 'routes', 'v1'),
       options: {
         prefix: '/api/v1',

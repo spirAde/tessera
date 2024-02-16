@@ -21,7 +21,7 @@ export async function rollback({
   context: PagePipelineContext;
   stages: Stage[];
   rollbackFns: RollbackFns;
-}) {
+}): Promise<void> {
   logger.debug(`[rollback] run rollback for pipeline with context: ${context}`);
 
   await context.workInProgressPage.reload();

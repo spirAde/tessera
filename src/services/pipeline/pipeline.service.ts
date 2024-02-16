@@ -1,6 +1,6 @@
 type PipelineHandler<T> = (context: T) => Promise<Partial<T>> | Promise<void> | void;
 
-export async function runPipeline<T>(context: T, handlers: PipelineHandler<T>[]) {
+export async function runPipeline<T>(context: T, handlers: PipelineHandler<T>[]): Promise<void> {
   let pipelineContext = context;
 
   for (const handler of handlers) {

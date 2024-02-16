@@ -5,6 +5,7 @@ import { create, update, remove } from '../../controllers/pages/pages.controller
 import { schemas } from '../../types';
 
 // ts-prune-ignore-next
+// eslint-disable-next-line require-await
 export default fp(async (application: FastifyInstance) => {
   application.post(
     '/api/v1/pages',

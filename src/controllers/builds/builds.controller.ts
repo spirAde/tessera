@@ -3,7 +3,7 @@ import { RouteHandler } from 'fastify';
 import { withSafelyActiveSpan, otlContext, SemanticAttributes } from '../../lib/opentelemetry';
 import { enqueue, JobName } from '../../services/enqueueJob.service';
 
-export const create: RouteHandler<{}> = async function (_, response) {
+export const create: RouteHandler = async function (_, response) {
   await withSafelyActiveSpan(
     {
       name: 'create-build handler',

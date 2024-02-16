@@ -22,7 +22,7 @@ beforeEach(() => {
 
 afterEach(async () => {
   expect(nock.pendingMocks()).toEqual([]);
-  await Promise.all([Build.truncate(), Page.truncate(), cleanupOutputFolder()]);
+  await Promise.all([Build.truncate(), Page.truncate() /*cleanupOutputFolder()*/]);
 });
 
 afterAll(async () => {

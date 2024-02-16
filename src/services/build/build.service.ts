@@ -28,7 +28,7 @@ interface BuildPipelineContext {
   componentsRequiringBundles: ComponentLike[];
 }
 
-export function getCurrentBuild() {
+export function getCurrentBuild(): Promise<Build | null> {
   return Build.findOne({
     where: {
       status: Status.success,
@@ -40,7 +40,7 @@ export function getCurrentBuild() {
   });
 }
 
-export async function cleanUpBeforeBuild() {
+export async function cleanUpBeforeBuild(): Promise<void> {
   await Build.destroy({ truncate: true });
   await Page.destroy({ truncate: true });
 
@@ -50,7 +50,7 @@ export async function cleanUpBeforeBuild() {
   useS3BucketForStatic && (await removeS3BucketFiles());
 }
 
-export async function runProjectBuild() {
+export async function runProjectBuild(): Promise<void> {
   const readyToRunProjectBuild = await createBuild({
     status: Status.progress,
     stage: Stage.setup,

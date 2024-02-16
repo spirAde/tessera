@@ -32,7 +32,7 @@ describe('processPageJob', () => {
     copyPrebuildProjectFixture();
   });
 
-  describe('create type', () => {
+  describe('create', () => {
     it('creates new page', async () => {
       const build = await seedBuild({
         status: Status.success,
@@ -108,7 +108,7 @@ describe('processPageJob', () => {
     });
   });
 
-  describe('update type', () => {
+  describe('update', () => {
     it('updates existing page', async () => {
       const mainPageHtmlHash = hashFileSync(
         path.join(persistentApplicationExportFolderRootPath, 'pages/index.html'),
@@ -211,7 +211,7 @@ describe('processPageJob', () => {
     });
   });
 
-  describe('remove type', () => {
+  describe('remove', () => {
     it('removes page', async () => {
       const build = await seedBuild({
         status: Status.success,

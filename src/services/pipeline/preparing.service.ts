@@ -14,7 +14,7 @@ export async function collectMissedComponents({
   project: Project;
   missedComponents: ComponentLike[];
   foundationKitComponent: ComponentLike;
-}) {
+}): Promise<void> {
   const componentsRequiringBundles = uniqBy(
     missedComponents,
     ({ name, version }) => `${name}@${version}`,

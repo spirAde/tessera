@@ -40,7 +40,7 @@ export async function runPageCreation({
   buildId: number;
   externalId: number;
   url: string;
-}) {
+}): Promise<void> {
   const workInProgressPage = await createPage({
     buildId,
     externalId,
@@ -139,6 +139,6 @@ async function rollbackGeneratingStage({ workInProgressPage }: PagePipelineConte
   );
 }
 
-async function rollbackExportStage() {
+function rollbackExportStage() {
   return Promise.resolve();
 }

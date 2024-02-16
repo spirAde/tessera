@@ -36,40 +36,49 @@ const persistentApplicationClientBuildFolderPath = path.join(
   'build/client',
 );
 
-export async function commit(pages: Page[]) {
+export async function commit(pages: Page[]): Promise<void> {
   const clientDiff = await getLoadableStatsDiff('client');
   const serverDiff = await getLoadableStatsDiff('server');
 
-  await updateTemporaryFolderState(clientDiff, serverDiff);
-  await updatePersistentFolderState(clientDiff);
+  const exportedPagesDiff = await getExportedPagesDiff(pages);
+
+  await updateTemporaryFolderState(clientDiff, serverDiff, exportedPagesDiff);
+  await updatePersistentFolderState(clientDiff, exportedPagesDiff);
+
+  console.log('clientDiff', clientDiff);
+  console.log('serverDiff', serverDiff);
+  console.log('exportedPagesDiff', exportedPagesDiff);
 
   // Currently all exported pages are copying every time
   // It should be reimplemented and supposed to copy only created/updated pages
   // and related to this one pages
-  if (useS3BucketForStatic) {
-    const exportedPagesDiff = await getExportedPagesDiff(pages);
-
-    await updateS3BucketState(clientDiff, {
+  useS3BucketForStatic &&
+    (await updateS3BucketState(clientDiff, {
       add: pages.map((page) => getExportPageIndexHtmlFilePath(page)),
       remove: exportedPagesDiff.remove,
-    });
-  }
+    }));
 }
 
 async function updateTemporaryFolderState(
   clientDiff: PrettifiedDiffOutput,
   serverDiff: PrettifiedDiffOutput,
+  exportedPagesDiff: PrettifiedDiffOutput,
 ) {
   await Promise.all([
     removeFiles(temporaryApplicationClientBuildFolderPath, clientDiff.remove),
     removeFiles(temporaryApplicationServerBuildFolderPath, serverDiff.remove),
+    removeFiles(temporaryApplicationExportFolderRootPath, exportedPagesDiff.remove),
   ]);
 }
 
 // TODO: copy only files which were changed(added, removed) between rebuilds according to diffs
 // TODO: + application.jsx, pages, cache, etc
-async function updatePersistentFolderState(clientDiff: PrettifiedDiffOutput) {
+async function updatePersistentFolderState(
+  clientDiff: PrettifiedDiffOutput,
+  exportedPagesDiff: PrettifiedDiffOutput,
+) {
   await removeFiles(persistentApplicationClientBuildFolderPath, clientDiff.remove);
+  await removeFiles(persistentApplicationExportFolderRootPath, exportedPagesDiff.remove);
   await copy(temporaryApplicationFolderRootPath, persistentApplicationFolderRootPath);
   await copy(
     temporaryApplicationClientBuildFolderPath,
@@ -146,8 +155,10 @@ function getLoadableStatsFilePath(parent: 'persistent' | 'temporary', folder: 'c
   return path.join(parentFolder, 'build', folder, 'loadable-stats.json');
 }
 
-function prettifyJsonDiffOutputFormat(diff: (DiffFileState | Chunk)[] = []): PrettifiedDiffOutput {
-  return diff.reduce<PrettifiedDiffOutput>(
+function prettifyJsonDiffOutputFormat(
+  jsonDiffOutput: (DiffFileState | Chunk)[] = [],
+): PrettifiedDiffOutput {
+  return jsonDiffOutput.reduce<PrettifiedDiffOutput>(
     (output, chunkOrDiffFileState) => {
       if (!isDiffFileState(chunkOrDiffFileState)) {
         return {
@@ -189,10 +200,10 @@ function prettifyJsonDiffOutputFormat(diff: (DiffFileState | Chunk)[] = []): Pre
   );
 }
 
-function normalizeJsonDiffOutput(diff: PrettifiedDiffOutput): PrettifiedDiffOutput {
+function normalizeJsonDiffOutput(jsonDiffOutput: PrettifiedDiffOutput): PrettifiedDiffOutput {
   return {
-    add: diff.add.filter((file) => !diff.remove.includes(file)),
-    remove: diff.remove.filter((file) => !diff.add.includes(file)),
+    add: jsonDiffOutput.add.filter((file) => !jsonDiffOutput.remove.includes(file)),
+    remove: jsonDiffOutput.remove.filter((file) => !jsonDiffOutput.add.includes(file)),
   };
 }
 

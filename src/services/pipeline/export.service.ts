@@ -23,7 +23,7 @@ const STATIC_URL = useS3BucketForStatic
 
 const sheet = new ServerStyleSheet();
 
-export async function exportPages(pages: Page[]) {
+export async function exportPages(pages: Page[]): Promise<void> {
   const { nodeExtractor, webExtractor } = getLoadableExtractors();
   const { default: Application } = nodeExtractor.requireEntrypoint();
 
