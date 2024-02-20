@@ -15,7 +15,8 @@
     "allowJs": true,
     "checkJs": false,
     "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "isolatedModules": true
   },
   "include": ["src/**/*.ts", "src/index.d.ts", "src/types/*.js", "src/workers/*.ts"]
 }

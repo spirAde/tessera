@@ -13,20 +13,20 @@ type ProjectInfoSysName =
   | 'MEDIA_HOST'
   | 'DESIGN_SYSTEM_ID';
 
-export interface RawProjectPageStructure {
+export type RawProjectPageStructure = {
   Data: string;
   [key: string]: unknown;
-}
+};
 
-export interface ProjectPageStructureSeoProps {
+export type ProjectPageStructureSeoProps = {
   title: string;
   description: string;
   keywords: string;
   tabName: string;
   uiOrder: number;
-}
+};
 
-interface ProjectPageStructureSeo {
+type ProjectPageStructureSeo = {
   id: number;
   title: string;
   objectTypeSysName: string;
@@ -35,41 +35,41 @@ interface ProjectPageStructureSeo {
   result: ProjectPageStructureSeoProps;
   uiOrder: number;
   editable: boolean;
-}
+};
 
-interface ProjectPageStructureProps {
+type ProjectPageStructureProps = {
   uiOrder: number;
   footerId: string;
   [key: string]: string | number | boolean;
-}
+};
 
-interface ProjectPageStructureBreadcrumb {
+type ProjectPageStructureBreadcrumb = {
   title: string;
   url: string;
-}
+};
 
-export interface ProjectPageStructureMetaProps {
+export type ProjectPageStructureMetaProps = {
   title: string;
   items: ProjectPageStructureMetaItemProps[];
   uiOrder: number;
-}
+};
 
-export interface ProjectPageStructureMetaItemProps {
+export type ProjectPageStructureMetaItemProps = {
   name: string;
   property: string;
   content: string;
-}
+};
 
-interface ProjectPageStructureMeta {
+type ProjectPageStructureMeta = {
   id: number;
   title: string;
   objectTypeSysName: string;
   version: string;
   result: ProjectPageStructureMetaProps;
   uiOrder: number;
-}
+};
 
-export interface StrictProjectPageStructure {
+export type StrictProjectPageStructure = {
   id: number;
   title: string;
   objectTypeSysName: string;
@@ -85,22 +85,22 @@ export interface StrictProjectPageStructure {
   code: number;
   designSystemId: number;
   projectSysName: string;
-}
+};
 
-interface ProjectPageStructureComponentProps {
+type ProjectPageStructureComponentProps = {
   id: string;
   theme: string;
   uiOrder: number;
   components?: ProjectPageStructureComponent[];
   [key: string]: unknown;
-}
+};
 
-export interface ComponentLike {
+export type ComponentLike = {
   name: string;
   version: string;
-}
+};
 
-export interface ProjectPageStructureComponent {
+export type ProjectPageStructureComponent = {
   id: number;
   uuid: string;
   title: string;
@@ -110,29 +110,29 @@ export interface ProjectPageStructureComponent {
   uiOrder: string;
   result: ProjectPageStructureComponentProps;
   components: ProjectPageStructureComponent[];
-}
+};
 
-interface ProjectSpaParametersBucket {
+type ProjectSpaParametersBucket = {
   sysName: ProjectInfoSysName;
   name: ProjectInfoSysName;
   value: number | string | boolean;
-}
+};
 
-interface ProjectSettings {
+type ProjectSettings = {
   baseUrl: string;
   spaParameters: ProjectSpaParametersBucket[];
   designSystemId: number;
-}
+};
 
-export interface Project {
+export type Project = {
   id: number;
   title: string;
   sysName: string;
   description: string;
   settings: ProjectSettings;
-}
+};
 
-export interface DesignSystemComponent {
+export type DesignSystemComponent = {
   id: number;
   title: string;
   sysName: string;
@@ -141,9 +141,9 @@ export interface DesignSystemComponent {
   active: boolean;
   designSystemId: string;
   componentType: string;
-}
+};
 
-export interface ProjectPage {
+export type ProjectPage = {
   id: number;
   url: string;
-}
+};

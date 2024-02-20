@@ -1,4 +1,11 @@
+import { copy } from 'fs-extra';
+
+import {
+  persistentApplicationBuildFolderRootPath,
+  temporaryApplicationBuildFolderRootPath,
+} from '../../../config';
 import { logger } from '../../../lib/logger';
+import { getPageFolderPathFromUrl } from '../../../lib/url';
 import { Page } from '../../../models';
 import { Stage, Status } from '../../../types';
 import { commit } from '../../pipeline/commit.service';
@@ -6,8 +13,10 @@ import {
   convertToMap,
   getMissedComponentsList,
   generatePage,
+  getAbsolutePageFilePath,
 } from '../../pipeline/generating.service';
 import { runPipeline } from '../../pipeline/pipeline.service';
+import { rollback } from '../../pipeline/rollback.service';
 import {
   createPagePipelineContext,
   PagePipelineContext,
@@ -16,6 +25,8 @@ import {
   runCompilationStage,
   runExportStage,
   updatePage,
+  rollbackCompilationStage,
+  rollbackExportStage,
 } from '../page.service';
 
 export async function runPageUpdating({
@@ -38,17 +49,6 @@ export async function runPageUpdating({
     stage: Stage.setup,
   });
 
-  try {
-    await runPageUpdatingPipeline(readyToRunPage);
-  } catch (error) {
-    await updatePage(readyToRunPage, {
-      status: Status.failed,
-    });
-    throw error;
-  }
-}
-
-async function runPageUpdatingPipeline(page: Page) {
   const projectPages = await Page.findAll({
     where: {
       buildId: page.buildId,
@@ -56,27 +56,34 @@ async function runPageUpdatingPipeline(page: Page) {
     },
   });
 
-  await updatePage(page, {
-    status: Status.progress,
-  });
-
   const pipelineContext = createPagePipelineContext({
     workInProgressPage: page,
     projectPages,
   });
 
-  const handlers = [
-    runFetchingStage,
-    runGeneratingStage,
-    runPreparingStage,
-    runCompilationStage,
-    runExportStage,
-    runCommitStage,
-  ];
+  const stageToHandleMap = {
+    [Stage.fetching]: runFetchingStage,
+    [Stage.generating]: runGeneratingStage,
+    [Stage.preparing]: runPreparingStage,
+    [Stage.compilation]: runCompilationStage,
+    [Stage.export]: runExportStage,
+    [Stage.commit]: runCommitStage,
+  };
 
-  await runPipeline(pipelineContext, handlers);
-
-  logger.debug(`page updating pipeline is successfully finished`);
+  try {
+    await runPipeline(pipelineContext, Object.values(stageToHandleMap));
+    logger.debug(`page updating pipeline is successfully finished`);
+  } catch (error) {
+    await updatePage(readyToRunPage, {
+      status: Status.failed,
+    });
+    await rollback({
+      context: pipelineContext,
+      stages: Object.keys(stageToHandleMap) as Stage[],
+      rollbackFns: { rollbackGeneratingStage, rollbackCompilationStage, rollbackExportStage },
+    });
+    throw error;
+  }
 }
 
 async function runGeneratingStage({
@@ -111,4 +118,13 @@ async function runCommitStage({ projectPages, workInProgressPage }: PagePipeline
   await updatePage(workInProgressPage, {
     status: Status.success,
   });
+}
+
+async function rollbackGeneratingStage({ workInProgressPage }: PagePipelineContext) {
+  const pageFolderPath = getPageFolderPathFromUrl(workInProgressPage.url);
+
+  await copy(
+    getAbsolutePageFilePath(pageFolderPath, temporaryApplicationBuildFolderRootPath),
+    getAbsolutePageFilePath(pageFolderPath, persistentApplicationBuildFolderRootPath),
+  );
 }

@@ -1,0 +1,533 @@
+{
+  "name": "server",
+  "hash": "8f05a6d9c7002a4b82dc",
+  "publicPath": "/static/",
+  "outputPath": "/home/spirade/WebstormProjects/tessera/output/temporary/build/build/server/",
+  "assetsByChunkName": {
+    "pages/index": [
+      "pages/index.9f65a2af850cd976c18e.js"
+    ],
+    "pages/service": [
+      "pages/service.72090bbf29a70d13409c.js"
+    ],
+    "pages/about-company": [
+      "pages/about-company.6734a2d9a713b88c1bb4.js"
+    ],
+    "application-server": [
+      "application-server.117ee114f910af7d55ba.js"
+    ],
+    "home-spirade-WebstormProjects-tessera-output-temporary-build-pages-index-jsx": [
+      "9f9c0f869be926dfe670.chunk.js"
+    ],
+    "home-spirade-WebstormProjects-tessera-output-temporary-build-pages-service-index-jsx": [
+      "4cf68bd0c1c05b6633bd.chunk.js"
+    ],
+    "home-spirade-WebstormProjects-tessera-output-temporary-build-pages-about-company-index-jsx": [
+      "598a938083400d541262.chunk.js"
+    ]
+  },
+  "assets": [
+    {
+      "type": "asset",
+      "name": "application-server.117ee114f910af7d55ba.js",
+      "size": 12813,
+      "emitted": false,
+      "comparedForEmit": false,
+      "cached": true,
+      "info": {
+        "immutable": true,
+        "contenthash": "117ee114f910af7d55ba",
+        "javascriptModule": false,
+        "minimized": true
+      },
+      "chunkNames": [
+        "application-server"
+      ],
+      "chunkIdHints": [],
+      "auxiliaryChunkNames": [],
+      "auxiliaryChunkIdHints": [],
+      "chunks": [
+        472,
+        856
+      ],
+      "auxiliaryChunks": []
+    },
+    {
+      "type": "asset",
+      "name": "pages/about-company.6734a2d9a713b88c1bb4.js",
+      "size": 12261,
+      "emitted": false,
+      "comparedForEmit": false,
+      "cached": true,
+      "info": {
+        "immutable": true,
+        "contenthash": "6734a2d9a713b88c1bb4",
+        "javascriptModule": false,
+        "minimized": true
+      },
+      "chunkNames": [
+        "pages/about-company"
+      ],
+      "chunkIdHints": [],
+      "auxiliaryChunkNames": [],
+      "auxiliaryChunkIdHints": [],
+      "chunks": [
+        544,
+        852
+      ],
+      "auxiliaryChunks": []
+    },
+    {
+      "type": "asset",
+      "name": "598a938083400d541262.chunk.js",
+      "size": 9256,
+      "emitted": false,
+      "comparedForEmit": false,
+      "cached": true,
+      "info": {
+        "immutable": true,
+        "contenthash": "598a938083400d541262",
+        "javascriptModule": false,
+        "minimized": true
+      },
+      "chunkNames": [
+        "home-spirade-WebstormProjects-tessera-output-temporary-build-pages-about-company-index-jsx"
+      ],
+      "chunkIdHints": [],
+      "auxiliaryChunkNames": [],
+      "auxiliaryChunkIdHints": [],
+      "chunks": [
+        544
+      ],
+      "auxiliaryChunks": []
+    },
+    {
+      "type": "asset",
+      "name": "pages/index.9f65a2af850cd976c18e.js",
+      "size": 8319,
+      "emitted": false,
+      "comparedForEmit": false,
+      "cached": true,
+      "info": {
+        "immutable": true,
+        "contenthash": "9f65a2af850cd976c18e",
+        "javascriptModule": false,
+        "minimized": true
+      },
+      "chunkNames": [
+        "pages/index"
+      ],
+      "chunkIdHints": [],
+      "auxiliaryChunkNames": [],
+      "auxiliaryChunkIdHints": [],
+      "chunks": [
+        124,
+        528
+      ],
+      "auxiliaryChunks": []
+    },
+    {
+      "type": "asset",
+      "name": "pages/service.72090bbf29a70d13409c.js",
+      "size": 7186,
+      "emitted": false,
+      "comparedForEmit": false,
+      "cached": true,
+      "info": {
+        "immutable": true,
+        "contenthash": "72090bbf29a70d13409c",
+        "javascriptModule": false,
+        "minimized": true
+      },
+      "chunkNames": [
+        "pages/service"
+      ],
+      "chunkIdHints": [],
+      "auxiliaryChunkNames": [],
+      "auxiliaryChunkIdHints": [],
+      "chunks": [
+        620,
+        920
+      ],
+      "auxiliaryChunks": []
+    },
+    {
+      "type": "asset",
+      "name": "9f9c0f869be926dfe670.chunk.js",
+      "size": 5314,
+      "emitted": false,
+      "comparedForEmit": false,
+      "cached": true,
+      "info": {
+        "immutable": true,
+        "contenthash": "9f9c0f869be926dfe670",
+        "javascriptModule": false,
+        "minimized": true
+      },
+      "chunkNames": [
+        "home-spirade-WebstormProjects-tessera-output-temporary-build-pages-index-jsx"
+      ],
+      "chunkIdHints": [],
+      "auxiliaryChunkNames": [],
+      "auxiliaryChunkIdHints": [],
+      "chunks": [
+        528
+      ],
+      "auxiliaryChunks": []
+    },
+    {
+      "type": "asset",
+      "name": "4cf68bd0c1c05b6633bd.chunk.js",
+      "size": 3935,
+      "emitted": false,
+      "comparedForEmit": false,
+      "cached": true,
+      "info": {
+        "immutable": true,
+        "contenthash": "4cf68bd0c1c05b6633bd",
+        "javascriptModule": false,
+        "minimized": true
+      },
+      "chunkNames": [
+        "home-spirade-WebstormProjects-tessera-output-temporary-build-pages-service-index-jsx"
+      ],
+      "chunkIdHints": [],
+      "auxiliaryChunkNames": [],
+      "auxiliaryChunkIdHints": [],
+      "chunks": [
+        920
+      ],
+      "auxiliaryChunks": []
+    },
+    {
+      "type": "asset",
+      "name": "680.e19bbd9d4ad6493f7abe.js",
+      "size": 3415,
+      "emitted": false,
+      "comparedForEmit": false,
+      "cached": true,
+      "info": {
+        "immutable": true,
+        "contenthash": "e19bbd9d4ad6493f7abe",
+        "javascriptModule": false,
+        "minimized": true
+      },
+      "chunkNames": [],
+      "chunkIdHints": [],
+      "auxiliaryChunkNames": [],
+      "auxiliaryChunkIdHints": [],
+      "chunks": [
+        680
+      ],
+      "auxiliaryChunks": []
+    },
+    {
+      "type": "asset",
+      "name": "692.5d0bbd42b97a8ac135f6.js",
+      "size": 3414,
+      "emitted": false,
+      "comparedForEmit": false,
+      "cached": true,
+      "info": {
+        "immutable": true,
+        "contenthash": "5d0bbd42b97a8ac135f6",
+        "javascriptModule": false,
+        "minimized": true
+      },
+      "chunkNames": [],
+      "chunkIdHints": [],
+      "auxiliaryChunkNames": [],
+      "auxiliaryChunkIdHints": [],
+      "chunks": [
+        692
+      ],
+      "auxiliaryChunks": []
+    },
+    {
+      "type": "asset",
+      "name": "800.ca0d9fabd86abaaf8c95.js",
+      "size": 2573,
+      "emitted": false,
+      "comparedForEmit": false,
+      "cached": true,
+      "info": {
+        "immutable": true,
+        "contenthash": "ca0d9fabd86abaaf8c95",
+        "javascriptModule": false,
+        "minimized": true
+      },
+      "chunkNames": [],
+      "chunkIdHints": [],
+      "auxiliaryChunkNames": [],
+      "auxiliaryChunkIdHints": [],
+      "chunks": [
+        800
+      ],
+      "auxiliaryChunks": []
+    },
+    {
+      "type": "asset",
+      "name": "472.cdb2fb07ddb4f9c43b6a.js",
+      "size": 506,
+      "emitted": false,
+      "comparedForEmit": false,
+      "cached": true,
+      "info": {
+        "immutable": true,
+        "contenthash": "cdb2fb07ddb4f9c43b6a",
+        "javascriptModule": false,
+        "minimized": true
+      },
+      "chunkNames": [],
+      "chunkIdHints": [],
+      "auxiliaryChunkNames": [],
+      "auxiliaryChunkIdHints": [],
+      "chunks": [
+        472
+      ],
+      "auxiliaryChunks": []
+    }
+  ],
+  "namedChunkGroups": {
+    "pages/index": {
+      "name": "pages/index",
+      "chunks": [
+        680,
+        472,
+        800,
+        124
+      ],
+      "assets": [
+        {
+          "name": "680.e19bbd9d4ad6493f7abe.js"
+        },
+        {
+          "name": "472.cdb2fb07ddb4f9c43b6a.js"
+        },
+        {
+          "name": "800.ca0d9fabd86abaaf8c95.js"
+        },
+        {
+          "name": "pages/index.9f65a2af850cd976c18e.js"
+        }
+      ],
+      "filteredAssets": 0,
+      "assetsSize": null,
+      "filteredAuxiliaryAssets": 0,
+      "auxiliaryAssetsSize": 0,
+      "children": {},
+      "childAssets": {}
+    },
+    "pages/service": {
+      "name": "pages/service",
+      "chunks": [
+        680,
+        472,
+        620
+      ],
+      "assets": [
+        {
+          "name": "680.e19bbd9d4ad6493f7abe.js"
+        },
+        {
+          "name": "472.cdb2fb07ddb4f9c43b6a.js"
+        },
+        {
+          "name": "pages/service.72090bbf29a70d13409c.js"
+        }
+      ],
+      "filteredAssets": 0,
+      "assetsSize": null,
+      "filteredAuxiliaryAssets": 0,
+      "auxiliaryAssetsSize": 0,
+      "children": {},
+      "childAssets": {}
+    },
+    "pages/about-company": {
+      "name": "pages/about-company",
+      "chunks": [
+        680,
+        472,
+        692,
+        852
+      ],
+      "assets": [
+        {
+          "name": "680.e19bbd9d4ad6493f7abe.js"
+        },
+        {
+          "name": "472.cdb2fb07ddb4f9c43b6a.js"
+        },
+        {
+          "name": "692.5d0bbd42b97a8ac135f6.js"
+        },
+        {
+          "name": "pages/about-company.6734a2d9a713b88c1bb4.js"
+        }
+      ],
+      "filteredAssets": 0,
+      "assetsSize": null,
+      "filteredAuxiliaryAssets": 0,
+      "auxiliaryAssetsSize": 0,
+      "children": {},
+      "childAssets": {}
+    },
+    "application-server": {
+      "name": "application-server",
+      "chunks": [
+        856
+      ],
+      "assets": [
+        {
+          "name": "application-server.117ee114f910af7d55ba.js"
+        }
+      ],
+      "filteredAssets": 0,
+      "assetsSize": null,
+      "filteredAuxiliaryAssets": 0,
+      "auxiliaryAssetsSize": 0,
+      "children": {},
+      "childAssets": {}
+    },
+    "home-spirade-WebstormProjects-tessera-output-temporary-build-pages-index-jsx": {
+      "name": "home-spirade-WebstormProjects-tessera-output-temporary-build-pages-index-jsx",
+      "chunks": [
+        680,
+        800,
+        528
+      ],
+      "assets": [
+        {
+          "name": "680.e19bbd9d4ad6493f7abe.js"
+        },
+        {
+          "name": "800.ca0d9fabd86abaaf8c95.js"
+        },
+        {
+          "name": "9f9c0f869be926dfe670.chunk.js"
+        }
+      ],
+      "filteredAssets": 0,
+      "assetsSize": null,
+      "filteredAuxiliaryAssets": 0,
+      "auxiliaryAssetsSize": 0,
+      "children": {},
+      "childAssets": {}
+    },
+    "home-spirade-WebstormProjects-tessera-output-temporary-build-pages-service-index-jsx": {
+      "name": "home-spirade-WebstormProjects-tessera-output-temporary-build-pages-service-index-jsx",
+      "chunks": [
+        680,
+        920
+      ],
+      "assets": [
+        {
+          "name": "680.e19bbd9d4ad6493f7abe.js"
+        },
+        {
+          "name": "4cf68bd0c1c05b6633bd.chunk.js"
+        }
+      ],
+      "filteredAssets": 0,
+      "assetsSize": null,
+      "filteredAuxiliaryAssets": 0,
+      "auxiliaryAssetsSize": 0,
+      "children": {},
+      "childAssets": {}
+    },
+    "home-spirade-WebstormProjects-tessera-output-temporary-build-pages-about-company-index-jsx": {
+      "name": "home-spirade-WebstormProjects-tessera-output-temporary-build-pages-about-company-index-jsx",
+      "chunks": [
+        680,
+        692,
+        544
+      ],
+      "assets": [
+        {
+          "name": "680.e19bbd9d4ad6493f7abe.js"
+        },
+        {
+          "name": "692.5d0bbd42b97a8ac135f6.js"
+        },
+        {
+          "name": "598a938083400d541262.chunk.js"
+        }
+      ],
+      "filteredAssets": 0,
+      "assetsSize": null,
+      "filteredAuxiliaryAssets": 0,
+      "auxiliaryAssetsSize": 0,
+      "children": {},
+      "childAssets": {}
+    }
+  },
+  "generator": "loadable-components",
+  "chunks": [
+    {
+      "id": 124,
+      "files": [
+        "pages/index.9f65a2af850cd976c18e.js"
+      ]
+    },
+    {
+      "id": 620,
+      "files": [
+        "pages/service.72090bbf29a70d13409c.js"
+      ]
+    },
+    {
+      "id": 852,
+      "files": [
+        "pages/about-company.6734a2d9a713b88c1bb4.js"
+      ]
+    },
+    {
+      "id": 856,
+      "files": [
+        "application-server.117ee114f910af7d55ba.js"
+      ]
+    },
+    {
+      "id": 528,
+      "files": [
+        "9f9c0f869be926dfe670.chunk.js"
+      ]
+    },
+    {
+      "id": 920,
+      "files": [
+        "4cf68bd0c1c05b6633bd.chunk.js"
+      ]
+    },
+    {
+      "id": 544,
+      "files": [
+        "598a938083400d541262.chunk.js"
+      ]
+    },
+    {
+      "id": 680,
+      "files": [
+        "680.e19bbd9d4ad6493f7abe.js"
+      ]
+    },
+    {
+      "id": 472,
+      "files": [
+        "472.cdb2fb07ddb4f9c43b6a.js"
+      ]
+    },
+    {
+      "id": 692,
+      "files": [
+        "692.5d0bbd42b97a8ac135f6.js"
+      ]
+    },
+    {
+      "id": 800,
+      "files": [
+        "800.ca0d9fabd86abaaf8c95.js"
+      ]
+    }
+  ]
+}

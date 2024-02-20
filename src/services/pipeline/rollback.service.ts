@@ -1,3 +1,4 @@
+import capitalize from 'lodash/capitalize';
 import takeWhile from 'lodash/takeWhile';
 
 import { logger } from '../../lib/logger';
@@ -6,17 +7,14 @@ import { Stage } from '../../types';
 import { PagePipelineContext } from '../page/page.service';
 
 type RollbackFn = (context: PagePipelineContext) => Promise<void>;
-
-interface RollbackFns {
-  rollbackGeneratingStage: RollbackFn;
-  rollbackCompilationStage: RollbackFn;
-  rollbackExportStage: RollbackFn;
-}
+type RollbackFns = Partial<{
+  [K in keyof typeof Stage as `rollback${Capitalize<K>}Stage`]: RollbackFn;
+}>;
 
 export async function rollback({
   context,
   stages,
-  rollbackFns: { rollbackGeneratingStage, rollbackCompilationStage, rollbackExportStage },
+  rollbackFns,
 }: {
   context: PagePipelineContext;
   stages: Stage[];
@@ -26,15 +24,15 @@ export async function rollback({
 
   await context.workInProgressPage.reload();
 
-  const previousStages = getPreviousStages(context.workInProgressPage, stages);
-
   await Promise.all(
-    [
-      previousStages.includes(Stage.generating) ? rollbackGeneratingStage : Promise.resolve,
-      previousStages.includes(Stage.compilation) ? rollbackCompilationStage : Promise.resolve,
-      previousStages.includes(Stage.export) ? rollbackExportStage : Promise.resolve,
-    ].map((fn) => fn(context)),
+    getPreviousStages(context.workInProgressPage, stages)
+      .map((stage) => getRollbackFn(rollbackFns, stage))
+      .map((fn) => fn(context)),
   );
+}
+
+function getRollbackFn(rollbackFns: RollbackFns, stage: Stage): RollbackFn {
+  return rollbackFns[`rollback${capitalize(stage)}Stage` as keyof RollbackFns] ?? Promise.resolve;
 }
 
 function getPreviousStages(page: Page, stages: Stage[]) {

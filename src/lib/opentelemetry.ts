@@ -28,10 +28,10 @@ import { logger } from './logger';
 
 export { otlContext, SemanticAttributes };
 
-interface OpentelemetryOptions {
+type OpentelemetryOptions = {
   endpoint?: string;
   resource?: Resource;
-}
+};
 
 let tracer: Tracer;
 let provider: NodeTracerProvider;

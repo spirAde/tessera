@@ -73,8 +73,6 @@ export async function processPageJob(
           });
           return;
         }
-        default:
-          throw new Error(`unknown processing type: ${payload.data.type}`);
       }
     },
   );

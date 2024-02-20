@@ -4,14 +4,14 @@ import { Page } from './Page.model';
 import { sequelize } from '../lib/sequelize';
 import { Stage, Status } from '../types';
 
-export interface BuildAttributes {
+export type BuildAttributes = {
   id: number;
   stage: Stage | null;
   status: Status | null;
   createdAt: string;
   updatedAt: string;
   deletedAt: string | null;
-}
+};
 
 type BuildAttributesWithDefaultValue = 'id' | 'createdAt' | 'updatedAt';
 type BuildAttributesNullable = 'deletedAt' | 'stage' | 'status';

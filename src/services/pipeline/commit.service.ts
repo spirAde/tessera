@@ -1,7 +1,18 @@
-import { copy, pathExistsSync, readJson, remove, readFileSync } from 'fs-extra';
+import { hashElement } from 'folder-hash';
+import {
+  copy,
+  pathExistsSync,
+  readJson,
+  remove,
+  readFileSync,
+  readdir,
+  stat,
+  rmdir,
+} from 'fs-extra';
 import { glob } from 'glob';
 import { diff } from 'json-diff';
 import path from 'path';
+import retryAsPromised from 'retry-as-promised';
 
 import {
   persistentApplicationFolderRootPath,
@@ -12,13 +23,12 @@ import {
   temporaryApplicationExportFolderRootPath,
   useS3BucketForStatic,
 } from '../../config';
+import { logger } from '../../lib/logger';
 import { Page } from '../../models';
 import { uploadFileToS3Bucket, removeFilesFromS3Bucket } from '../../sdk/minio.sdk';
 import { getExportPageIndexHtmlFilePath } from '../page/page.service';
 
-interface Chunk {
-  files: string[];
-}
+type Chunk = { files: string[] };
 type DiffFileStateChangeType = ' ' | '-' | '+' | '~';
 type DiffFileState = [DiffFileStateChangeType, string | { files: string[] | DiffFileState[] }];
 type PrettifiedDiffOutput = Record<'add' | 'remove', string[]>;
@@ -27,79 +37,117 @@ const temporaryApplicationClientBuildFolderPath = path.join(
   temporaryApplicationBuildFolderRootPath,
   'build/client',
 );
-const temporaryApplicationServerBuildFolderPath = path.join(
-  temporaryApplicationBuildFolderRootPath,
-  'build/server',
-);
-const persistentApplicationClientBuildFolderPath = path.join(
-  persistentApplicationBuildFolderRootPath,
-  'build/client',
-);
 
+// Currently all exported pages are copying every time
+// It should be reimplemented and supposed to copy only created/updated pages
+// and related to this one pages
 export async function commit(pages: Page[]): Promise<void> {
   const clientDiff = await getLoadableStatsDiff('client');
   const serverDiff = await getLoadableStatsDiff('server');
+  const pagesDiff = await getPagesDiff(pages);
 
-  const exportedPagesDiff = await getExportedPagesDiff(pages);
+  await retryAsPromised(
+    () => {
+      return updateFoldersState({
+        clientDiff,
+        serverDiff,
+        pagesDiff: {
+          remove: pagesDiff.remove,
+          add: pages.map((page) => getExportPageIndexHtmlFilePath(page)),
+        },
+      });
+    },
+    {
+      max: 3,
+      backoffBase: 1000,
+      backoffExponent: 1.5,
+      report: (_, options) =>
+        logger.debug(`[updateFoldersState] update folders state, attempt: ${options.$current}`),
+    },
+  );
 
-  await updateTemporaryFolderState(clientDiff, serverDiff, exportedPagesDiff);
-  await updatePersistentFolderState(clientDiff, exportedPagesDiff);
-
-  console.log('clientDiff', clientDiff);
-  console.log('serverDiff', serverDiff);
-  console.log('exportedPagesDiff', exportedPagesDiff);
-
-  // Currently all exported pages are copying every time
-  // It should be reimplemented and supposed to copy only created/updated pages
-  // and related to this one pages
   useS3BucketForStatic &&
     (await updateS3BucketState(clientDiff, {
       add: pages.map((page) => getExportPageIndexHtmlFilePath(page)),
-      remove: exportedPagesDiff.remove,
+      remove: pagesDiff.remove,
     }));
 }
 
-async function updateTemporaryFolderState(
-  clientDiff: PrettifiedDiffOutput,
-  serverDiff: PrettifiedDiffOutput,
-  exportedPagesDiff: PrettifiedDiffOutput,
-) {
-  await Promise.all([
-    removeFiles(temporaryApplicationClientBuildFolderPath, clientDiff.remove),
-    removeFiles(temporaryApplicationServerBuildFolderPath, serverDiff.remove),
-    removeFiles(temporaryApplicationExportFolderRootPath, exportedPagesDiff.remove),
-  ]);
+async function updateFoldersState({
+  clientDiff,
+  serverDiff,
+  pagesDiff,
+}: {
+  clientDiff: PrettifiedDiffOutput;
+  serverDiff: PrettifiedDiffOutput;
+  pagesDiff: PrettifiedDiffOutput;
+}) {
+  const filesRequiringRemoving = getFilesRequiringRemoving({
+    clientRemoveDiff: clientDiff.remove,
+    serverRemoveDiff: serverDiff.remove,
+    pagesRemoveDiff: pagesDiff.remove,
+  });
+
+  await updateTemporaryFolderState(clientDiff.add, filesRequiringRemoving);
+  await updatePersistentFolderState(
+    getFilesRequiringCopying({
+      clientAddDiff: clientDiff.add,
+      serverAddDiff: serverDiff.add,
+      pagesAddDiff: pagesDiff.add,
+      componentsAddDiff: (await getComponentsDiff()).add,
+      constantFilesAddDiff: (await getConstantFilesDiff()).add,
+    }),
+    filesRequiringRemoving,
+  );
+
+  await assertFoldersHaveTheSameChecksum();
 }
 
-// TODO: copy only files which were changed(added, removed) between rebuilds according to diffs
-// TODO: + application.jsx, pages, cache, etc
-async function updatePersistentFolderState(
-  clientDiff: PrettifiedDiffOutput,
-  exportedPagesDiff: PrettifiedDiffOutput,
+async function updateTemporaryFolderState(
+  clientAddDiff: string[],
+  filesRequiredRemoving: string[],
 ) {
-  await removeFiles(persistentApplicationClientBuildFolderPath, clientDiff.remove);
-  await removeFiles(persistentApplicationExportFolderRootPath, exportedPagesDiff.remove);
-  await copy(temporaryApplicationFolderRootPath, persistentApplicationFolderRootPath);
-  await copy(
+  await removeFiles(temporaryApplicationFolderRootPath, filesRequiredRemoving);
+  await removeEmptyFoldersRecursively(temporaryApplicationFolderRootPath);
+  await copyFiles(
     temporaryApplicationClientBuildFolderPath,
-    path.join(persistentApplicationExportFolderRootPath, 'static'),
+    path.join(temporaryApplicationFolderRootPath, 'export/static'),
+    clientAddDiff,
   );
+}
+
+async function updatePersistentFolderState(
+  filesRequiredAdding: string[],
+  filesRequiredRemoving: string[],
+) {
+  await copyFiles(
+    temporaryApplicationFolderRootPath,
+    persistentApplicationFolderRootPath,
+    filesRequiredAdding,
+  );
+  await copyFiles(temporaryApplicationFolderRootPath, persistentApplicationFolderRootPath, [
+    'build/build/client/loadable-stats.json',
+    'build/build/server/loadable-stats.json',
+    'build/application/application.jsx',
+  ]);
+  await removeFiles(persistentApplicationFolderRootPath, filesRequiredRemoving);
+  await removeEmptyFoldersRecursively(persistentApplicationFolderRootPath);
 }
 
 async function updateS3BucketState(
   clientDiff: PrettifiedDiffOutput,
-  exportedPagesDiff: PrettifiedDiffOutput,
+  pagesDiff: PrettifiedDiffOutput,
 ) {
   await Promise.all([
     removeFilesFromS3Bucket(clientDiff.remove.map((file) => `/static/${file}`)),
-    removeFilesFromS3Bucket(exportedPagesDiff.remove),
+    removeFilesFromS3Bucket(pagesDiff.remove),
     ...clientDiff.add.map((file) =>
       uploadFileToS3Bucket(
         `/static/${file}`,
         readFileSync(path.join(temporaryApplicationClientBuildFolderPath, file), 'utf-8'),
       ),
     ),
-    ...exportedPagesDiff.add.map((pagePath) =>
+    ...pagesDiff.add.map((pagePath) =>
       uploadFileToS3Bucket(
         pagePath,
         readFileSync(path.join(temporaryApplicationExportFolderRootPath, pagePath), 'utf-8'),
@@ -108,18 +156,31 @@ async function updateS3BucketState(
   ]);
 }
 
-async function getExportedPagesDiff(pages: Page[]) {
-  const currentExportedPages = await glob('**/*.html', {
+async function getPagesDiff(pages: Page[]) {
+  const exportedPages = await glob('**/*.html', {
     cwd: persistentApplicationExportFolderRootPath,
   });
 
   return normalizeJsonDiffOutput(
     prettifyJsonDiffOutputFormat(
       diff(
-        currentExportedPages,
+        exportedPages,
         pages.map((page) => getExportPageIndexHtmlFilePath(page)),
       ),
     ),
+  );
+}
+
+async function getComponentsDiff() {
+  const currentComponents = await glob('**/*.{js,jsx}', {
+    cwd: path.join(temporaryApplicationBuildFolderRootPath, 'components'),
+  });
+  const previousComponents = await glob('**/*.{js,jsx}', {
+    cwd: path.join(persistentApplicationBuildFolderRootPath, 'components'),
+  });
+
+  return normalizeJsonDiffOutput(
+    prettifyJsonDiffOutputFormat(diff(previousComponents, currentComponents)),
   );
 }
 
@@ -142,8 +203,87 @@ async function getLoadableStatsDiff(folder: 'client' | 'server') {
   return normalizeJsonDiffOutput(prettifyJsonDiffOutputFormat(diffOutput.chunks));
 }
 
+async function assertFoldersHaveTheSameChecksum() {
+  const options = {
+    files: {
+      ignoreRootName: true,
+    },
+    folders: {
+      ignoreRootName: true,
+      exclude: ['**cache'],
+    },
+  };
+
+  const temporaryFolderChecksum = await hashElement(temporaryApplicationFolderRootPath, options);
+  const persistentFolderChecksum = await hashElement(persistentApplicationFolderRootPath, options);
+
+  if (temporaryFolderChecksum.hash !== persistentFolderChecksum.hash) {
+    return Promise.reject(new Error('wrong checksum between temporary and persistent folders'));
+  }
+}
+
+// constant means the files and folders which can not be changed between
+// recompilation/reexport(context, public, etc). Actually it's implemented
+// for build task when persistent folder is empty
+async function getConstantFilesDiff() {
+  const ignore = [
+    'build/**',
+    'cache/**',
+    'pages/**',
+    'components/**',
+    'application/application.jsx',
+  ];
+
+  const currentConstantFiles = await glob('**', {
+    cwd: temporaryApplicationBuildFolderRootPath,
+    nodir: true,
+    dot: true,
+    ignore,
+  });
+  const previousConstantFiles = await glob('**', {
+    cwd: persistentApplicationBuildFolderRootPath,
+    nodir: true,
+    dot: true,
+    ignore,
+  });
+
+  return normalizeJsonDiffOutput(
+    prettifyJsonDiffOutputFormat(diff(previousConstantFiles, currentConstantFiles)),
+  );
+}
+
 async function removeFiles(folderPath: string, files: string[]) {
   await Promise.all(files.map((file) => remove(path.join(folderPath, file))));
+}
+
+async function copyFiles(fromFolder: string, toFolder: string, files: string[]) {
+  await Promise.all(
+    files.map((file) => copy(path.join(fromFolder, file), path.join(toFolder, file))),
+  );
+}
+
+async function removeFolderIfEmpty(folderPath: string) {
+  const isFolderEmpty = (await readdir(folderPath)).length === 0;
+
+  if (isFolderEmpty) {
+    await rmdir(folderPath);
+  }
+}
+
+async function removeEmptyFoldersRecursively(directoryPath: string) {
+  const files = await readdir(directoryPath);
+
+  for (const file of files) {
+    const filePath = `${directoryPath}/${file}`;
+
+    const fileStat = await stat(filePath);
+    const isDirectory = fileStat.isDirectory();
+
+    if (isDirectory) {
+      await removeEmptyFoldersRecursively(filePath);
+      await removeFolderIfEmpty(filePath);
+    }
+  }
 }
 
 function getLoadableStatsFilePath(parent: 'persistent' | 'temporary', folder: 'client' | 'server') {
@@ -209,4 +349,54 @@ function normalizeJsonDiffOutput(jsonDiffOutput: PrettifiedDiffOutput): Prettifi
 
 function isDiffFileState(file: Chunk | DiffFileState): file is DiffFileState {
   return Array.isArray(file);
+}
+
+function getFilesRequiringRemoving({
+  clientRemoveDiff,
+  serverRemoveDiff,
+  pagesRemoveDiff,
+}: {
+  clientRemoveDiff: string[];
+  serverRemoveDiff: string[];
+  pagesRemoveDiff: string[];
+}) {
+  return [
+    ...clientRemoveDiff.map((filePath) => [
+      path.join('build/build/client', filePath),
+      path.join('export/static', filePath),
+    ]),
+    ...serverRemoveDiff.map((filePath) => path.join('build/build/server', filePath)),
+    ...pagesRemoveDiff.map((pagePath) => [
+      path.join('build', pagePath.replace('html', 'jsx')),
+      path.join('export', pagePath),
+    ]),
+  ].flat();
+}
+
+function getFilesRequiringCopying({
+  clientAddDiff,
+  serverAddDiff,
+  pagesAddDiff,
+  componentsAddDiff,
+  constantFilesAddDiff,
+}: {
+  clientAddDiff: string[];
+  serverAddDiff: string[];
+  pagesAddDiff: string[];
+  componentsAddDiff: string[];
+  constantFilesAddDiff: string[];
+}) {
+  return [
+    ...clientAddDiff.map((filePath) => [
+      path.join('build/build/client', filePath),
+      path.join('export/static', filePath),
+    ]),
+    ...serverAddDiff.map((filePath) => path.join('build/build/server', filePath)),
+    ...pagesAddDiff.map((pagePath) => [
+      path.join('export', pagePath),
+      path.join('build', pagePath.replace('html', 'jsx')),
+    ]),
+    ...componentsAddDiff.map((filePath) => path.join('build/components', filePath)),
+    ...constantFilesAddDiff.map((filePath) => path.join('build', filePath)),
+  ].flat();
 }

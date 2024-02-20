@@ -7,11 +7,11 @@ export function mockEnqueue() {
   spyOnEnqueue = jest.spyOn(enqueueService, 'enqueue').mockImplementation(jest.fn());
 }
 
-interface JobEnqueueExpect {
+type JobEnqueueExpect = {
   jobName: enqueueService.JobName;
   body?: unknown;
   options?: Record<string, unknown>;
-}
+};
 
 export function expectJobsWereEnqueued(jobs: JobEnqueueExpect[]) {
   expect(getEnqueueCalls()).toIncludeAllMembers(jobs.map(prepareExpectedArgs));

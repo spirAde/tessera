@@ -1,3 +1,5 @@
+/* istanbul ignore file */
+
 // eslint-disable-next-line import/named
 import { lookup } from 'mime-types';
 import { Client, ItemBucketMetadata } from 'minio';

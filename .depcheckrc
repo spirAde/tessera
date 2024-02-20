@@ -5,6 +5,10 @@
     "eslint-import-resolver-typescript",
     "babel-loader",
     "thread-loader",
+    "@fastify/static",
+    "core-js",
+    "regenerator-runtime",
+
     "--unused-ignores--",
     "pg-hstore",
   ]

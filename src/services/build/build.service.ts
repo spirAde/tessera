@@ -19,14 +19,13 @@ import { collectMissedComponents } from '../pipeline/preparing.service';
 import { setupApplicationFolderEnvironment } from '../pipeline/setup.service';
 
 type BuildUpdate = Partial<BuildAttributes>;
-
-interface BuildPipelineContext {
+type BuildPipelineContext = {
   build: Build;
   project: Project | null;
   projectPages: ProjectPage[];
   designSystemComponentsList: ComponentLike[];
   componentsRequiringBundles: ComponentLike[];
-}
+};
 
 export function getCurrentBuild(): Promise<Build | null> {
   return Build.findOne({

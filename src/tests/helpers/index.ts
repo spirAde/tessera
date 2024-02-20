@@ -5,13 +5,13 @@ import path from 'path';
 
 import { outputFolderPath, rootFolderPath } from '../../config';
 
-interface TestResponse {
+type TestResponse = {
   statusCode: number;
   headers?: {
     [header: string]: boolean | number | string;
   };
   body: any;
-}
+};
 
 export function fakeDbId() {
   const maxPostgresInt = 2147483647;
@@ -42,14 +42,12 @@ export function expectError(response: TestResponse, statusCode: number, message:
   getExpectToMatchObjectFn(response, { statusCode, body: { message } });
 }
 
-export function expectFileSystemObjectExist() {}
-
 function getExpectToMatchObjectFn(actual: any, expected: any) {
   return expect(actual).toMatchObject(expected);
 }
 
-export function copyPrebuildProjectFixture() {
-  copySync(path.join(rootFolderPath, 'src/tests/fixtures/prebuild'), outputFolderPath);
+export function copyOutputFixture() {
+  copySync(path.join(rootFolderPath, 'src/tests/fixtures/output'), outputFolderPath);
 }
 
 export async function cleanupOutputFolder() {

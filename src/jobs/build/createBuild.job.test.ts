@@ -22,6 +22,14 @@ import {
 } from '../../tests/nocks/platform.nock';
 import { Stage, Status } from '../../types';
 
+jest.mock('../../config');
+
+const config: { useS3BucketForStatic: number; useWorkerThreadsProcessing: number } =
+  jest.requireActual('../../config');
+
+config.useS3BucketForStatic = 0;
+config.useWorkerThreadsProcessing = 0;
+
 describe('createBuildJob', () => {
   it('creates build', async () => {
     const pages = [

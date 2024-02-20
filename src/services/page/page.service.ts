@@ -3,6 +3,7 @@ import path from 'path';
 
 import {
   persistentApplicationBuildFolderRootPath,
+  persistentApplicationExportFolderRootPath,
   temporaryApplicationBuildFolderRootPath,
   temporaryApplicationExportFolderRootPath,
 } from '../../config';
@@ -25,13 +26,13 @@ export enum PipelineType {
   remove = 'remove',
 }
 
-export interface PagePipelineContext {
+export type PagePipelineContext = {
   project: Project | null;
   projectPages: Page[];
   workInProgressPage: Page;
   designSystemComponentsList: ComponentLike[];
   componentsRequiringBundles: ComponentLike[];
-}
+};
 
 export function createPage(values: PageAttributesNew): Promise<Page> {
   return Page.create(values);
@@ -120,6 +121,14 @@ export async function runExportStage({
   await exportPages([...projectPages, workInProgressPage]);
 }
 
+export function getExportPageIndexHtmlFilePath(page: Page): string {
+  return path.join('pages', getPageFolderPathFromUrl(page.url), 'index.html');
+}
+
+export function getExportPageFilePath(page: Page): string {
+  return path.join(temporaryApplicationExportFolderRootPath, getExportPageIndexHtmlFilePath(page));
+}
+
 export async function rollbackCompilationStage(): Promise<void> {
   await remove(path.join(temporaryApplicationBuildFolderRootPath, 'build'));
   await copy(
@@ -128,10 +137,10 @@ export async function rollbackCompilationStage(): Promise<void> {
   );
 }
 
-export function getExportPageIndexHtmlFilePath(page: Page): string {
-  return path.join('pages', getPageFolderPathFromUrl(page.url), 'index.html');
-}
-
-export function getExportPageFilePath(page: Page): string {
-  return path.join(temporaryApplicationExportFolderRootPath, getExportPageIndexHtmlFilePath(page));
+export async function rollbackExportStage(): Promise<void> {
+  await remove(path.join(temporaryApplicationExportFolderRootPath, 'pages'));
+  await copy(
+    path.join(persistentApplicationExportFolderRootPath, 'pages'),
+    path.join(temporaryApplicationExportFolderRootPath, 'pages'),
+  );
 }

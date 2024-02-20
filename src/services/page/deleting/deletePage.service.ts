@@ -1,5 +1,11 @@
+import { copy } from 'fs-extra';
+import path from 'path';
 import { Op } from 'sequelize';
 
+import {
+  persistentApplicationBuildFolderRootPath,
+  temporaryApplicationBuildFolderRootPath,
+} from '../../../config';
 import { logger } from '../../../lib/logger';
 import { getPageFolderPathFromUrl } from '../../../lib/url';
 import { Page } from '../../../models';
@@ -14,7 +20,13 @@ import {
   getPageComponentName,
 } from '../../pipeline/generating.service';
 import { runPipeline } from '../../pipeline/pipeline.service';
-import { createPagePipelineContext, PagePipelineContext } from '../page.service';
+import { rollback } from '../../pipeline/rollback.service';
+import {
+  createPagePipelineContext,
+  PagePipelineContext,
+  rollbackCompilationStage,
+  rollbackExportStage,
+} from '../page.service';
 
 export async function runPageDeleting({
   buildId,
@@ -33,15 +45,6 @@ export async function runPageDeleting({
 
   await page.destroy();
 
-  try {
-    await runPageDeletingPipeline(page);
-  } catch (error) {
-    await page.restore();
-    throw error;
-  }
-}
-
-async function runPageDeletingPipeline(page: Page) {
   const projectPages = await Page.findAll({
     where: {
       id: { [Op.ne]: page.id },
@@ -56,17 +59,26 @@ async function runPageDeletingPipeline(page: Page) {
     projectPages,
   });
 
-  const handlers = [
-    runFetchingStage,
-    runGeneratingStage,
-    runCompilationStage,
-    runExportStage,
-    runCommitStage,
-  ];
+  const stageToHandleMap = {
+    [Stage.fetching]: runFetchingStage,
+    [Stage.generating]: runGeneratingStage,
+    [Stage.compilation]: runCompilationStage,
+    [Stage.export]: runExportStage,
+    [Stage.commit]: runCommitStage,
+  };
 
-  await runPipeline(pipelineContext, handlers);
-
-  logger.debug(`page deleting pipeline is successfully finished`);
+  try {
+    await runPipeline(pipelineContext, Object.values(stageToHandleMap));
+    logger.debug(`page deleting pipeline is successfully finished`);
+  } catch (error) {
+    await page.restore();
+    await rollback({
+      context: pipelineContext,
+      stages: Object.keys(stageToHandleMap) as Stage[],
+      rollbackFns: { rollbackGeneratingStage, rollbackCompilationStage, rollbackExportStage },
+    });
+    throw error;
+  }
 }
 
 async function runFetchingStage({ workInProgressPage }: PagePipelineContext) {
@@ -107,4 +119,11 @@ async function runExportStage({ projectPages }: PagePipelineContext) {
 
 async function runCommitStage({ projectPages }: PagePipelineContext) {
   await commit(projectPages);
+}
+
+async function rollbackGeneratingStage() {
+  await copy(
+    path.join(persistentApplicationBuildFolderRootPath, 'application/application.jsx'),
+    path.join(temporaryApplicationBuildFolderRootPath, 'application/application.jsx'),
+  );
 }

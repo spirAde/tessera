@@ -25,6 +25,7 @@ import {
   createPagePipelineContext,
   PagePipelineContext,
   rollbackCompilationStage,
+  rollbackExportStage,
   runCompilationStage,
   runExportStage,
   runFetchingStage,
@@ -72,9 +73,11 @@ export async function runPageCreation({
 
   try {
     await runPipeline(pipelineContext, Object.values(stageToHandleMap));
-
     logger.debug('page creation pipeline is successfully finished');
   } catch (error) {
+    await updatePage(workInProgressPage, {
+      status: Status.failed,
+    });
     await rollback({
       context: pipelineContext,
       stages: Object.keys(stageToHandleMap) as Stage[],
@@ -137,8 +140,4 @@ async function rollbackGeneratingStage({ workInProgressPage }: PagePipelineConte
     path.join(persistentApplicationBuildFolderRootPath, 'application/application.jsx'),
     path.join(temporaryApplicationBuildFolderRootPath, 'application/application.jsx'),
   );
-}
-
-function rollbackExportStage() {
-  return Promise.resolve();
 }

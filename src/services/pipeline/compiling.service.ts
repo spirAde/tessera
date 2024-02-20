@@ -4,7 +4,7 @@ import webpack, { Configuration, DefinePlugin } from 'webpack';
 import { merge } from 'webpack-merge';
 import nodeExternals from 'webpack-node-externals';
 
-import { temporaryApplicationBuildFolderRootPath, isTest } from '../../config';
+import { temporaryApplicationBuildFolderRootPath } from '../../config';
 
 export async function compile(projectPageUrls: string[]): Promise<void> {
   const commonWebpackConfig = getCommonWebpackConfig(projectPageUrls);
@@ -24,7 +24,7 @@ function getCommonWebpackConfig(projectPageUrls: string[]) {
       moduleIds: 'deterministic',
       nodeEnv: false,
       splitChunks: {
-        filename: isTest ? '[name].js' : /* istanbul ignore next */ '[name].[contenthash].js',
+        filename: '[name].[contenthash].js',
         chunks: 'all',
         minSize: 1000,
       },
@@ -44,8 +44,8 @@ function getCommonWebpackConfig(projectPageUrls: string[]) {
     entry: getWebpackConfigEntries(projectPageUrls),
     output: {
       publicPath: '/static/',
-      filename: isTest ? '[name].js' : /* istanbul ignore next */ '[name].[contenthash].js',
-      chunkFilename: isTest ? '[id].chunk.js' : /* istanbul ignore next */ '[name].[id].chunk.js',
+      filename: '[name].[contenthash].js',
+      chunkFilename: '[contenthash].chunk.js',
       strictModuleExceptionHandling: true,
       clean: false,
     },
@@ -161,10 +161,12 @@ function runCompiler(config: Configuration) {
 
   return new Promise<void>((resolve, reject) =>
     compiler.run((error, stats) => {
+      /* istanbul ignore if */
       if (error) {
         reject(error);
       }
 
+      /* istanbul ignore if */
       if (stats?.hasErrors()) {
         reject(stats.toJson().errors);
       }

@@ -1,35 +1,35 @@
-export interface Build {
+export type Build = {
   id: number;
   stage: Stage;
   status: Status;
   createdAt: string;
   updatedAt: string;
   deletedAt?: string | null;
-}
-export interface CreateBuildEndpoint {
+};
+export type CreateBuildEndpoint = {
   request: CreateBuildRequest;
-}
-export interface CreateBuildRequest {}
-export interface CreatePageEndpoint {
+};
+export type CreateBuildRequest = {};
+export type CreatePageEndpoint = {
   request: CreatePageRequest;
-}
-export interface CreatePageRequest {
+};
+export type CreatePageRequest = {
   body: CreatePageRequestBody;
-}
-export interface CreatePageRequestBody {
+};
+export type CreatePageRequestBody = {
   id: number;
   url: string;
-}
-export interface DeletePageEndpoint {
+};
+export type DeletePageEndpoint = {
   request: DeletePageRequest;
-}
-export interface DeletePageRequest {
+};
+export type DeletePageRequest = {
   body: DeletePageRequestBody;
-}
-export interface DeletePageRequestBody {
+};
+export type DeletePageRequestBody = {
   id: number;
-}
-export interface Page {
+};
+export type Page = {
   id: number;
   buildId: number;
   url: string;
@@ -39,7 +39,7 @@ export interface Page {
   createdAt: string;
   updatedAt: string;
   deletedAt?: string | null;
-}
+};
 export declare enum Stage {
   setup = 'setup',
   fetching = 'fetching',
@@ -61,12 +61,12 @@ export declare enum TesseraHttp {
   deletePageDeletePages = 'delete-page|delete /pages',
   createBuildPostBuilds = 'create-build|post /builds',
 }
-export interface UpdatePageEndpoint {
+export type UpdatePageEndpoint = {
   request: UpdatePageRequest;
-}
-export interface UpdatePageRequest {
+};
+export type UpdatePageRequest = {
   body: UpdatePageRequestBody;
-}
-export interface UpdatePageRequestBody {
+};
+export type UpdatePageRequestBody = {
   id: number;
-}
+};

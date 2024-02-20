@@ -23,7 +23,6 @@ module.exports = {
   rules: {
     // typescript-eslint
     '@typescript-eslint/ban-ts-comment': 'off',
-    '@typescript-eslint/consistent-type-definitions': ['error', 'interface'],
     '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/explicit-module-boundary-types': 'off',
     '@typescript-eslint/lines-between-class-members': 'off',

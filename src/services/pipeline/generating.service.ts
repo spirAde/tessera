@@ -35,11 +35,11 @@ import { getApplicationPageFileContent } from '../../templates/templates/page.te
 import { Stage, Status } from '../../types';
 import { updatePage } from '../page/page.service';
 
-interface GeneratedPage {
+type GeneratedPage = {
   pageUrl: string;
   path: string;
   pageName: string;
-}
+};
 
 const Piscina = piscina.Piscina;
 const maxPageNameLength = 42;
@@ -189,6 +189,7 @@ async function createApplicationPageFile(
   return { pageComponentName, pageFilePath: absolutePageFilePath };
 }
 
+/* istanbul ignore next */
 async function processGeneratingInWorkerThreads(
   pages: Page[],
   designSystemComponentsMap: Map<string, string>,

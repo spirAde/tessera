@@ -33,8 +33,6 @@ module.exports = {
     '<rootDir>/src/tests',
     '<rootDir>/src/types',
     '<rootDir>/node_modules/',
-    '<rootDir>/temp/',
-    '<rootDir>/temp_test/',
     '<rootDir>/output/',
   ],
 };

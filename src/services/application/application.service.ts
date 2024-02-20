@@ -6,6 +6,7 @@ import { persistentApplicationExportFolderRootPath, rootFolderPath } from '../..
 import { logger } from '../../lib/logger';
 import { enqueue, JobName, pgQueue, waitJobCompletion } from '../enqueueJob.service';
 
+/* istanbul ignore next */
 export function getHttpsServerOptions(): ServerOptions {
   return {
     key: fs.readFileSync(path.join(rootFolderPath, 'etc/certs/private-key.pem')),

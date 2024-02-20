@@ -16,7 +16,7 @@ import {
   pageStructureServiceUpdateFixture,
 } from '../../tests/fixtures/pageStructure.fixture';
 import { projectT1CloudFixture } from '../../tests/fixtures/project.fixture';
-import { copyPrebuildProjectFixture, hashFileSync } from '../../tests/helpers';
+import { copyOutputFixture, hashFileSync } from '../../tests/helpers';
 import {
   nockPlatformComponentSource,
   nockPlatformDesignSystem,
@@ -29,7 +29,7 @@ import { Stage, Status } from '../../types';
 
 describe('processPageJob', () => {
   beforeEach(() => {
-    copyPrebuildProjectFixture();
+    copyOutputFixture();
   });
 
   describe('create', () => {
@@ -278,7 +278,7 @@ describe('processPageJob', () => {
       ).toBeFalse();
       expect(
         existsSync(
-          path.join(temporaryApplicationBuildFolderRootPath, 'build/client/server/service.js'),
+          path.join(temporaryApplicationBuildFolderRootPath, 'build/client/pages/service.js'),
         ),
       ).toBeFalse();
       expect(

@@ -49,14 +49,15 @@ async function exportPage({
 }) {
   logger.debug(`export page url: ${page.url}`);
 
-  const jsx = extractor.collectChunks(
-    sheet.collectStyles(
-      React.createElement(Application, {
-        url: page.url,
-      }),
+  const html = renderToString(
+    extractor.collectChunks(
+      sheet.collectStyles(
+        React.createElement(Application, {
+          url: page.url,
+        }),
+      ),
     ),
   );
-  const html = renderToString(jsx);
   const { htmlAttributes, title, base, meta, link, script } = Helmet.renderStatic();
 
   await outputFile(
