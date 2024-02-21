@@ -28,7 +28,7 @@ import {
   ProjectPageStructureMetaItemProps,
   ProjectPageStructureMetaProps,
   ProjectPageStructureSeoProps,
-  StrictProjectPageStructure,
+  ProjectPageStructure,
 } from '../../sdk/platform/types';
 import { getApplicationFileContent } from '../../templates/templates/application.template';
 import { getApplicationPageFileContent } from '../../templates/templates/page.template';
@@ -160,7 +160,7 @@ export function getMissedComponentsList(componentsList: ComponentLike[]): Compon
 }
 
 async function createApplicationPageFile(
-  pageStructure: StrictProjectPageStructure,
+  pageStructure: ProjectPageStructure,
   componentsList: ComponentLike[],
 ) {
   const pageFolderPath = getPageFolderPathFromUrl(pageStructure.url);

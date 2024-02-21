@@ -2,12 +2,12 @@ import uniqBy from 'lodash/uniqBy';
 
 import {
   ProjectPageStructureComponent,
-  StrictProjectPageStructure,
+  ProjectPageStructure,
   ComponentLike,
 } from '../../sdk/platform/types';
 
 export function parsePageStructureComponentsList(
-  pageStructure: StrictProjectPageStructure,
+  pageStructure: ProjectPageStructure,
 ): ProjectPageStructureComponent[] {
   const components: ProjectPageStructureComponent[] = [];
 

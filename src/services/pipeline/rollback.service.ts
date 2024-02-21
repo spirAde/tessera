@@ -20,7 +20,9 @@ export async function rollback({
   stages: Stage[];
   rollbackFns: RollbackFns;
 }): Promise<void> {
-  logger.debug(`[rollback] run rollback for pipeline with context: ${context}`);
+  logger.debug(
+    `[rollback] run rollback for pipeline for page: ${JSON.stringify(context.workInProgressPage, null, 2)}`,
+  );
 
   await context.workInProgressPage.reload();
 
@@ -32,7 +34,10 @@ export async function rollback({
 }
 
 function getRollbackFn(rollbackFns: RollbackFns, stage: Stage): RollbackFn {
-  return rollbackFns[`rollback${capitalize(stage)}Stage` as keyof RollbackFns] ?? Promise.resolve;
+  return (
+    rollbackFns[`rollback${capitalize(stage)}Stage` as keyof RollbackFns] ??
+    (() => Promise.resolve())
+  );
 }
 
 function getPreviousStages(page: Page, stages: Stage[]) {

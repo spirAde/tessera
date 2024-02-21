@@ -9,11 +9,11 @@ import {
 import { logger } from '../../../lib/logger';
 import { getPageFolderPathFromUrl } from '../../../lib/url';
 import { Page } from '../../../models';
+import { getProject } from '../../../sdk/platform/platform.sdk';
 import { Stage, Status } from '../../../types';
 import { commit } from '../../pipeline/commit.service';
 import { compile } from '../../pipeline/compiling.service';
 import { exportPages } from '../../pipeline/export.service';
-import { getProject } from '../../pipeline/fetching.service';
 import {
   createApplicationFile,
   getAbsolutePageFilePath,

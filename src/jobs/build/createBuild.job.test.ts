@@ -5,7 +5,7 @@ import path from 'path';
 import { createBuildJob } from './createBuild.job';
 import { outputFolderPath, temporaryApplicationBuildFolderRootPath } from '../../config';
 import { Build } from '../../models';
-import { ComponentLike, StrictProjectPageStructure } from '../../sdk/platform/types';
+import { ComponentLike, ProjectPageStructure } from '../../sdk/platform/types';
 import {
   pageStructureMainFixture,
   pageStructureServiceFixture,
@@ -14,7 +14,7 @@ import {
 } from '../../tests/fixtures/pageStructure.fixture';
 import { projectT1CloudFixture } from '../../tests/fixtures/project.fixture';
 import {
-  nockPlatformProjects,
+  nockPlatformProject,
   nockPlatformProjectPages,
   nockPlatformDesignSystem,
   nockPlatformProjectPage,
@@ -36,7 +36,7 @@ describe('createBuildJob', () => {
       pageStructureMainFixture,
       pageStructureServiceFixture,
       pageStructureAboutFixture,
-    ] as unknown as StrictProjectPageStructure[];
+    ] as unknown as ProjectPageStructure[];
 
     nockProjectEnvironment(pages);
     nockProjectPages(pages);
@@ -122,12 +122,12 @@ describe('createBuildJob', () => {
       pageStructureMainFixture,
       pageStructureServiceFixture,
       pageStructureAboutFixture,
-    ] as unknown as StrictProjectPageStructure[];
+    ] as unknown as ProjectPageStructure[];
 
     nockProjectEnvironment(pages);
     nockPlatformProjectPage({
       pageId: pageStructureMainFixture.id,
-      body: pageStructureMainFixture as unknown as StrictProjectPageStructure,
+      body: pageStructureMainFixture as unknown as ProjectPageStructure,
     });
     nockPlatformProjectPage({
       pageId: pageStructureServiceFixture.id,
@@ -136,7 +136,7 @@ describe('createBuildJob', () => {
     });
     nockPlatformProjectPage({
       pageId: pageStructureAboutFixture.id,
-      body: pageStructureAboutFixture as unknown as StrictProjectPageStructure,
+      body: pageStructureAboutFixture as unknown as ProjectPageStructure,
     });
     nockProjectComponentsSources(pages);
 
@@ -186,22 +186,19 @@ describe('createBuildJob', () => {
   });
 });
 
-function nockProjectEnvironment(pages: StrictProjectPageStructure[]) {
-  nockPlatformProjects();
-  nockPlatformProjectPages({
-    projectSysName: projectT1CloudFixture.sysName,
-    body: { pages },
-  });
+function nockProjectEnvironment(pages: ProjectPageStructure[]) {
+  nockPlatformProject();
+  nockPlatformProjectPages({ body: pages });
   nockPlatformDesignSystem(projectT1CloudFixture.settings.designSystemId);
 }
 
-function nockProjectPages(pages: StrictProjectPageStructure[]) {
+function nockProjectPages(pages: ProjectPageStructure[]) {
   for (const page of pages) {
     nockPlatformProjectPage({ pageId: page.id, body: page });
   }
 }
 
-function nockProjectComponentsSources(pages: StrictProjectPageStructure[]) {
+function nockProjectComponentsSources(pages: ProjectPageStructure[]) {
   const components = [
     ...uniqBy(
       pages.reduce<ComponentLike[]>(

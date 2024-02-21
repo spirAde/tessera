@@ -1,13 +1,6 @@
-import { projectSysName } from '../../config';
 import { logger } from '../../lib/logger';
-import { getProjectDesignSystemComponents, getProjects } from '../../sdk/platform/platform.sdk';
-import { ComponentLike, DesignSystemComponent, Project } from '../../sdk/platform/types';
-
-export async function getProject(): Promise<Project> {
-  logger.debug('fetch project');
-  const projects = await getProjects();
-  return projects.find((project) => project.sysName === projectSysName)!;
-}
+import { getProjectDesignSystemComponents } from '../../sdk/platform/platform.sdk';
+import { ComponentLike, DesignSystemComponent } from '../../sdk/platform/types';
 
 export async function getDesignSystemComponentsList(
   designSystemId: number,
@@ -23,7 +16,7 @@ function mapDesignSystemComponentToComponentLike(
   designSystemComponentsList: DesignSystemComponent[],
 ) {
   return designSystemComponentsList.map((designSystemComponent) => ({
-    name: designSystemComponent.componentName,
-    version: designSystemComponent.currentVersion,
+    name: designSystemComponent.sysName,
+    version: designSystemComponent.version,
   })) as ComponentLike[];
 }

@@ -1,5 +1,5 @@
-export const projectT1CloudFixture = {
-  id: 1,
+export const projectMock = {
+  id: 14,
   title: 'T1 Cloud',
   sysName: 'T1Cloud',
   description: 'T1 Cloud',
@@ -10,7 +10,10 @@ export const projectT1CloudFixture = {
     designSystemId: 109263,
     domain: null,
     modules: null,
+    mediaSettings: {
+      maxRequestSizeBytes: 1073741824,
+    },
   },
-  updateMoment: '2023-12-04T14:48:58.09596+03:00',
-  updateLogin: 'avs-admin',
+  updateMoment: '2024-01-18T10:04:01.936774+03:00',
+  updateLogin: 'admin',
 };

@@ -28,7 +28,9 @@ export const isTest = process.env.STAGE === 'test';
 export const useWorkerThreadsProcessing = Number(process.env.USE_WORKER_THREADS) || 0;
 export const useS3BucketForStatic = Number(process.env.USE_S3_BUCKET) || 0;
 
+export const platformHost = process.env.PLATFORM_HOST || 'https://admin.t1-academy.ru';
 export const projectSysName = process.env.PROJECT_NAME || 'T1Cloud';
+export const projectPagesStatus = process.env.PROJECT_PAGES_STATUS || 'published';
 
 export const rootFolderPath = process.cwd();
 export const outputFolderPath = path.join(rootFolderPath, 'output');

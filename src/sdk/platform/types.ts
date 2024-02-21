@@ -1,29 +1,81 @@
-type ProjectInfoSysName =
-  | 'PROGRESS_BAR_ENABLE'
-  | 'PROJECT_SYS_NAME'
-  | 'ENABLE_TO_LOAD_SECONDARY_COMPONENTS'
-  | 'BACKEND_ENDPOINT'
-  | 'API_PATH'
-  | 'COMPONENTS_PATH'
-  | 'COMPONENTS_RESOLVER_PATH'
-  | 'PAGE_PATH'
-  | 'SCRIPTS_PATH'
-  | 'MENU_PATH'
-  | 'FOOTER_PATH'
-  | 'MEDIA_HOST'
-  | 'DESIGN_SYSTEM_ID';
-
-export type RawProjectPageStructure = {
-  Data: string;
-  [key: string]: unknown;
-};
-
 export type ProjectPageStructureSeoProps = {
   title: string;
   description: string;
   keywords: string;
   tabName: string;
   uiOrder: number;
+};
+
+export type ComponentLike = {
+  name: string;
+  version: string;
+};
+
+export type ProjectPageStructureComponent = {
+  id: number;
+  uuid: string;
+  title: string;
+  objectTypeSysName: string;
+  version: string;
+  componentName: string;
+  uiOrder: string;
+  result: ProjectPageStructureComponentProps;
+  components: ProjectPageStructureComponent[];
+};
+
+export type Project = {
+  id: number;
+  title: string;
+  sysName: string;
+  description: string;
+  robotsText: string;
+  siteMirror: string;
+  updateLogin: string;
+  updateMoment: string;
+  settings: ProjectSettings;
+};
+
+export type DesignSystemComponent = {
+  id: number;
+  title: string;
+  sysName: string;
+  version: string;
+  active: boolean;
+};
+
+export type ProjectPage = {
+  id: number;
+  url: string;
+};
+
+export type ProjectPageStructure = {
+  id: number;
+  title: string;
+  objectTypeSysName: string;
+  version: string;
+  meta: ProjectPageStructureMeta;
+  result: ProjectPageStructureProps;
+  template: ProjectPageStructureComponent[];
+  uiOrder: string;
+  breadcrumbs: ProjectPageStructureBreadcrumb[];
+  breadcrumbTitle: string;
+  url: string;
+  seo: ProjectPageStructureSeo;
+  code: number;
+  designSystemId: number;
+  projectSysName: string;
+};
+
+export type ProjectPageStructureMetaProps = {
+  title: string;
+  items: ProjectPageStructureMetaItemProps[];
+  uiOrder: number;
+};
+
+export type ProjectPageStructureMetaItemProps = {
+  name: string;
+  property: string;
+  content: string;
 };
 
 type ProjectPageStructureSeo = {
@@ -48,18 +100,6 @@ type ProjectPageStructureBreadcrumb = {
   url: string;
 };
 
-export type ProjectPageStructureMetaProps = {
-  title: string;
-  items: ProjectPageStructureMetaItemProps[];
-  uiOrder: number;
-};
-
-export type ProjectPageStructureMetaItemProps = {
-  name: string;
-  property: string;
-  content: string;
-};
-
 type ProjectPageStructureMeta = {
   id: number;
   title: string;
@@ -67,24 +107,6 @@ type ProjectPageStructureMeta = {
   version: string;
   result: ProjectPageStructureMetaProps;
   uiOrder: number;
-};
-
-export type StrictProjectPageStructure = {
-  id: number;
-  title: string;
-  objectTypeSysName: string;
-  version: string;
-  meta: ProjectPageStructureMeta;
-  result: ProjectPageStructureProps;
-  template: ProjectPageStructureComponent[];
-  uiOrder: string;
-  breadcrumbs: ProjectPageStructureBreadcrumb[];
-  breadcrumbTitle: string;
-  url: string;
-  seo: ProjectPageStructureSeo;
-  code: number;
-  designSystemId: number;
-  projectSysName: string;
 };
 
 type ProjectPageStructureComponentProps = {
@@ -95,55 +117,18 @@ type ProjectPageStructureComponentProps = {
   [key: string]: unknown;
 };
 
-export type ComponentLike = {
+type ProjectStandParametersBucket = {
+  sysName: string;
   name: string;
-  version: string;
-};
-
-export type ProjectPageStructureComponent = {
-  id: number;
-  uuid: string;
-  title: string;
-  objectTypeSysName: string;
-  version: string;
-  componentName: string;
-  uiOrder: string;
-  result: ProjectPageStructureComponentProps;
-  components: ProjectPageStructureComponent[];
-};
-
-type ProjectSpaParametersBucket = {
-  sysName: ProjectInfoSysName;
-  name: ProjectInfoSysName;
   value: number | string | boolean;
 };
 
 type ProjectSettings = {
-  baseUrl: string;
-  spaParameters: ProjectSpaParametersBucket[];
+  draftBaseUrl: string;
+  webBaseUrl: string;
+  standSettings: {
+    parameters: ProjectStandParametersBucket[];
+  };
   designSystemId: number;
-};
-
-export type Project = {
-  id: number;
-  title: string;
-  sysName: string;
-  description: string;
-  settings: ProjectSettings;
-};
-
-export type DesignSystemComponent = {
-  id: number;
-  title: string;
-  sysName: string;
-  componentName: string;
-  currentVersion: string;
-  active: boolean;
-  designSystemId: string;
-  componentType: string;
-};
-
-export type ProjectPage = {
-  id: number;
-  url: string;
+  domain: string;
 };

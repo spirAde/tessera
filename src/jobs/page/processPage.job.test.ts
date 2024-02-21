@@ -6,7 +6,7 @@ import {
   persistentApplicationExportFolderRootPath,
   temporaryApplicationBuildFolderRootPath,
 } from '../../config';
-import { StrictProjectPageStructure } from '../../sdk/platform/types';
+import { ProjectPageStructure } from '../../sdk/platform/types';
 import { PipelineType } from '../../services/page/page.service';
 import {
   pageStructureAboutFixture,
@@ -21,7 +21,7 @@ import {
   nockPlatformComponentSource,
   nockPlatformDesignSystem,
   nockPlatformProjectPage,
-  nockPlatformProjects,
+  nockPlatformProject,
 } from '../../tests/nocks/platform.nock';
 import { seedBuild } from '../../tests/seeds/build.seed';
 import { seedPage } from '../../tests/seeds/page.seed';
@@ -238,7 +238,7 @@ describe('processPageJob', () => {
         stage: Stage.commit,
       });
 
-      nockPlatformProjects();
+      nockPlatformProject();
 
       await processPageJob({
         id: '1',
@@ -302,12 +302,12 @@ describe('processPageJob', () => {
 });
 
 function nockProjectEnvironmentForCreation() {
-  nockPlatformProjects();
+  nockPlatformProject();
   nockPlatformDesignSystem(projectT1CloudFixture.settings.designSystemId);
 
   nockPlatformProjectPage({
     pageId: pageStructureServiceCDNFixture.id,
-    body: pageStructureServiceCDNFixture as unknown as StrictProjectPageStructure,
+    body: pageStructureServiceCDNFixture as unknown as ProjectPageStructure,
   });
 
   nockPlatformComponentSource({
@@ -317,12 +317,12 @@ function nockProjectEnvironmentForCreation() {
 }
 
 function nockProjectEnvironmentForUpdating() {
-  nockPlatformProjects();
+  nockPlatformProject();
   nockPlatformDesignSystem(projectT1CloudFixture.settings.designSystemId);
 
   nockPlatformProjectPage({
     pageId: pageStructureServiceUpdateFixture.id,
-    body: pageStructureServiceUpdateFixture as unknown as StrictProjectPageStructure,
+    body: pageStructureServiceUpdateFixture as unknown as ProjectPageStructure,
   });
 
   nockPlatformComponentSource({

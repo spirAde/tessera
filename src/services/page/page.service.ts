@@ -10,12 +10,13 @@ import {
 import { logger } from '../../lib/logger';
 import { getPageFolderPathFromUrl } from '../../lib/url';
 import { Page, PageAttributes, PageAttributesNew } from '../../models';
+import { getProject } from '../../sdk/platform/platform.sdk';
 import { ComponentLike, Project } from '../../sdk/platform/types';
 import { Stage } from '../../types';
 import { compile } from '../pipeline/compiling.service';
 import { exportPages } from '../pipeline/export.service';
-import { getDesignSystemComponentsList, getProject } from '../pipeline/fetching.service';
-import { collectMissedComponents } from '../pipeline/preparing.service';
+import { getDesignSystemComponentsList } from '../pipeline/fetching.service';
+import { createMissedComponents } from '../pipeline/preparing.service';
 
 type PageUpdate = Partial<PageAttributes>;
 
@@ -59,9 +60,7 @@ export async function runFetchingStage({ workInProgressPage }: PagePipelineConte
 }> {
   logger.debug('page fetching stage');
 
-  await updatePage(workInProgressPage, {
-    stage: Stage.fetching,
-  });
+  await updatePage(workInProgressPage, { stage: Stage.fetching });
 
   const project = await getProject();
   const designSystemComponentsList = await getDesignSystemComponentsList(
@@ -69,7 +68,7 @@ export async function runFetchingStage({ workInProgressPage }: PagePipelineConte
   );
 
   return {
-    project,
+    project: project as Project,
     designSystemComponentsList,
   };
 }
@@ -82,12 +81,10 @@ export async function runPreparingStage({
 }: PagePipelineContext): Promise<void> {
   logger.debug(`page preparing stage`);
 
-  await updatePage(workInProgressPage, {
-    stage: Stage.preparing,
-  });
+  await updatePage(workInProgressPage, { stage: Stage.preparing });
 
-  await collectMissedComponents({
-    project: project!,
+  await createMissedComponents({
+    designSystemId: project!.settings.designSystemId,
     missedComponents: componentsRequiringBundles,
     foundationKitComponent: designSystemComponentsList.find(
       (component) => component.name === 'foundation-kit',
@@ -101,9 +98,7 @@ export async function runCompilationStage({
 }: PagePipelineContext): Promise<void> {
   logger.debug('page compilation stage');
 
-  await updatePage(workInProgressPage, {
-    stage: Stage.compilation,
-  });
+  await updatePage(workInProgressPage, { stage: Stage.compilation });
 
   await compile([...projectPages.map(({ url }) => url), workInProgressPage.url]);
 }
@@ -114,19 +109,9 @@ export async function runExportStage({
 }: PagePipelineContext): Promise<void> {
   logger.debug('page export stage');
 
-  await updatePage(workInProgressPage, {
-    stage: Stage.export,
-  });
+  await updatePage(workInProgressPage, { stage: Stage.export });
 
   await exportPages([...projectPages, workInProgressPage]);
-}
-
-export function getExportPageIndexHtmlFilePath(page: Page): string {
-  return path.join('pages', getPageFolderPathFromUrl(page.url), 'index.html');
-}
-
-export function getExportPageFilePath(page: Page): string {
-  return path.join(temporaryApplicationExportFolderRootPath, getExportPageIndexHtmlFilePath(page));
 }
 
 export async function rollbackCompilationStage(): Promise<void> {
@@ -143,4 +128,12 @@ export async function rollbackExportStage(): Promise<void> {
     path.join(persistentApplicationExportFolderRootPath, 'pages'),
     path.join(temporaryApplicationExportFolderRootPath, 'pages'),
   );
+}
+
+export function getExportPageIndexHtmlFilePath(page: Page): string {
+  return path.join('pages', getPageFolderPathFromUrl(page.url), 'index.html');
+}
+
+export function getExportPageFilePath(page: Page): string {
+  return path.join(temporaryApplicationExportFolderRootPath, getExportPageIndexHtmlFilePath(page));
 }

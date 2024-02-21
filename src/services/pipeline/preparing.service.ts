@@ -4,14 +4,14 @@ import path from 'path';
 
 import { temporaryApplicationBuildFolderRootPath } from '../../config';
 import { getDesignSystemComponentSource } from '../../sdk/platform/platform.sdk';
-import { ComponentLike, Project } from '../../sdk/platform/types';
+import { ComponentLike } from '../../sdk/platform/types';
 
-export async function collectMissedComponents({
-  project,
+export async function createMissedComponents({
+  designSystemId,
   missedComponents,
   foundationKitComponent,
 }: {
-  project: Project;
+  designSystemId: number;
   missedComponents: ComponentLike[];
   foundationKitComponent: ComponentLike;
 }): Promise<void> {
@@ -21,37 +21,34 @@ export async function collectMissedComponents({
   );
 
   for (const component of componentsRequiringBundles) {
-    const componentSourceBundle = await getDesignSystemComponentSource(
-      project.settings.designSystemId,
-      component,
+    await createComponentFile(component, designSystemId, (componentBundleSource) =>
+      componentBundleSource.replaceAll(
+        '@vkit/foundation-kit',
+        `@/components/foundation-kit@${foundationKitComponent.version}`,
+      ),
     );
-
-    const normalizedComponentSourceBundle = componentSourceBundle.replaceAll(
-      '@vkit/foundation-kit',
-      `@/components/foundation-kit@${foundationKitComponent.version}`,
-    );
-
-    const componentFilePath = path.join(
-      temporaryApplicationBuildFolderRootPath,
-      'components',
-      `${component.name}@${component.version}.js`,
-    );
-
-    await outputFile(componentFilePath, normalizedComponentSourceBundle);
   }
 
-  const foundationComponentKitFilePath = path.join(
-    temporaryApplicationBuildFolderRootPath,
-    'components',
-    `${foundationKitComponent.name}@${foundationKitComponent.version}.js`,
-  );
-
-  if (!pathExistsSync(foundationComponentKitFilePath)) {
-    const componentSourceBundle = await getDesignSystemComponentSource(
-      project.settings.designSystemId,
-      foundationKitComponent,
-    );
-
-    await outputFile(foundationComponentKitFilePath, componentSourceBundle);
+  if (!pathExistsSync(getComponentFilePath(foundationKitComponent))) {
+    await createComponentFile(foundationKitComponent, designSystemId);
   }
+}
+
+async function createComponentFile(
+  component: ComponentLike,
+  designSystemId: number,
+  callback?: (componentBundleSource: string) => string,
+) {
+  let componentBundleSource = await getDesignSystemComponentSource(designSystemId, component);
+
+  if (callback) {
+    componentBundleSource = callback(componentBundleSource);
+  }
+
+  await outputFile(getComponentFilePath(component), componentBundleSource);
+}
+
+function getComponentFilePath(component: ComponentLike) {
+  const componentFileName = `${component.name}@${component.version}.js`;
+  return path.join(temporaryApplicationBuildFolderRootPath, 'components', componentFileName);
 }

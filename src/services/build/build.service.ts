@@ -6,16 +6,16 @@ import { outputFolderPath, rootFolderPath, useS3BucketForStatic } from '../../co
 import { logger } from '../../lib/logger';
 import { Build, BuildAttributes, BuildAttributesNew, Page } from '../../models';
 import { removeS3BucketFiles } from '../../sdk/minio.sdk';
-import { getProjectPages } from '../../sdk/platform/platform.sdk';
+import { getProject, getProjectPages } from '../../sdk/platform/platform.sdk';
 import { ComponentLike, Project, ProjectPage } from '../../sdk/platform/types';
 import { Stage, Status } from '../../types';
 import { commit } from '../pipeline/commit.service';
 import { compile } from '../pipeline/compiling.service';
 import { exportPages } from '../pipeline/export.service';
-import { getDesignSystemComponentsList, getProject } from '../pipeline/fetching.service';
+import { getDesignSystemComponentsList } from '../pipeline/fetching.service';
 import { convertToMap, createApplicationFile, generatePages } from '../pipeline/generating.service';
 import { runPipeline } from '../pipeline/pipeline.service';
-import { collectMissedComponents } from '../pipeline/preparing.service';
+import { createMissedComponents } from '../pipeline/preparing.service';
 import { setupApplicationFolderEnvironment } from '../pipeline/setup.service';
 
 type BuildUpdate = Partial<BuildAttributes>;
@@ -106,7 +106,7 @@ async function runFetchingStage({ build }: BuildPipelineContext) {
   });
 
   const project = await getProject();
-  const projectPages = await getProjectPages(project.sysName);
+  const projectPages = await getProjectPages();
   const designSystemComponentsList = await getDesignSystemComponentsList(
     project.settings.designSystemId,
   );
@@ -146,17 +146,20 @@ async function runGeneratingStage(context: BuildPipelineContext) {
   return { componentsRequiringBundles, generatedPages };
 }
 
-async function runPreparingStage(context: BuildPipelineContext) {
+async function runPreparingStage({
+  build,
+  project,
+  componentsRequiringBundles,
+  designSystemComponentsList,
+}: BuildPipelineContext) {
   logger.debug(`build pipeline stage = preparing`);
 
-  await updateBuild(context.build, {
-    stage: Stage.preparing,
-  });
+  await updateBuild(build, { stage: Stage.preparing });
 
-  await collectMissedComponents({
-    project: context.project!,
-    missedComponents: context.componentsRequiringBundles,
-    foundationKitComponent: context.designSystemComponentsList.find(
+  await createMissedComponents({
+    designSystemId: project!.settings.designSystemId,
+    missedComponents: componentsRequiringBundles,
+    foundationKitComponent: designSystemComponentsList.find(
       (component) => component.name === 'foundation-kit',
     )!,
   });
