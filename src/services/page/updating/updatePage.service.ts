@@ -8,13 +8,9 @@ import { logger } from '../../../lib/logger';
 import { getPageFolderPathFromUrl } from '../../../lib/url';
 import { Page } from '../../../models';
 import { Stage, Status } from '../../../types';
+import { convertComponentsToMap } from '../../component/component.service';
 import { commit } from '../../pipeline/commit.service';
-import {
-  convertToMap,
-  getMissedComponentsList,
-  generatePage,
-  getAbsolutePageFilePath,
-} from '../../pipeline/generating.service';
+import { generatePage, getAbsolutePageFilePath } from '../../pipeline/generating.service';
 import { runPipeline } from '../../pipeline/pipeline.service';
 import { rollback } from '../../pipeline/rollback.service';
 import {
@@ -27,6 +23,7 @@ import {
   updatePage,
   rollbackCompilationStage,
   rollbackExportStage,
+  runTeardownStage,
 } from '../page.service';
 
 export async function runPageUpdating({
@@ -68,6 +65,7 @@ export async function runPageUpdating({
     [Stage.compilation]: runCompilationStage,
     [Stage.export]: runExportStage,
     [Stage.commit]: runCommitStage,
+    [Stage.teardown]: runTeardownStage,
   };
 
   try {
@@ -98,11 +96,11 @@ async function runGeneratingStage({
 
   const { pageComponentsList } = await generatePage(
     workInProgressPage,
-    convertToMap(designSystemComponentsList),
+    convertComponentsToMap(designSystemComponentsList),
   );
 
   return {
-    componentsRequiringBundles: getMissedComponentsList(pageComponentsList),
+    componentsRequiringBundles: pageComponentsList,
   };
 }
 

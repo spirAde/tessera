@@ -18,6 +18,7 @@ export async function compile(projectPageUrls: string[]): Promise<void> {
 
 function getCommonWebpackConfig(projectPageUrls: string[]) {
   return {
+    bail: true,
     parallelism: 2,
     optimization: {
       emitOnErrors: true,
@@ -156,6 +157,7 @@ function unslashPageUrl(str: string) {
   return str.replace(/^\/|\/$/g, '');
 }
 
+// TODO: test that reject really throws exception blocking pipeline and runs rollback
 function runCompiler(config: Configuration) {
   const compiler = webpack(config);
 

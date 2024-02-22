@@ -9,8 +9,8 @@ var Stage;
   Stage['preparing'] = 'preparing';
   Stage['compilation'] = 'compilation';
   Stage['export'] = 'export';
-  Stage['cleanup'] = 'cleanup';
   Stage['commit'] = 'commit';
+  Stage['teardown'] = 'teardown';
 })((Stage = exports.Stage || (exports.Stage = {})));
 var Status;
 (function (Status) {

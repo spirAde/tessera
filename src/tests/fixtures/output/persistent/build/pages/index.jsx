@@ -2,13 +2,13 @@ import 'regenerator-runtime/runtime';
  import React, { useContext } from 'react';
  import { Helmet } from 'react-helmet';
 
-import SectionHeader from '@/components/section-header@1.0.2';
-import Header from '@/components/header@1.0.3';
-import Section from '@/components/section@1.0.5';
-import BannerBubble from '@/components/banner-bubble@1.0.7';
-import LayoutCard from '@/components/layout-card@1.0.3';
-import CardSolution from '@/components/card-solution@1.0.6';
-import Footer from '@/components/footer@1.0.2';
+import SectionHeader from '@/components/outer/section-header@1.0.2';
+import Header from '@/components/outer/header@1.0.3';
+import Section from '@/components/outer/section@1.0.5';
+import BannerBubble from '@/components/outer/banner-bubble@1.0.7';
+import LayoutCard from '@/components/outer/layout-card@1.0.3';
+import CardSolution from '@/components/outer/card-solution@1.0.6';
+import Footer from '@/components/outer/footer@1.0.2';
 
  import { ProjectContext } from '@/contexts/ProjectContext/ProjectContext';
 

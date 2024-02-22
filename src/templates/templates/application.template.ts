@@ -7,7 +7,7 @@ const _applicationTemplateContent = `
   import { ThemeProvider } from 'styled-components';
 	import loadable from '@loadable/component';
 	
-	import { Body } from '@/components/Body';
+	import { Project } from '@/components/inner/Project/Project';
 	import { ProjectContextProvider } from '@/contexts/ProjectContext/ProjectContextProvider';
 
 	__PROJECT_PAGES_LOADABLE_COMPONENTS__
@@ -19,12 +19,12 @@ const _applicationTemplateContent = `
 	export default function Application() {
 		return (
 		  <ThemeProvider theme={{ theme: 'main' }}>
-		    <ProjectContextProvider store={__PROJECT_INITIAL_STORE__}>
-          <Body>
+		    <ProjectContextProvider store={__PROJECT_INITIAL_STORE__} pages={{}}>
+          <Project>
             <Routes>
               __PROJECT_ROUTES__
             </Routes>
-          </Body>
+          </Project>
         </ProjectContextProvider>
       </ThemeProvider>
 		);

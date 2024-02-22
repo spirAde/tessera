@@ -7,15 +7,20 @@ import { logger } from '../../lib/logger';
 import { Build, BuildAttributes, BuildAttributesNew, Page } from '../../models';
 import { removeS3BucketFiles } from '../../sdk/minio.sdk';
 import { getProject, getProjectPages } from '../../sdk/platform/platform.sdk';
-import { ComponentLike, Project, ProjectPage } from '../../sdk/platform/types';
+import { Project, ProjectPage } from '../../sdk/platform/types';
 import { Stage, Status } from '../../types';
+import {
+  ComponentLike,
+  convertComponentsToMap,
+  getUniqueComponents,
+} from '../component/component.service';
 import { commit } from '../pipeline/commit.service';
 import { compile } from '../pipeline/compiling.service';
 import { exportPages } from '../pipeline/export.service';
 import { getDesignSystemComponentsList } from '../pipeline/fetching.service';
-import { convertToMap, createApplicationFile, generatePages } from '../pipeline/generating.service';
+import { createApplicationFile, generatePages } from '../pipeline/generating.service';
 import { runPipeline } from '../pipeline/pipeline.service';
-import { createMissedComponents } from '../pipeline/preparing.service';
+import { prepare } from '../pipeline/preparing.service';
 import { setupApplicationFolderEnvironment } from '../pipeline/setup.service';
 
 type BuildUpdate = Partial<BuildAttributes>;
@@ -25,6 +30,7 @@ type BuildPipelineContext = {
   projectPages: ProjectPage[];
   designSystemComponentsList: ComponentLike[];
   componentsRequiringBundles: ComponentLike[];
+  foundationKitComponent: ComponentLike | null;
 };
 
 export function getCurrentBuild(): Promise<Build | null> {
@@ -111,10 +117,19 @@ async function runFetchingStage({ build }: BuildPipelineContext) {
     project.settings.designSystemId,
   );
 
+  const foundationKitComponent = designSystemComponentsList.find(
+    (component) => component.name === 'foundation-kit',
+  );
+
+  if (!foundationKitComponent) {
+    throw new Error('missed foundation kit component');
+  }
+
   return {
     project,
     projectPages,
     designSystemComponentsList,
+    foundationKitComponent,
   } as Partial<BuildPipelineContext>;
 }
 
@@ -138,7 +153,7 @@ async function runGeneratingStage(context: BuildPipelineContext) {
 
   const { componentsRequiringBundles, generatedPages } = await generatePages(
     pages,
-    convertToMap(context.designSystemComponentsList),
+    convertComponentsToMap(context.designSystemComponentsList),
   );
 
   await createApplicationFile(generatedPages);
@@ -150,18 +165,16 @@ async function runPreparingStage({
   build,
   project,
   componentsRequiringBundles,
-  designSystemComponentsList,
+  foundationKitComponent,
 }: BuildPipelineContext) {
   logger.debug(`build pipeline stage = preparing`);
 
   await updateBuild(build, { stage: Stage.preparing });
 
-  await createMissedComponents({
+  await prepare({
     designSystemId: project!.settings.designSystemId,
-    missedComponents: componentsRequiringBundles,
-    foundationKitComponent: designSystemComponentsList.find(
-      (component) => component.name === 'foundation-kit',
-    )!,
+    foundationKitComponent: foundationKitComponent!,
+    components: getUniqueComponents(componentsRequiringBundles),
   });
 }
 
@@ -252,8 +265,7 @@ function createBuildPipelineContext(context: Partial<BuildPipelineContext> & { b
     projectPages: [],
     designSystemComponentsList: [],
     componentsRequiringBundles: [],
-    clientEmittedAssets: [],
-    serverEmittedAssets: [],
+    foundationKitComponent: null,
     ...context,
   };
 }

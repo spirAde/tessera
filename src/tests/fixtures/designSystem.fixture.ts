@@ -1,4 +1,6 @@
-export const designSystemFixture = [
+import {DesignSystemComponent} from "../../sdk/platform/types";
+
+export const designSystemFixture: DesignSystemComponent[] = [
   {
     title: 'Foundation Kit',
     sysName: 'foundation-kit',

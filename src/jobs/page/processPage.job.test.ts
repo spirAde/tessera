@@ -7,7 +7,9 @@ import {
   temporaryApplicationBuildFolderRootPath,
 } from '../../config';
 import { ProjectPageStructure } from '../../sdk/platform/types';
+import { JobName } from '../../services/enqueueJob.service';
 import { PipelineType } from '../../services/page/page.service';
+import { designSystemFixture } from '../../tests/fixtures/designSystem.fixture';
 import {
   pageStructureAboutFixture,
   pageStructureMainFixture,
@@ -18,11 +20,17 @@ import {
 import { projectT1CloudFixture } from '../../tests/fixtures/project.fixture';
 import { copyOutputFixture, hashFileSync } from '../../tests/helpers';
 import {
-  nockPlatformComponentSource,
-  nockPlatformDesignSystem,
-  nockPlatformProjectPage,
-  nockPlatformProject,
+  nockGetPlatformComponentSource,
+  nockGetPlatformDesignSystem,
+  nockGetPlatformProjectPage,
+  nockGetPlatformProject,
+  nockGetPageIdsUsingComponent,
 } from '../../tests/nocks/platform.nock';
+import {
+  expectJobsWereEnqueued,
+  expectJobsWereNotEnqueued,
+  mockEnqueue,
+} from '../../tests/queue.mock';
 import { seedBuild } from '../../tests/seeds/build.seed';
 import { seedPage } from '../../tests/seeds/page.seed';
 import { Stage, Status } from '../../types';
@@ -34,6 +42,8 @@ describe('processPageJob', () => {
 
   describe('create', () => {
     it('creates new page', async () => {
+      mockEnqueue();
+
       const build = await seedBuild({
         status: Status.success,
         stage: Stage.commit,
@@ -52,7 +62,18 @@ describe('processPageJob', () => {
         ),
       );
 
-      nockProjectEnvironmentForCreation();
+      nockGetPlatformProject();
+      nockGetPlatformDesignSystem({
+        designSystemId: projectT1CloudFixture.settings.designSystemId,
+      });
+      nockGetPlatformProjectPage({
+        pageId: pageStructureServiceCDNFixture.id,
+        body: pageStructureServiceCDNFixture as unknown as ProjectPageStructure,
+      });
+      nockGetPlatformComponentSource({
+        component: { version: '1.0.3', name: 'card-number' },
+        designSystemId: projectT1CloudFixture.settings.designSystemId,
+      });
 
       await processPageJob({
         id: '1',
@@ -91,6 +112,85 @@ describe('processPageJob', () => {
         'about-company',
         'about-company/index.html',
       ]);
+
+      expectJobsWereNotEnqueued([{ jobName: JobName.reexportPages }]);
+    });
+
+    it('enqueues reexport job if some components are expired', async () => {
+      mockEnqueue();
+
+      const build = await seedBuild({
+        status: Status.success,
+        stage: Stage.commit,
+      });
+
+      await Promise.all(
+        [pageStructureMainFixture, pageStructureServiceFixture, pageStructureAboutFixture].map(
+          (pageStructure) =>
+            seedPage({
+              buildId: build.id,
+              url: pageStructure.url,
+              externalId: pageStructure.id,
+              status: Status.success,
+              stage: Stage.commit,
+            }),
+        ),
+      );
+
+      nockGetPlatformProject();
+      nockGetPlatformDesignSystem({
+        designSystemId: projectT1CloudFixture.settings.designSystemId,
+        body: designSystemFixture.map((designSystemComponent) =>
+          designSystemComponent.sysName === 'section-header'
+            ? { ...designSystemComponent, version: '1.0.3' }
+            : designSystemComponent,
+        ),
+      });
+      nockGetPlatformProjectPage({
+        pageId: pageStructureServiceCDNFixture.id,
+        body: pageStructureServiceCDNFixture as unknown as ProjectPageStructure,
+      });
+      nockGetPlatformComponentSource({
+        component: { version: '1.0.3', name: 'card-number' },
+        designSystemId: projectT1CloudFixture.settings.designSystemId,
+      });
+      nockGetPlatformComponentSource({
+        component: { version: '1.0.3', name: 'section-header' },
+        designSystemId: projectT1CloudFixture.settings.designSystemId,
+      });
+      nockGetPageIdsUsingComponent({
+        component: { version: '1.0.3', name: 'section-header' },
+        designSystemId: projectT1CloudFixture.settings.designSystemId,
+        body: [
+          pageStructureMainFixture.id,
+          pageStructureServiceFixture.id,
+          pageStructureAboutFixture.id,
+        ],
+      });
+
+      await processPageJob({
+        id: '1',
+        name: 'create-page-job',
+        data: {
+          type: PipelineType.create,
+          externalId: pageStructureServiceCDNFixture.id,
+          url: pageStructureServiceCDNFixture.url,
+        },
+      });
+
+      expectJobsWereEnqueued([
+        {
+          jobName: JobName.reexportPages,
+          body: {
+            externalIds: [
+              pageStructureMainFixture.id,
+              pageStructureServiceFixture.id,
+              pageStructureAboutFixture.id,
+            ],
+            expiredComponents: [{ version: '1.0.2', name: 'section-header' }],
+          },
+        },
+      ]);
     });
 
     it('throws error if current build does not exist', async () => {
@@ -110,6 +210,8 @@ describe('processPageJob', () => {
 
   describe('update', () => {
     it('updates existing page', async () => {
+      mockEnqueue();
+
       const mainPageHtmlHash = hashFileSync(
         path.join(persistentApplicationExportFolderRootPath, 'pages/index.html'),
       );
@@ -145,7 +247,22 @@ describe('processPageJob', () => {
         stage: Stage.commit,
       });
 
-      nockProjectEnvironmentForUpdating();
+      nockGetPlatformProject();
+      nockGetPlatformDesignSystem({
+        designSystemId: projectT1CloudFixture.settings.designSystemId,
+      });
+      nockGetPlatformProjectPage({
+        pageId: pageStructureServiceUpdateFixture.id,
+        body: pageStructureServiceUpdateFixture as unknown as ProjectPageStructure,
+      });
+      nockGetPlatformComponentSource({
+        component: { version: '1.0.3', name: 'slider-case' },
+        designSystemId: projectT1CloudFixture.settings.designSystemId,
+      });
+      nockGetPlatformComponentSource({
+        component: { version: '1.0.1', name: 'slider-case-card' },
+        designSystemId: projectT1CloudFixture.settings.designSystemId,
+      });
 
       await processPageJob({
         id: '1',
@@ -195,6 +312,91 @@ describe('processPageJob', () => {
           path.join(persistentApplicationExportFolderRootPath, 'pages/service/index.html'),
         ),
       ).not.toEqual(servicePageHtmlHash);
+
+      expectJobsWereNotEnqueued([
+        {
+          jobName: JobName.reexportPages,
+        },
+      ]);
+    });
+
+    it('enqueues reexport job if some components are expired', async () => {
+      mockEnqueue();
+
+      const build = await seedBuild({
+        status: Status.success,
+        stage: Stage.commit,
+      });
+
+      await Promise.all(
+        [pageStructureMainFixture, pageStructureAboutFixture].map((pageStructure) =>
+          seedPage({
+            buildId: build.id,
+            url: pageStructure.url,
+            externalId: pageStructure.id,
+            status: Status.success,
+            stage: Stage.commit,
+          }),
+        ),
+      );
+
+      const updatingServicePage = await seedPage({
+        buildId: build.id,
+        url: pageStructureServiceFixture.url,
+        externalId: pageStructureServiceFixture.id,
+        status: Status.success,
+        stage: Stage.commit,
+      });
+
+      nockGetPlatformProject();
+      nockGetPlatformDesignSystem({
+        designSystemId: projectT1CloudFixture.settings.designSystemId,
+        body: designSystemFixture.map((designSystemComponent) =>
+          designSystemComponent.sysName === 'section-header'
+            ? { ...designSystemComponent, version: '1.0.3' }
+            : designSystemComponent,
+        ),
+      });
+      nockGetPlatformProjectPage({
+        pageId: pageStructureServiceUpdateFixture.id,
+        body: pageStructureServiceUpdateFixture as unknown as ProjectPageStructure,
+      });
+      nockGetPlatformComponentSource({
+        component: { version: '1.0.3', name: 'slider-case' },
+        designSystemId: projectT1CloudFixture.settings.designSystemId,
+      });
+      nockGetPlatformComponentSource({
+        component: { version: '1.0.1', name: 'slider-case-card' },
+        designSystemId: projectT1CloudFixture.settings.designSystemId,
+      });
+      nockGetPlatformComponentSource({
+        component: { version: '1.0.3', name: 'section-header' },
+        designSystemId: projectT1CloudFixture.settings.designSystemId,
+      });
+      nockGetPageIdsUsingComponent({
+        component: { version: '1.0.3', name: 'section-header' },
+        designSystemId: projectT1CloudFixture.settings.designSystemId,
+        body: [pageStructureMainFixture.id, pageStructureAboutFixture.id],
+      });
+
+      await processPageJob({
+        id: '1',
+        name: 'update-page-job',
+        data: {
+          type: PipelineType.update,
+          externalId: updatingServicePage.externalId,
+        },
+      });
+
+      expectJobsWereEnqueued([
+        {
+          jobName: JobName.reexportPages,
+          body: {
+            externalIds: [pageStructureMainFixture.id, pageStructureAboutFixture.id],
+            expiredComponents: [{ version: '1.0.2', name: 'section-header' }],
+          },
+        },
+      ]);
     });
 
     it('throws error if current build does not exist', async () => {
@@ -238,7 +440,7 @@ describe('processPageJob', () => {
         stage: Stage.commit,
       });
 
-      nockPlatformProject();
+      nockGetPlatformProject();
 
       await processPageJob({
         id: '1',
@@ -300,37 +502,3 @@ describe('processPageJob', () => {
     });
   });
 });
-
-function nockProjectEnvironmentForCreation() {
-  nockPlatformProject();
-  nockPlatformDesignSystem(projectT1CloudFixture.settings.designSystemId);
-
-  nockPlatformProjectPage({
-    pageId: pageStructureServiceCDNFixture.id,
-    body: pageStructureServiceCDNFixture as unknown as ProjectPageStructure,
-  });
-
-  nockPlatformComponentSource({
-    component: { version: '1.0.3', name: 'card-number' },
-    designSystemId: projectT1CloudFixture.settings.designSystemId,
-  });
-}
-
-function nockProjectEnvironmentForUpdating() {
-  nockPlatformProject();
-  nockPlatformDesignSystem(projectT1CloudFixture.settings.designSystemId);
-
-  nockPlatformProjectPage({
-    pageId: pageStructureServiceUpdateFixture.id,
-    body: pageStructureServiceUpdateFixture as unknown as ProjectPageStructure,
-  });
-
-  nockPlatformComponentSource({
-    component: { version: '1.0.3', name: 'slider-case' },
-    designSystemId: projectT1CloudFixture.settings.designSystemId,
-  });
-  nockPlatformComponentSource({
-    component: { version: '1.0.1', name: 'slider-case-card' },
-    designSystemId: projectT1CloudFixture.settings.designSystemId,
-  });
-}

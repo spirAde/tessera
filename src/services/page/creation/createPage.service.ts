@@ -9,13 +9,12 @@ import { logger } from '../../../lib/logger';
 import { getPageFolderPathFromUrl } from '../../../lib/url';
 import { Page } from '../../../models';
 import { Stage, Status } from '../../../types';
+import { convertComponentsToMap } from '../../component/component.service';
 import { commit } from '../../pipeline/commit.service';
 import {
-  convertToMap,
   createApplicationFile,
   generatePage,
   getAbsolutePageFilePath,
-  getMissedComponentsList,
   getPageComponentName,
 } from '../../pipeline/generating.service';
 import { runPipeline } from '../../pipeline/pipeline.service';
@@ -26,10 +25,11 @@ import {
   PagePipelineContext,
   rollbackCompilationStage,
   rollbackExportStage,
-  runCompilationStage,
-  runExportStage,
   runFetchingStage,
   runPreparingStage,
+  runCompilationStage,
+  runExportStage,
+  runTeardownStage,
   updatePage,
 } from '../page.service';
 
@@ -69,6 +69,7 @@ export async function runPageCreation({
     [Stage.compilation]: runCompilationStage,
     [Stage.export]: runExportStage,
     [Stage.commit]: runCommitStage,
+    [Stage.teardown]: runTeardownStage,
   };
 
   try {
@@ -100,7 +101,7 @@ async function runGeneratingStage({
 
   const { pageComponentsList } = await generatePage(
     workInProgressPage,
-    convertToMap(designSystemComponentsList),
+    convertComponentsToMap(designSystemComponentsList),
   );
 
   const generatedPages = [...projectPages, workInProgressPage].map((page) => ({
@@ -112,7 +113,7 @@ async function runGeneratingStage({
   await createApplicationFile(generatedPages);
 
   return {
-    componentsRequiringBundles: getMissedComponentsList(pageComponentsList),
+    componentsRequiringBundles: pageComponentsList,
     generatedPages,
   };
 }

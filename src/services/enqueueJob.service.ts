@@ -5,16 +5,19 @@ import PgBoss, { JobWithMetadata, SendOptions, WorkHandler } from 'pg-boss';
 import { pgConnectionString } from '../config';
 import { createBuildJob } from '../jobs/build/createBuild.job';
 import { processPageJob } from '../jobs/page/processPage.job';
+import { reexportPagesJob } from '../jobs/page/reexportPages.job';
 import { logger } from '../lib/logger';
 
 export enum JobName {
   createBuild = 'createBuild',
   processPage = 'processPage',
+  reexportPages = 'reexportPages',
 }
 
 const jobs = {
   [JobName.createBuild]: createBuildJob,
   [JobName.processPage]: processPageJob,
+  [JobName.reexportPages]: reexportPagesJob,
 };
 
 export const pgQueue = new PgBoss({

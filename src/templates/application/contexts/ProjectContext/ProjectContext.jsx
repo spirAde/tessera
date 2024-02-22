@@ -1,21 +1,9 @@
 import { createContext } from 'react';
 
-const initialSystemData = {
-  menu: null,
-  colorTheme: 'light',
-  businessTheme: 'main',
-};
-
-const initialUserLocation = {
-  userCountry: 'Россия',
-  userRegion: 'Москва',
-  userCity: 'Москва',
-};
-
 export const createProjectStore = (value) => {
-  const systemData = value?.systemData ?? initialSystemData;
+  const systemData = value?.systemData ?? {};
   const transferData = value?.transferData ?? {};
-  const userLocation = value?.userLocation ?? initialUserLocation;
+  const userLocation = value?.userLocation ?? {};
 
   return {
     systemData,
@@ -25,6 +13,6 @@ export const createProjectStore = (value) => {
 };
 
 export const ProjectContext = createContext({
-  breadcrumbs: [],
   store: createProjectStore(),
+  pages: {},
 });

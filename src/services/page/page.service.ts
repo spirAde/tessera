@@ -11,12 +11,14 @@ import { logger } from '../../lib/logger';
 import { getPageFolderPathFromUrl } from '../../lib/url';
 import { Page, PageAttributes, PageAttributesNew } from '../../models';
 import { getProject } from '../../sdk/platform/platform.sdk';
-import { ComponentLike, Project } from '../../sdk/platform/types';
+import { Project } from '../../sdk/platform/types';
 import { Stage } from '../../types';
+import { ComponentLike, getUniqueComponents } from '../component/component.service';
 import { compile } from '../pipeline/compiling.service';
 import { exportPages } from '../pipeline/export.service';
 import { getDesignSystemComponentsList } from '../pipeline/fetching.service';
-import { createMissedComponents } from '../pipeline/preparing.service';
+import { prepare } from '../pipeline/preparing.service';
+import { teardown } from '../pipeline/teardown.service';
 
 type PageUpdate = Partial<PageAttributes>;
 
@@ -33,6 +35,7 @@ export type PagePipelineContext = {
   workInProgressPage: Page;
   designSystemComponentsList: ComponentLike[];
   componentsRequiringBundles: ComponentLike[];
+  foundationKitComponent: ComponentLike | null;
 };
 
 export function createPage(values: PageAttributesNew): Promise<Page> {
@@ -50,6 +53,7 @@ export function createPagePipelineContext(
     project: null,
     designSystemComponentsList: [],
     componentsRequiringBundles: [],
+    foundationKitComponent: null,
     ...context,
   };
 }
@@ -57,6 +61,7 @@ export function createPagePipelineContext(
 export async function runFetchingStage({ workInProgressPage }: PagePipelineContext): Promise<{
   project: Project;
   designSystemComponentsList: ComponentLike[];
+  foundationKitComponent: ComponentLike;
 }> {
   logger.debug('page fetching stage');
 
@@ -66,10 +71,18 @@ export async function runFetchingStage({ workInProgressPage }: PagePipelineConte
   const designSystemComponentsList = await getDesignSystemComponentsList(
     project.settings.designSystemId,
   );
+  const foundationKitComponent = designSystemComponentsList.find(
+    (component) => component.name === 'foundation-kit',
+  );
+
+  if (!foundationKitComponent) {
+    throw new Error('missed foundation kit component');
+  }
 
   return {
     project: project as Project,
     designSystemComponentsList,
+    foundationKitComponent,
   };
 }
 
@@ -77,18 +90,16 @@ export async function runPreparingStage({
   project,
   workInProgressPage,
   componentsRequiringBundles,
-  designSystemComponentsList,
+  foundationKitComponent,
 }: PagePipelineContext): Promise<void> {
   logger.debug(`page preparing stage`);
 
   await updatePage(workInProgressPage, { stage: Stage.preparing });
 
-  await createMissedComponents({
+  await prepare({
+    foundationKitComponent: foundationKitComponent!,
     designSystemId: project!.settings.designSystemId,
-    missedComponents: componentsRequiringBundles,
-    foundationKitComponent: designSystemComponentsList.find(
-      (component) => component.name === 'foundation-kit',
-    )!,
+    components: getUniqueComponents(componentsRequiringBundles),
   });
 }
 
@@ -112,6 +123,20 @@ export async function runExportStage({
   await updatePage(workInProgressPage, { stage: Stage.export });
 
   await exportPages([...projectPages, workInProgressPage]);
+}
+
+export async function runTeardownStage({
+  project,
+  workInProgressPage,
+  componentsRequiringBundles,
+}: PagePipelineContext): Promise<void> {
+  logger.debug('page teardown stage');
+
+  await teardown({
+    workInProgressPage,
+    components: componentsRequiringBundles,
+    designSystemId: project!.settings.designSystemId,
+  });
 }
 
 export async function rollbackCompilationStage(): Promise<void> {

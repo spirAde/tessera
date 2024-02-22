@@ -10,8 +10,8 @@ module.exports = {
         'preparing',
         'compilation',
         'export',
-        'cleanup',
-        'commit'
+        'commit',
+        'teardown'
       );
   
       CREATE TYPE "status" AS ENUM (

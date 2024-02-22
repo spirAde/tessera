@@ -5,7 +5,8 @@ import path from 'path';
 import { createBuildJob } from './createBuild.job';
 import { outputFolderPath, temporaryApplicationBuildFolderRootPath } from '../../config';
 import { Build } from '../../models';
-import { ComponentLike, ProjectPageStructure } from '../../sdk/platform/types';
+import { ProjectPageStructure } from '../../sdk/platform/types';
+import { ComponentLike } from '../../services/component/component.service';
 import {
   pageStructureMainFixture,
   pageStructureServiceFixture,
@@ -14,11 +15,11 @@ import {
 } from '../../tests/fixtures/pageStructure.fixture';
 import { projectT1CloudFixture } from '../../tests/fixtures/project.fixture';
 import {
-  nockPlatformProject,
-  nockPlatformProjectPages,
-  nockPlatformDesignSystem,
-  nockPlatformProjectPage,
-  nockPlatformComponentSource,
+  nockGetPlatformProject,
+  nockGetPlatformProjectPages,
+  nockGetPlatformDesignSystem,
+  nockGetPlatformProjectPage,
+  nockGetPlatformComponentSource,
 } from '../../tests/nocks/platform.nock';
 import { Stage, Status } from '../../types';
 
@@ -38,7 +39,9 @@ describe('createBuildJob', () => {
       pageStructureAboutFixture,
     ] as unknown as ProjectPageStructure[];
 
-    nockProjectEnvironment(pages);
+    nockGetPlatformProject();
+    nockGetPlatformProjectPages({ body: pages });
+    nockGetPlatformDesignSystem({ designSystemId: projectT1CloudFixture.settings.designSystemId });
     nockProjectPages(pages);
     nockProjectComponentsSources(pages);
 
@@ -70,9 +73,8 @@ describe('createBuildJob', () => {
     ]);
 
     expect(
-      readdirSync(path.join(temporaryApplicationBuildFolderRootPath, 'components')),
+      readdirSync(path.join(temporaryApplicationBuildFolderRootPath, 'components/outer')),
     ).toIncludeSameMembers([
-      'Body.jsx',
       'banner-bubble@1.0.7.js',
       'banner-head@1.0.5.js',
       'card-solution@1.0.6.js',
@@ -124,17 +126,19 @@ describe('createBuildJob', () => {
       pageStructureAboutFixture,
     ] as unknown as ProjectPageStructure[];
 
-    nockProjectEnvironment(pages);
-    nockPlatformProjectPage({
+    nockGetPlatformProject();
+    nockGetPlatformProjectPages({ body: pages });
+    nockGetPlatformDesignSystem({ designSystemId: projectT1CloudFixture.settings.designSystemId });
+    nockGetPlatformProjectPage({
       pageId: pageStructureMainFixture.id,
       body: pageStructureMainFixture as unknown as ProjectPageStructure,
     });
-    nockPlatformProjectPage({
+    nockGetPlatformProjectPage({
       pageId: pageStructureServiceFixture.id,
       body: 'unknown error',
       status: 404,
     });
-    nockPlatformProjectPage({
+    nockGetPlatformProjectPage({
       pageId: pageStructureAboutFixture.id,
       body: pageStructureAboutFixture as unknown as ProjectPageStructure,
     });
@@ -184,17 +188,24 @@ describe('createBuildJob', () => {
       }),
     ]);
   });
-});
 
-function nockProjectEnvironment(pages: ProjectPageStructure[]) {
-  nockPlatformProject();
-  nockPlatformProjectPages({ body: pages });
-  nockPlatformDesignSystem(projectT1CloudFixture.settings.designSystemId);
-}
+  it('throws error if foundation kit is missed', async () => {
+    nockGetPlatformProject();
+    nockGetPlatformProjectPages({ body: [] });
+    nockGetPlatformDesignSystem({
+      designSystemId: projectT1CloudFixture.settings.designSystemId,
+      body: [],
+    });
+
+    await expect(createBuildJob({ id: '1', name: 'create-build-job', data: {} })).rejects.toThrow(
+      'missed foundation kit component',
+    );
+  });
+});
 
 function nockProjectPages(pages: ProjectPageStructure[]) {
   for (const page of pages) {
-    nockPlatformProjectPage({ pageId: page.id, body: page });
+    nockGetPlatformProjectPage({ pageId: page.id, body: page });
   }
 }
 
@@ -211,7 +222,7 @@ function nockProjectComponentsSources(pages: ProjectPageStructure[]) {
   ];
 
   for (const component of components) {
-    nockPlatformComponentSource({
+    nockGetPlatformComponentSource({
       component,
       designSystemId: projectT1CloudFixture.settings.designSystemId,
     });

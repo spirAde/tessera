@@ -64,7 +64,7 @@ export const pageStructureMainFixture = {
       sysName: '7c3834e0-9051-4db3-9f17-16df2efe5ab3',
       title: 'Секция для хедера',
       objectTypeSysName: 'section-header',
-      version: '1.0.0',
+      version: '1.0.2',
       componentName: 'section-header',
       result: {
         id: '',
@@ -395,7 +395,7 @@ export const pageStructureServiceFixture = {
       sysName: 'bbb3b2f5-a9ee-4471-9e15-0a20fb7e6d37',
       title: 'Секция для хедера',
       objectTypeSysName: 'section-header',
-      version: '1.0.0',
+      version: '1.0.2',
       componentName: 'section-header',
       result: {
         id: '',
@@ -571,7 +571,7 @@ export const pageStructureServiceCDNFixture = {
       sysName: '9bca2ff3-806f-4555-ae61-bd854741cb4b',
       title: 'Секция для хедера',
       objectTypeSysName: 'section-header',
-      version: '1.0.0',
+      version: '1.0.2',
       componentName: 'section-header',
       result: {
         id: '',
@@ -841,7 +841,7 @@ export const pageStructureAboutFixture = {
       sysName: 'b396fd3c-2f4f-49f0-a335-759ec17e24da',
       title: 'Секция для хедера',
       objectTypeSysName: 'section-header',
-      version: '1.0.0',
+      version: '1.0.2',
       componentName: 'section-header',
       result: {
         id: '',
@@ -1814,7 +1814,6 @@ export const pageComponentsByPageId = {
     { version: '1.0.3', name: 'header' },
     { version: '1.0.5', name: 'section' },
     { version: '1.0.5', name: 'banner-head' },
-    { version: '1.0.0', name: 'footer' },
     { version: '1.0.3', name: 'layout-card' },
     { version: '1.0.3', name: 'card-number' },
     { version: '1.0.2', name: 'footer' },

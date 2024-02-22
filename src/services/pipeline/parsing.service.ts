@@ -1,10 +1,7 @@
 import uniqBy from 'lodash/uniqBy';
 
-import {
-  ProjectPageStructureComponent,
-  ProjectPageStructure,
-  ComponentLike,
-} from '../../sdk/platform/types';
+import { ProjectPageStructureComponent, ProjectPageStructure } from '../../sdk/platform/types';
+import { ComponentLike } from '../component/component.service';
 
 export function parsePageStructureComponentsList(
   pageStructure: ProjectPageStructure,

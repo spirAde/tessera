@@ -1,6 +1,9 @@
 import { logger } from '../../lib/logger';
 import { getProjectDesignSystemComponents } from '../../sdk/platform/platform.sdk';
-import { ComponentLike, DesignSystemComponent } from '../../sdk/platform/types';
+import {
+  ComponentLike,
+  mapDesignSystemComponentToComponentLike,
+} from '../component/component.service';
 
 export async function getDesignSystemComponentsList(
   designSystemId: number,
@@ -10,13 +13,4 @@ export async function getDesignSystemComponentsList(
   const designSystemComponentsList = await getProjectDesignSystemComponents(designSystemId);
 
   return mapDesignSystemComponentToComponentLike(designSystemComponentsList);
-}
-
-function mapDesignSystemComponentToComponentLike(
-  designSystemComponentsList: DesignSystemComponent[],
-) {
-  return designSystemComponentsList.map((designSystemComponent) => ({
-    name: designSystemComponent.sysName,
-    version: designSystemComponent.version,
-  })) as ComponentLike[];
 }

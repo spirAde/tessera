@@ -4,7 +4,7 @@ import 'regenerator-runtime/runtime';
  import { ThemeProvider } from 'styled-components';
 import loadable from '@loadable/component';
 
-import { Body } from '@/components/Body';
+import { Project } from '@/components/inner/Project/Project';
 import { ProjectContextProvider } from '@/contexts/ProjectContext/ProjectContextProvider';
 
 const PageMain = loadable(() => import('/home/spirade/WebstormProjects/tessera/output/temporary/build/pages/index.jsx'))
@@ -18,14 +18,14 @@ const PageAboutCompany = loadable(() => import('/home/spirade/WebstormProjects/t
 export default function Application() {
 	return (
 	  <ThemeProvider theme={{ theme: 'main' }}>
-	    <ProjectContextProvider store={{"systemData":{"mediaHost":"https://admin.t1-academy.ru/api/mediastorage"}}}>
-         <Body>
+	    <ProjectContextProvider store={{"systemData":{"mediaHost":"https://admin.t1-academy.ru/api/mediastorage"}}} pages={{}}>
+         <Project>
            <Routes>
              <Route exact path="/" element={<PageMain />} />
 <Route exact path="/service" element={<PageService />} />
 <Route exact path="/about-company" element={<PageAboutCompany />} />
            </Routes>
-         </Body>
+         </Project>
        </ProjectContextProvider>
      </ThemeProvider>
 	);

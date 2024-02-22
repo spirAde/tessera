@@ -47,8 +47,8 @@ export declare enum Stage {
   preparing = 'preparing',
   compilation = 'compilation',
   export = 'export',
-  cleanup = 'cleanup',
   commit = 'commit',
+  teardown = 'teardown',
 }
 export declare enum Status {
   progress = 'progress',

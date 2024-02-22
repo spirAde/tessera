@@ -6,11 +6,6 @@ export type ProjectPageStructureSeoProps = {
   uiOrder: number;
 };
 
-export type ComponentLike = {
-  name: string;
-  version: string;
-};
-
 export type ProjectPageStructureComponent = {
   id: number;
   uuid: string;
@@ -36,7 +31,6 @@ export type Project = {
 };
 
 export type DesignSystemComponent = {
-  id: number;
   title: string;
   sysName: string;
   version: string;

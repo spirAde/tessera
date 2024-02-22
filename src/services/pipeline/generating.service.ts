@@ -1,21 +1,14 @@
 import { stripIndent } from 'common-tags';
-import { outputFile, readdirSync } from 'fs-extra';
-import difference from 'lodash/difference';
+import { outputFile } from 'fs-extra';
 import escape from 'lodash/escape';
 import upperFirst from 'lodash/upperFirst';
-import os from 'os';
 import path from 'path';
-import piscina from 'piscina';
 
 import {
   normalizePageComponentsVersionsGivenDesignSystem,
   parsePageStructureComponentsList,
 } from './parsing.service';
-import {
-  useWorkerThreadsProcessing,
-  rootFolderPath,
-  temporaryApplicationBuildFolderRootPath,
-} from '../../config';
+import { useWorkerThreadsProcessing, temporaryApplicationBuildFolderRootPath } from '../../config';
 import { logger } from '../../lib/logger';
 import { isFulfilled } from '../../lib/promise';
 import { getRandomString } from '../../lib/random';
@@ -23,7 +16,6 @@ import { getPageFolderPathFromUrl } from '../../lib/url';
 import { Page } from '../../models';
 import { getProjectPageStructure } from '../../sdk/platform/platform.sdk';
 import {
-  ComponentLike,
   ProjectPageStructureComponent,
   ProjectPageStructureMetaItemProps,
   ProjectPageStructureMetaProps,
@@ -33,7 +25,9 @@ import {
 import { getApplicationFileContent } from '../../templates/templates/application.template';
 import { getApplicationPageFileContent } from '../../templates/templates/page.template';
 import { Stage, Status } from '../../types';
+import { ComponentLike } from '../component/component.service';
 import { updatePage } from '../page/page.service';
+import { createPool } from '../thread.service';
 
 type GeneratedPage = {
   pageUrl: string;
@@ -41,7 +35,6 @@ type GeneratedPage = {
   pageName: string;
 };
 
-const Piscina = piscina.Piscina;
 const maxPageNameLength = 42;
 const ignoreProps = [
   'components',
@@ -120,13 +113,6 @@ export function generatePages(
   return processGeneratingInMainThread(pages, designSystemComponentsMap);
 }
 
-export function convertToMap(components: ComponentLike[]): Map<string, string> {
-  return components.reduce(
-    (map, component) => map.set(component.name, component.version),
-    new Map<string, string>(),
-  );
-}
-
 export function getPageComponentName(pageFolderPath: string): string {
   const folderName = pageFolderPath.split('/').reverse()[0];
   return folderName
@@ -141,22 +127,6 @@ export function getAbsolutePageFilePath(
   prefix = temporaryApplicationBuildFolderRootPath,
 ): string {
   return path.join(prefix, 'pages', pageFolderPath, 'index.jsx');
-}
-
-export function getMissedComponentsList(componentsList: ComponentLike[]): ComponentLike[] {
-  const currentComponentFiles = readdirSync(
-    path.join(temporaryApplicationBuildFolderRootPath, 'components'),
-  );
-
-  const missedComponentFiles = difference(
-    componentsList.map(({ name, version }) => `${name}@${version}.js`),
-    currentComponentFiles,
-  );
-
-  return missedComponentFiles.map((componentFile) => {
-    const [name, version] = componentFile.replace('.js', '').split('@');
-    return { name, version };
-  }) as ComponentLike[];
 }
 
 async function createApplicationPageFile(
@@ -194,10 +164,7 @@ async function processGeneratingInWorkerThreads(
   pages: Page[],
   designSystemComponentsMap: Map<string, string>,
 ) {
-  const pool = new Piscina({
-    filename: path.join(rootFolderPath, 'dist/workers/generating.worker.js'),
-    maxThreads: os.cpus().length - 1,
-  });
+  const pool = createPool(Stage.generating);
 
   const promises: Promise<{
     pageFilePath: string;
@@ -369,7 +336,7 @@ function getApplicationRoutes(generatedPages: GeneratedPage[]) {
 function getPageComponentsImports(componentsList: ComponentLike[]) {
   return componentsList
     .map(({ name, version }) => {
-      return `import ${getHumanReadableComponentName(name)} from '@/components/${name}@${version}';`;
+      return `import ${getHumanReadableComponentName(name)} from '@/components/outer/${name}@${version}';`;
     })
     .join('\n');
 }

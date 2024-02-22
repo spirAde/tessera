@@ -1,42 +1,42 @@
 {
   "name": "server",
-  "hash": "8f05a6d9c7002a4b82dc",
+  "hash": "8af2e61b73f9018e55da",
   "publicPath": "/static/",
   "outputPath": "/home/spirade/WebstormProjects/tessera/output/temporary/build/build/server/",
   "assetsByChunkName": {
     "pages/index": [
-      "pages/index.9f65a2af850cd976c18e.js"
+      "pages/index.ee89bdb596818f7ac074.js"
     ],
     "pages/service": [
-      "pages/service.72090bbf29a70d13409c.js"
+      "pages/service.28250ea6b63319fc463b.js"
     ],
     "pages/about-company": [
-      "pages/about-company.6734a2d9a713b88c1bb4.js"
+      "pages/about-company.b5b722f865c4cd4d3fcb.js"
     ],
     "application-server": [
-      "application-server.117ee114f910af7d55ba.js"
+      "application-server.d3fd1631bd31475349d7.js"
     ],
     "home-spirade-WebstormProjects-tessera-output-temporary-build-pages-index-jsx": [
-      "9f9c0f869be926dfe670.chunk.js"
+      "7cc6def1a921a0c17568.chunk.js"
     ],
     "home-spirade-WebstormProjects-tessera-output-temporary-build-pages-service-index-jsx": [
-      "4cf68bd0c1c05b6633bd.chunk.js"
+      "a8c36cf09036e5e4dd01.chunk.js"
     ],
     "home-spirade-WebstormProjects-tessera-output-temporary-build-pages-about-company-index-jsx": [
-      "598a938083400d541262.chunk.js"
+      "5975399ff35ec4c447e5.chunk.js"
     ]
   },
   "assets": [
     {
       "type": "asset",
-      "name": "application-server.117ee114f910af7d55ba.js",
-      "size": 12813,
+      "name": "application-server.d3fd1631bd31475349d7.js",
+      "size": 14359,
       "emitted": false,
       "comparedForEmit": false,
       "cached": true,
       "info": {
         "immutable": true,
-        "contenthash": "117ee114f910af7d55ba",
+        "contenthash": "d3fd1631bd31475349d7",
         "javascriptModule": false,
         "minimized": true
       },
@@ -54,14 +54,14 @@
     },
     {
       "type": "asset",
-      "name": "pages/about-company.6734a2d9a713b88c1bb4.js",
-      "size": 12261,
+      "name": "pages/about-company.b5b722f865c4cd4d3fcb.js",
+      "size": 12262,
       "emitted": false,
       "comparedForEmit": false,
       "cached": true,
       "info": {
         "immutable": true,
-        "contenthash": "6734a2d9a713b88c1bb4",
+        "contenthash": "b5b722f865c4cd4d3fcb",
         "javascriptModule": false,
         "minimized": true
       },
@@ -79,14 +79,14 @@
     },
     {
       "type": "asset",
-      "name": "598a938083400d541262.chunk.js",
-      "size": 9256,
+      "name": "5975399ff35ec4c447e5.chunk.js",
+      "size": 9257,
       "emitted": false,
       "comparedForEmit": false,
       "cached": true,
       "info": {
         "immutable": true,
-        "contenthash": "598a938083400d541262",
+        "contenthash": "5975399ff35ec4c447e5",
         "javascriptModule": false,
         "minimized": true
       },
@@ -103,14 +103,14 @@
     },
     {
       "type": "asset",
-      "name": "pages/index.9f65a2af850cd976c18e.js",
-      "size": 8319,
+      "name": "pages/index.ee89bdb596818f7ac074.js",
+      "size": 8320,
       "emitted": false,
       "comparedForEmit": false,
       "cached": true,
       "info": {
         "immutable": true,
-        "contenthash": "9f65a2af850cd976c18e",
+        "contenthash": "ee89bdb596818f7ac074",
         "javascriptModule": false,
         "minimized": true
       },
@@ -128,14 +128,14 @@
     },
     {
       "type": "asset",
-      "name": "pages/service.72090bbf29a70d13409c.js",
+      "name": "pages/service.28250ea6b63319fc463b.js",
       "size": 7186,
       "emitted": false,
       "comparedForEmit": false,
       "cached": true,
       "info": {
         "immutable": true,
-        "contenthash": "72090bbf29a70d13409c",
+        "contenthash": "28250ea6b63319fc463b",
         "javascriptModule": false,
         "minimized": true
       },
@@ -153,14 +153,14 @@
     },
     {
       "type": "asset",
-      "name": "9f9c0f869be926dfe670.chunk.js",
-      "size": 5314,
+      "name": "7cc6def1a921a0c17568.chunk.js",
+      "size": 5315,
       "emitted": false,
       "comparedForEmit": false,
       "cached": true,
       "info": {
         "immutable": true,
-        "contenthash": "9f9c0f869be926dfe670",
+        "contenthash": "7cc6def1a921a0c17568",
         "javascriptModule": false,
         "minimized": true
       },
@@ -177,14 +177,14 @@
     },
     {
       "type": "asset",
-      "name": "4cf68bd0c1c05b6633bd.chunk.js",
+      "name": "a8c36cf09036e5e4dd01.chunk.js",
       "size": 3935,
       "emitted": false,
       "comparedForEmit": false,
       "cached": true,
       "info": {
         "immutable": true,
-        "contenthash": "4cf68bd0c1c05b6633bd",
+        "contenthash": "a8c36cf09036e5e4dd01",
         "javascriptModule": false,
         "minimized": true
       },
@@ -201,14 +201,14 @@
     },
     {
       "type": "asset",
-      "name": "680.e19bbd9d4ad6493f7abe.js",
+      "name": "352.7d58c10835734f98b4ae.js",
       "size": 3415,
       "emitted": false,
       "comparedForEmit": false,
       "cached": true,
       "info": {
         "immutable": true,
-        "contenthash": "e19bbd9d4ad6493f7abe",
+        "contenthash": "7d58c10835734f98b4ae",
         "javascriptModule": false,
         "minimized": true
       },
@@ -217,20 +217,20 @@
       "auxiliaryChunkNames": [],
       "auxiliaryChunkIdHints": [],
       "chunks": [
-        680
+        352
       ],
       "auxiliaryChunks": []
     },
     {
       "type": "asset",
-      "name": "692.5d0bbd42b97a8ac135f6.js",
+      "name": "696.ff8f76deb420dacadf20.js",
       "size": 3414,
       "emitted": false,
       "comparedForEmit": false,
       "cached": true,
       "info": {
         "immutable": true,
-        "contenthash": "5d0bbd42b97a8ac135f6",
+        "contenthash": "ff8f76deb420dacadf20",
         "javascriptModule": false,
         "minimized": true
       },
@@ -239,20 +239,20 @@
       "auxiliaryChunkNames": [],
       "auxiliaryChunkIdHints": [],
       "chunks": [
-        692
+        696
       ],
       "auxiliaryChunks": []
     },
     {
       "type": "asset",
-      "name": "800.ca0d9fabd86abaaf8c95.js",
-      "size": 2573,
+      "name": "456.7ffa4c858ee0e1cf9c55.js",
+      "size": 2574,
       "emitted": false,
       "comparedForEmit": false,
       "cached": true,
       "info": {
         "immutable": true,
-        "contenthash": "ca0d9fabd86abaaf8c95",
+        "contenthash": "7ffa4c858ee0e1cf9c55",
         "javascriptModule": false,
         "minimized": true
       },
@@ -261,20 +261,20 @@
       "auxiliaryChunkNames": [],
       "auxiliaryChunkIdHints": [],
       "chunks": [
-        800
+        456
       ],
       "auxiliaryChunks": []
     },
     {
       "type": "asset",
-      "name": "472.cdb2fb07ddb4f9c43b6a.js",
-      "size": 506,
+      "name": "472.ec5eb38411a8dd8c186b.js",
+      "size": 368,
       "emitted": false,
       "comparedForEmit": false,
       "cached": true,
       "info": {
         "immutable": true,
-        "contenthash": "cdb2fb07ddb4f9c43b6a",
+        "contenthash": "ec5eb38411a8dd8c186b",
         "javascriptModule": false,
         "minimized": true
       },
@@ -292,23 +292,23 @@
     "pages/index": {
       "name": "pages/index",
       "chunks": [
-        680,
+        696,
         472,
-        800,
+        456,
         124
       ],
       "assets": [
         {
-          "name": "680.e19bbd9d4ad6493f7abe.js"
+          "name": "696.ff8f76deb420dacadf20.js"
         },
         {
-          "name": "472.cdb2fb07ddb4f9c43b6a.js"
+          "name": "472.ec5eb38411a8dd8c186b.js"
         },
         {
-          "name": "800.ca0d9fabd86abaaf8c95.js"
+          "name": "456.7ffa4c858ee0e1cf9c55.js"
         },
         {
-          "name": "pages/index.9f65a2af850cd976c18e.js"
+          "name": "pages/index.ee89bdb596818f7ac074.js"
         }
       ],
       "filteredAssets": 0,
@@ -321,19 +321,19 @@
     "pages/service": {
       "name": "pages/service",
       "chunks": [
-        680,
+        696,
         472,
         620
       ],
       "assets": [
         {
-          "name": "680.e19bbd9d4ad6493f7abe.js"
+          "name": "696.ff8f76deb420dacadf20.js"
         },
         {
-          "name": "472.cdb2fb07ddb4f9c43b6a.js"
+          "name": "472.ec5eb38411a8dd8c186b.js"
         },
         {
-          "name": "pages/service.72090bbf29a70d13409c.js"
+          "name": "pages/service.28250ea6b63319fc463b.js"
         }
       ],
       "filteredAssets": 0,
@@ -346,23 +346,23 @@
     "pages/about-company": {
       "name": "pages/about-company",
       "chunks": [
-        680,
+        696,
         472,
-        692,
+        352,
         852
       ],
       "assets": [
         {
-          "name": "680.e19bbd9d4ad6493f7abe.js"
+          "name": "696.ff8f76deb420dacadf20.js"
         },
         {
-          "name": "472.cdb2fb07ddb4f9c43b6a.js"
+          "name": "472.ec5eb38411a8dd8c186b.js"
         },
         {
-          "name": "692.5d0bbd42b97a8ac135f6.js"
+          "name": "352.7d58c10835734f98b4ae.js"
         },
         {
-          "name": "pages/about-company.6734a2d9a713b88c1bb4.js"
+          "name": "pages/about-company.b5b722f865c4cd4d3fcb.js"
         }
       ],
       "filteredAssets": 0,
@@ -379,7 +379,7 @@
       ],
       "assets": [
         {
-          "name": "application-server.117ee114f910af7d55ba.js"
+          "name": "application-server.d3fd1631bd31475349d7.js"
         }
       ],
       "filteredAssets": 0,
@@ -392,19 +392,19 @@
     "home-spirade-WebstormProjects-tessera-output-temporary-build-pages-index-jsx": {
       "name": "home-spirade-WebstormProjects-tessera-output-temporary-build-pages-index-jsx",
       "chunks": [
-        680,
-        800,
+        696,
+        456,
         528
       ],
       "assets": [
         {
-          "name": "680.e19bbd9d4ad6493f7abe.js"
+          "name": "696.ff8f76deb420dacadf20.js"
         },
         {
-          "name": "800.ca0d9fabd86abaaf8c95.js"
+          "name": "456.7ffa4c858ee0e1cf9c55.js"
         },
         {
-          "name": "9f9c0f869be926dfe670.chunk.js"
+          "name": "7cc6def1a921a0c17568.chunk.js"
         }
       ],
       "filteredAssets": 0,
@@ -417,15 +417,15 @@
     "home-spirade-WebstormProjects-tessera-output-temporary-build-pages-service-index-jsx": {
       "name": "home-spirade-WebstormProjects-tessera-output-temporary-build-pages-service-index-jsx",
       "chunks": [
-        680,
+        696,
         920
       ],
       "assets": [
         {
-          "name": "680.e19bbd9d4ad6493f7abe.js"
+          "name": "696.ff8f76deb420dacadf20.js"
         },
         {
-          "name": "4cf68bd0c1c05b6633bd.chunk.js"
+          "name": "a8c36cf09036e5e4dd01.chunk.js"
         }
       ],
       "filteredAssets": 0,
@@ -438,19 +438,19 @@
     "home-spirade-WebstormProjects-tessera-output-temporary-build-pages-about-company-index-jsx": {
       "name": "home-spirade-WebstormProjects-tessera-output-temporary-build-pages-about-company-index-jsx",
       "chunks": [
-        680,
-        692,
+        696,
+        352,
         544
       ],
       "assets": [
         {
-          "name": "680.e19bbd9d4ad6493f7abe.js"
+          "name": "696.ff8f76deb420dacadf20.js"
         },
         {
-          "name": "692.5d0bbd42b97a8ac135f6.js"
+          "name": "352.7d58c10835734f98b4ae.js"
         },
         {
-          "name": "598a938083400d541262.chunk.js"
+          "name": "5975399ff35ec4c447e5.chunk.js"
         }
       ],
       "filteredAssets": 0,
@@ -466,67 +466,67 @@
     {
       "id": 124,
       "files": [
-        "pages/index.9f65a2af850cd976c18e.js"
+        "pages/index.ee89bdb596818f7ac074.js"
       ]
     },
     {
       "id": 620,
       "files": [
-        "pages/service.72090bbf29a70d13409c.js"
+        "pages/service.28250ea6b63319fc463b.js"
       ]
     },
     {
       "id": 852,
       "files": [
-        "pages/about-company.6734a2d9a713b88c1bb4.js"
+        "pages/about-company.b5b722f865c4cd4d3fcb.js"
       ]
     },
     {
       "id": 856,
       "files": [
-        "application-server.117ee114f910af7d55ba.js"
+        "application-server.d3fd1631bd31475349d7.js"
       ]
     },
     {
       "id": 528,
       "files": [
-        "9f9c0f869be926dfe670.chunk.js"
+        "7cc6def1a921a0c17568.chunk.js"
       ]
     },
     {
       "id": 920,
       "files": [
-        "4cf68bd0c1c05b6633bd.chunk.js"
+        "a8c36cf09036e5e4dd01.chunk.js"
       ]
     },
     {
       "id": 544,
       "files": [
-        "598a938083400d541262.chunk.js"
+        "5975399ff35ec4c447e5.chunk.js"
       ]
     },
     {
-      "id": 680,
+      "id": 696,
       "files": [
-        "680.e19bbd9d4ad6493f7abe.js"
+        "696.ff8f76deb420dacadf20.js"
       ]
     },
     {
       "id": 472,
       "files": [
-        "472.cdb2fb07ddb4f9c43b6a.js"
+        "472.ec5eb38411a8dd8c186b.js"
       ]
     },
     {
-      "id": 692,
+      "id": 352,
       "files": [
-        "692.5d0bbd42b97a8ac135f6.js"
+        "352.7d58c10835734f98b4ae.js"
       ]
     },
     {
-      "id": 800,
+      "id": 456,
       "files": [
-        "800.ca0d9fabd86abaaf8c95.js"
+        "456.7ffa4c858ee0e1cf9c55.js"
       ]
     }
   ]

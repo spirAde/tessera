@@ -2,13 +2,7 @@
 
 import got from 'got';
 
-import {
-  ProjectPage,
-  DesignSystemComponent,
-  ComponentLike,
-  Project,
-  ProjectPageStructure,
-} from './types';
+import { ProjectPage, DesignSystemComponent, Project, ProjectPageStructure } from './types';
 import { isTest, platformHost, projectSysName, projectPagesStatus } from '../../config';
 import { designSystemMock } from '../../mocks/designSystem.mock';
 import { pagesMock, projectPagesMock } from '../../mocks/pages.mock';
@@ -70,7 +64,10 @@ export function getProjectDesignSystemComponents(
       );
 }
 
-export function getDesignSystemComponentSource(designSystemId: number, component: ComponentLike) {
+export function getDesignSystemComponentSource(
+  designSystemId: number,
+  component: { name: string; version: string },
+) {
   return isTest
     ? client
         .get(
@@ -78,4 +75,17 @@ export function getDesignSystemComponentSource(designSystemId: number, component
         )
         .text()
     : client.get(`http://localhost:3025/api/${component.name}@${component.version}.js`).text();
+}
+
+export function getPageIdsUsingComponent(
+  designSystemId: number,
+  component: { name: string; version: string },
+): Promise<number[]> {
+  return isTest
+    ? client
+        .get(
+          `${platformHost}/api/v1/sitepages/page/list-by-component?designSystemId=${designSystemId}&componentName=${component.name}`,
+        )
+        .json()
+    : new Promise((resolve) => setTimeout(() => resolve([] as number[]), 1000));
 }

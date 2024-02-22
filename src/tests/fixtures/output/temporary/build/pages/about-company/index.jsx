@@ -2,14 +2,14 @@ import 'regenerator-runtime/runtime';
  import React, { useContext } from 'react';
  import { Helmet } from 'react-helmet';
 
-import SectionHeader from '@/components/section-header@1.0.2';
-import Header from '@/components/header@1.0.3';
-import Section from '@/components/section@1.0.5';
-import BannerHead from '@/components/banner-head@1.0.5';
-import MarkdownMarkup from '@/components/markdown-markup@1.0.1';
-import LayoutCard from '@/components/layout-card@1.0.3';
-import CardAnnounce from '@/components/card-announce@1.0.4';
-import Footer from '@/components/footer@1.0.2';
+import SectionHeader from '@/components/outer/section-header@1.0.2';
+import Header from '@/components/outer/header@1.0.3';
+import Section from '@/components/outer/section@1.0.5';
+import BannerHead from '@/components/outer/banner-head@1.0.5';
+import MarkdownMarkup from '@/components/outer/markdown-markup@1.0.1';
+import LayoutCard from '@/components/outer/layout-card@1.0.3';
+import CardAnnounce from '@/components/outer/card-announce@1.0.4';
+import Footer from '@/components/outer/footer@1.0.2';
 
  import { ProjectContext } from '@/contexts/ProjectContext/ProjectContext';
 

@@ -1,0 +1,1 @@
+"use strict";exports.id=472,exports.ids=[472],exports.modules={472:(t,s,e)=>{e.d(s,{i:()=>n});var o,a,l,r,i=e(992),n=(0,i.createContext)({store:{systemData:null!==(a=null==o?void 0:o.systemData)&&void 0!==a?a:{},transferData:null!==(l=null==o?void 0:o.transferData)&&void 0!==l?l:{},userLocation:null!==(r=null==o?void 0:o.userLocation)&&void 0!==r?r:{}},pages:{}})}};
