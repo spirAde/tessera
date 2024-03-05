@@ -1,15 +1,11 @@
-import { DataTypes, Model, BelongsToGetAssociationMixin, Optional } from 'sequelize';
+import { DataTypes, Model, Optional, HasManyGetAssociationsMixin, Association } from 'sequelize';
 
-import { Build } from './Build.model';
+import { PageSnapshot } from './PageSnapshot.model';
 import { sequelize } from '../lib/sequelize';
-import { Stage, Status } from '../types';
 
 export type PageAttributes = {
   id: number;
-  buildId: number;
   url: string;
-  stage: Stage | null;
-  status: Status | null;
   externalId: number;
   createdAt: string;
   updatedAt: string;
@@ -17,7 +13,7 @@ export type PageAttributes = {
 };
 
 type PageAttributesWithDefaultValue = 'id' | 'createdAt' | 'updatedAt';
-type PageAttributesNullable = 'deletedAt' | 'stage' | 'status';
+type PageAttributesNullable = 'deletedAt';
 
 export type PageAttributesNew = Optional<
   PageAttributes,
@@ -25,20 +21,23 @@ export type PageAttributesNew = Optional<
 >;
 
 export class Page extends Model<PageAttributes, PageAttributesNew> implements PageAttributes {
+  static pageSnapshots: Association<Page, PageSnapshot>;
+
+  static associate() {
+    this.pageSnapshots = this.hasMany(PageSnapshot);
+  }
+
   readonly id!: number;
 
   readonly createdAt!: string;
   readonly updatedAt!: string;
   readonly deletedAt!: string | null;
 
-  readonly buildId!: number;
   readonly url!: string;
-  readonly stage!: Stage | null;
-  readonly status!: Status | null;
   readonly externalId!: number;
 
-  readonly build?: Build;
-  readonly getBuild!: BelongsToGetAssociationMixin<Build>;
+  readonly pageSnapshots?: PageSnapshot[];
+  readonly getPageSnapshots!: HasManyGetAssociationsMixin<PageSnapshot>;
 }
 
 Page.init(
@@ -49,25 +48,9 @@ Page.init(
       autoIncrement: true,
       allowNull: false,
     },
-    buildId: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    },
     url: {
       type: DataTypes.STRING,
       allowNull: false,
-    },
-    stage: {
-      type: DataTypes.ENUM,
-      values: Object.values(Stage),
-      validate: { isIn: [Object.values(Stage)] },
-      allowNull: true,
-    },
-    status: {
-      type: DataTypes.ENUM,
-      values: Object.values(Status),
-      validate: { isIn: [Object.values(Status)] },
-      allowNull: true,
     },
     externalId: {
       type: DataTypes.INTEGER,

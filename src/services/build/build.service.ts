@@ -4,7 +4,7 @@ import { Op } from 'sequelize';
 
 import { outputFolderPath, rootFolderPath, useS3BucketForStatic } from '../../config';
 import { logger } from '../../lib/logger';
-import { Build, BuildAttributes, BuildAttributesNew, Page } from '../../models';
+import { Page, PageSnapshot, Pipeline } from '../../models';
 import { removeS3BucketFiles } from '../../sdk/minio.sdk';
 import { getProject, getProjectPages } from '../../sdk/platform/platform.sdk';
 import { Project, ProjectPage } from '../../sdk/platform/types';
@@ -19,13 +19,12 @@ import { compile } from '../pipeline/compiling.service';
 import { exportPages } from '../pipeline/export.service';
 import { getDesignSystemComponentsList } from '../pipeline/fetching.service';
 import { createApplicationFile, generatePages } from '../pipeline/generating.service';
-import { runPipeline } from '../pipeline/pipeline.service';
+import { runPipeline, updatePipeline } from '../pipeline/pipeline.service';
 import { prepare } from '../pipeline/preparing.service';
 import { setupApplicationFolderEnvironment } from '../pipeline/setup.service';
 
-type BuildUpdate = Partial<BuildAttributes>;
 type BuildPipelineContext = {
-  build: Build;
+  pipeline: Pipeline;
   project: Project | null;
   projectPages: ProjectPage[];
   designSystemComponentsList: ComponentLike[];
@@ -33,21 +32,10 @@ type BuildPipelineContext = {
   foundationKitComponent: ComponentLike | null;
 };
 
-export function getCurrentBuild(): Promise<Build | null> {
-  return Build.findOne({
-    where: {
-      status: Status.success,
-      stage: Stage.commit,
-      deletedAt: null,
-    },
-    order: [['id', 'desc']],
-    paranoid: false,
-  });
-}
-
 export async function cleanUpBeforeBuild(): Promise<void> {
-  await Build.destroy({ truncate: true });
+  await Pipeline.destroy({ truncate: true });
   await Page.destroy({ truncate: true });
+  await PageSnapshot.destroy({ truncate: true });
 
   await remove(path.join(rootFolderPath, 'node_modules/.cache/babel-loader'));
   await remove(outputFolderPath);
@@ -55,28 +43,23 @@ export async function cleanUpBeforeBuild(): Promise<void> {
   useS3BucketForStatic && (await removeS3BucketFiles());
 }
 
-export async function runProjectBuild(): Promise<void> {
-  const readyToRunProjectBuild = await createBuild({
-    status: Status.progress,
-    stage: Stage.setup,
-  });
-
+export async function runProjectBuild(pipeline: Pipeline): Promise<void> {
   try {
-    await runProjectBuildPipeline(readyToRunProjectBuild);
-    await updateBuild(readyToRunProjectBuild, {
+    await runProjectBuildPipeline(pipeline);
+    await updatePipeline(pipeline, {
       status: Status.success,
     });
   } catch (error) {
-    await updateBuild(readyToRunProjectBuild, {
+    await updatePipeline(pipeline, {
       status: Status.failed,
     });
     throw error;
   }
 }
 
-async function runProjectBuildPipeline(build: Build) {
+async function runProjectBuildPipeline(pipeline: Pipeline) {
   const pipelineContext = createBuildPipelineContext({
-    build,
+    pipeline,
   });
 
   const handlers = [
@@ -91,23 +74,23 @@ async function runProjectBuildPipeline(build: Build) {
 
   await runPipeline(pipelineContext, handlers);
 
-  logger.debug(`build pipeline is successfully finished`);
+  logger.debug('build pipeline is successfully finished');
 }
 
-async function runSetupStage({ build }: BuildPipelineContext) {
-  logger.debug(`build pipeline stage = setup`);
+async function runSetupStage({ pipeline }: BuildPipelineContext) {
+  logger.debug('build pipeline stage = setup');
 
-  await updateBuild(build, {
+  await updatePipeline(pipeline, {
     stage: Stage.setup,
   });
 
   await setupApplicationFolderEnvironment();
 }
 
-async function runFetchingStage({ build }: BuildPipelineContext) {
-  logger.debug(`build pipeline stage = fetching`);
+async function runFetchingStage({ pipeline }: BuildPipelineContext) {
+  logger.debug('build pipeline stage = fetching');
 
-  await updateBuild(build, {
+  await updatePipeline(pipeline, {
     stage: Stage.fetching,
   });
 
@@ -133,27 +116,36 @@ async function runFetchingStage({ build }: BuildPipelineContext) {
   } as Partial<BuildPipelineContext>;
 }
 
-async function runGeneratingStage(context: BuildPipelineContext) {
-  logger.debug(`build pipeline stage = generating`);
+async function runGeneratingStage({
+  pipeline,
+  projectPages,
+  designSystemComponentsList,
+}: BuildPipelineContext) {
+  logger.debug('build pipeline stage = generating');
 
-  await updateBuild(context.build, {
+  await updatePipeline(pipeline, {
     stage: Stage.generating,
   });
 
   const pages = await Page.bulkCreate(
-    context.projectPages.map((projectPage) => ({
-      buildId: context.build.id,
+    projectPages.map((projectPage) => ({
       url: projectPage.url,
-      stage: Stage.setup,
-      status: Status.progress,
       externalId: projectPage.id,
     })),
     { returning: true },
   );
 
+  await PageSnapshot.bulkCreate(
+    pages.map((page) => ({
+      pipelineId: pipeline.id,
+      pageId: page.id,
+      status: Status.progress,
+    })),
+  );
+
   const { componentsRequiringBundles, generatedPages } = await generatePages(
     pages,
-    convertComponentsToMap(context.designSystemComponentsList),
+    convertComponentsToMap(designSystemComponentsList),
   );
 
   await createApplicationFile(generatedPages);
@@ -162,14 +154,14 @@ async function runGeneratingStage(context: BuildPipelineContext) {
 }
 
 async function runPreparingStage({
-  build,
+  pipeline,
   project,
   componentsRequiringBundles,
   foundationKitComponent,
 }: BuildPipelineContext) {
-  logger.debug(`build pipeline stage = preparing`);
+  logger.debug('build pipeline stage = preparing');
 
-  await updateBuild(build, { stage: Stage.preparing });
+  await updatePipeline(pipeline, { stage: Stage.preparing });
 
   await prepare({
     designSystemId: project!.settings.designSystemId,
@@ -178,79 +170,61 @@ async function runPreparingStage({
   });
 }
 
-async function runCompilationStage({ build }: BuildPipelineContext) {
-  logger.debug(`build pipeline stage = compilation`);
+async function runCompilationStage({ pipeline }: BuildPipelineContext) {
+  logger.debug('build pipeline stage = compilation');
 
-  await updateBuild(build, {
+  await updatePipeline(pipeline, {
     stage: Stage.compilation,
   });
 
-  const [_, readyToCompilationPages] = await Page.update(
-    { stage: Stage.compilation },
-    {
-      where: {
-        buildId: build.id,
-        status: {
-          [Op.ne]: Status.failed,
-        },
-      },
-      returning: true,
+  const readyToCompilationPages = await Page.findAll({
+    include: {
+      association: Page.pageSnapshots,
+      where: { pipelineId: pipeline.id, status: Status.progress },
     },
-  );
+  });
 
-  return compile(readyToCompilationPages.map(({ url }) => url));
+  return compile(readyToCompilationPages);
 }
 
-async function runExportStage(context: BuildPipelineContext) {
-  logger.debug(`build pipeline stage = export`);
+async function runExportStage({ pipeline }: BuildPipelineContext) {
+  logger.debug('build pipeline stage = export');
 
-  await updateBuild(context.build, {
+  await updatePipeline(pipeline, {
     stage: Stage.export,
   });
 
-  const [_, readyToExportPages] = await Page.update(
-    { stage: Stage.export },
-    {
-      where: {
-        buildId: context.build.id,
-        status: {
-          [Op.ne]: Status.failed,
-        },
-      },
-      returning: true,
+  const readyToExportPages = await Page.findAll({
+    include: {
+      association: Page.pageSnapshots,
+      where: { pipelineId: pipeline.id, status: Status.progress },
     },
-  );
+  });
 
   await exportPages(readyToExportPages);
 }
 
-async function runCommitStage({ build }: BuildPipelineContext) {
-  logger.debug(`build pipeline stage = commit`);
+async function runCommitStage({ pipeline }: BuildPipelineContext) {
+  logger.debug('build pipeline stage = commit');
 
-  await updateBuild(build, {
+  await updatePipeline(pipeline, {
     stage: Stage.commit,
   });
 
-  const [_, readyToCommitPages] = await Page.update(
-    { stage: Stage.commit },
-    {
-      where: {
-        buildId: build.id,
-        status: {
-          [Op.ne]: Status.failed,
-        },
-      },
-      returning: true,
+  const readyToCommitPages = await Page.findAll({
+    include: {
+      association: Page.pageSnapshots,
+      where: { pipelineId: pipeline.id, status: Status.progress },
     },
-  );
+  });
 
   await commit(readyToCommitPages);
 
-  await Page.update(
+  await PageSnapshot.update(
     { status: Status.success },
     {
       where: {
-        buildId: build.id,
+        pipelineId: pipeline.id,
         status: {
           [Op.ne]: Status.failed,
         },
@@ -259,7 +233,9 @@ async function runCommitStage({ build }: BuildPipelineContext) {
   );
 }
 
-function createBuildPipelineContext(context: Partial<BuildPipelineContext> & { build: Build }) {
+function createBuildPipelineContext(
+  context: Partial<BuildPipelineContext> & { pipeline: Pipeline },
+) {
   return {
     project: null,
     projectPages: [],
@@ -268,12 +244,4 @@ function createBuildPipelineContext(context: Partial<BuildPipelineContext> & { b
     foundationKitComponent: null,
     ...context,
   };
-}
-
-function createBuild(values: BuildAttributesNew) {
-  return Build.create(values);
-}
-
-function updateBuild(build: Build, values: BuildUpdate) {
-  return build.update(values);
 }

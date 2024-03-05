@@ -2,18 +2,11 @@ import got from 'got';
 
 import { Page } from '../../models';
 import { JobName } from '../../services/enqueueJob.service';
-import { PipelineType } from '../../services/page/page.service';
+import { PipelineType } from '../../services/pipeline/pipeline.service';
 import { getApplicationUrl } from '../../tests/helpers';
 import { expectJobsWereEnqueued, mockEnqueue } from '../../tests/queue.mock';
-import { seedBuild } from '../../tests/seeds/build.seed';
 import { seedPage } from '../../tests/seeds/page.seed';
-import {
-  Stage,
-  Status,
-  UpdatePageRequestBody,
-  CreatePageRequestBody,
-  DeletePageRequestBody,
-} from '../../types';
+import { UpdatePageRequestBody, CreatePageRequestBody, DeletePageRequestBody } from '../../types';
 
 const applicationUrl = getApplicationUrl();
 
@@ -24,8 +17,6 @@ describe('POST /pages', () => {
     const externalId = 1;
     const url = '/';
 
-    const build = await seedBuild({ status: Status.success, stage: Stage.commit });
-
     await got
       .post<CreatePageRequestBody>(`${applicationUrl}/api/v1/pages`, {
         json: { id: externalId, url },
@@ -33,42 +24,26 @@ describe('POST /pages', () => {
       .json();
 
     const pages = await Page.findAll({
-      where: {
-        externalId,
-        buildId: build.id,
-      },
+      where: { externalId },
     });
 
-    expect(pages.length).toEqual(0);
+    expect(pages.length).toEqual(1);
 
     expectJobsWereEnqueued([
       {
         jobName: JobName.processPage,
-        body: { externalId, url, type: PipelineType.create, parentSpanContext: null },
+        body: { pageId: pages[0].id, type: PipelineType.create, parentSpanContext: null },
       },
     ]);
-  });
-
-  it('throws error if build does not exist', async () => {
-    mockEnqueue();
-
-    await expect(
-      got.post<CreatePageRequestBody>(`${applicationUrl}/api/v1/pages`, {
-        json: { id: 1, url: '/' },
-      }),
-    ).rejects.toThrow();
   });
 
   it('throws error if page already exists', async () => {
     mockEnqueue();
 
-    mockEnqueue();
-
     const externalId = 1;
     const url = '/';
 
-    const build = await seedBuild({ status: Status.success, stage: Stage.commit });
-    await seedPage({ buildId: build.id, externalId, url });
+    await seedPage({ externalId, url });
 
     await expect(
       got.post<CreatePageRequestBody>(`${applicationUrl}/api/v1/pages`, {
@@ -83,8 +58,7 @@ describe('PUT /pages', () => {
     mockEnqueue();
 
     const externalId = 1;
-    const build = await seedBuild({ status: Status.success, stage: Stage.commit });
-    await seedPage({ buildId: build.id, url: '/', externalId });
+    await seedPage({ url: '/', externalId });
 
     await got
       .put<UpdatePageRequestBody>(`${applicationUrl}/api/v1/pages`, {
@@ -93,10 +67,7 @@ describe('PUT /pages', () => {
       .json();
 
     const pages = await Page.findAll({
-      where: {
-        externalId,
-        buildId: build.id,
-      },
+      where: { externalId },
     });
 
     expect(pages.length).toEqual(1);
@@ -104,7 +75,7 @@ describe('PUT /pages', () => {
     expectJobsWereEnqueued([
       {
         jobName: JobName.processPage,
-        body: { externalId, type: PipelineType.update, parentSpanContext: null },
+        body: { pageId: pages[0].id, type: PipelineType.update, parentSpanContext: null },
       },
     ]);
   });
@@ -113,21 +84,10 @@ describe('PUT /pages', () => {
     mockEnqueue();
 
     const externalId = 1;
-    await seedBuild({ status: Status.success, stage: Stage.commit });
 
     await expect(
       got.put<UpdatePageRequestBody>(`${applicationUrl}/api/v1/pages`, {
         json: { id: externalId },
-      }),
-    ).rejects.toThrow();
-  });
-
-  it('throws error if build does not exist', async () => {
-    mockEnqueue();
-
-    await expect(
-      got.put<UpdatePageRequestBody>(`${applicationUrl}/api/v1/pages`, {
-        json: { id: 1 },
       }),
     ).rejects.toThrow();
   });
@@ -138,8 +98,7 @@ describe('DELETE /pages', () => {
     mockEnqueue();
 
     const externalId = 1;
-    const build = await seedBuild({ status: Status.success, stage: Stage.commit });
-    await seedPage({ buildId: build.id, url: '/', externalId });
+    const page = await seedPage({ url: '/', externalId });
 
     await got
       .delete<DeletePageRequestBody>(`${applicationUrl}/api/v1/pages`, {
@@ -148,18 +107,15 @@ describe('DELETE /pages', () => {
       .json();
 
     const pages = await Page.findAll({
-      where: {
-        externalId,
-        buildId: build.id,
-      },
+      where: { externalId },
     });
 
-    expect(pages.length).toEqual(1);
+    expect(pages.length).toEqual(0);
 
     expectJobsWereEnqueued([
       {
         jobName: JobName.processPage,
-        body: { externalId, type: PipelineType.remove, parentSpanContext: null },
+        body: { pageId: page.id, type: PipelineType.remove, parentSpanContext: null },
       },
     ]);
   });
@@ -168,21 +124,10 @@ describe('DELETE /pages', () => {
     mockEnqueue();
 
     const externalId = 1;
-    await seedBuild({ status: Status.success, stage: Stage.commit });
 
     await expect(
       got.delete<UpdatePageRequestBody>(`${applicationUrl}/api/v1/pages`, {
         json: { id: externalId },
-      }),
-    ).rejects.toThrow();
-  });
-
-  it('throws error if build does not exist', async () => {
-    mockEnqueue();
-
-    await expect(
-      got.delete<UpdatePageRequestBody>(`${applicationUrl}/api/v1/pages`, {
-        json: { id: 1 },
       }),
     ).rejects.toThrow();
   });

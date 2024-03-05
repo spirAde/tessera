@@ -2,7 +2,7 @@ import uniq from 'lodash/uniq';
 
 import { logger } from '../../lib/logger';
 import { isFulfilled } from '../../lib/promise';
-import { Page } from '../../models';
+import { PageSnapshot } from '../../models';
 import { getPageIdsUsingComponent } from '../../sdk/platform/platform.sdk';
 import {
   ComponentLike,
@@ -12,11 +12,11 @@ import {
 import { enqueue, JobName } from '../enqueueJob.service';
 
 export async function teardown({
-  workInProgressPage,
+  snapshot,
   designSystemId,
   components,
 }: {
-  workInProgressPage: Page;
+  snapshot: EagerLoaded<PageSnapshot, 'page'>;
   designSystemId: number;
   components: ComponentLike[];
 }): Promise<void> {
@@ -29,7 +29,7 @@ export async function teardown({
   );
 
   const affectedPageExternalIds = await getAffectedPageIdsWithExpiredComponents({
-    workInProgressPage,
+    excludeExternalIds: [snapshot.page.externalId],
     expiredComponents,
     designSystemId,
   });
@@ -44,11 +44,11 @@ export async function teardown({
 }
 
 async function getAffectedPageIdsWithExpiredComponents({
-  workInProgressPage,
+  excludeExternalIds,
   designSystemId,
   expiredComponents,
 }: {
-  workInProgressPage: Page;
+  excludeExternalIds: number[];
   designSystemId: number;
   expiredComponents: ComponentLike[];
 }) {
@@ -64,5 +64,5 @@ async function getAffectedPageIdsWithExpiredComponents({
         isFulfilled(taskOutput) ? [...externalPageIds, ...taskOutput.value] : externalPageIds,
       [],
     ),
-  ).filter((externalPageId) => externalPageId !== workInProgressPage.externalId);
+  ).filter((externalPageId) => !excludeExternalIds.includes(externalPageId));
 }

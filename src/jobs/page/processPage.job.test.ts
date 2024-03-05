@@ -1,15 +1,15 @@
-import { existsSync, readdirSync, readFileSync } from 'fs-extra';
+import { existsSync, readdirSync, readFileSync, writeFile } from 'fs-extra';
 import path from 'path';
 
 import { processPageJob } from './processPage.job';
 import {
+  persistentApplicationBuildFolderRootPath,
   persistentApplicationExportFolderRootPath,
   temporaryApplicationBuildFolderRootPath,
 } from '../../config';
+import { Pipeline } from '../../models';
 import { ProjectPageStructure } from '../../sdk/platform/types';
-import { JobName } from '../../services/enqueueJob.service';
-import { PipelineType } from '../../services/page/page.service';
-import { designSystemFixture } from '../../tests/fixtures/designSystem.fixture';
+import { PipelineType } from '../../services/pipeline/pipeline.service';
 import {
   pageStructureAboutFixture,
   pageStructureMainFixture,
@@ -22,17 +22,11 @@ import { copyOutputFixture, hashFileSync } from '../../tests/helpers';
 import {
   nockGetPlatformComponentSource,
   nockGetPlatformDesignSystem,
-  nockGetPlatformProjectPage,
   nockGetPlatformProject,
-  nockGetPageIdsUsingComponent,
+  nockGetPlatformProjectPage,
 } from '../../tests/nocks/platform.nock';
-import {
-  expectJobsWereEnqueued,
-  expectJobsWereNotEnqueued,
-  mockEnqueue,
-} from '../../tests/queue.mock';
-import { seedBuild } from '../../tests/seeds/build.seed';
 import { seedPage } from '../../tests/seeds/page.seed';
+import { seedPageSnapshot } from '../../tests/seeds/pageSnapshot.seed';
 import { Stage, Status } from '../../types';
 
 describe('processPageJob', () => {
@@ -42,25 +36,20 @@ describe('processPageJob', () => {
 
   describe('create', () => {
     it('creates new page', async () => {
-      mockEnqueue();
-
-      const build = await seedBuild({
-        status: Status.success,
-        stage: Stage.commit,
-      });
-
       await Promise.all(
         [pageStructureMainFixture, pageStructureServiceFixture, pageStructureAboutFixture].map(
           (pageStructure) =>
             seedPage({
-              buildId: build.id,
               url: pageStructure.url,
               externalId: pageStructure.id,
-              status: Status.success,
-              stage: Stage.commit,
             }),
         ),
       );
+
+      const creatingServiceCDNPage = await seedPage({
+        url: pageStructureServiceCDNFixture.url,
+        externalId: pageStructureServiceCDNFixture.id,
+      });
 
       nockGetPlatformProject();
       nockGetPlatformDesignSystem({
@@ -80,8 +69,7 @@ describe('processPageJob', () => {
         name: 'create-page-job',
         data: {
           type: PipelineType.create,
-          externalId: pageStructureServiceCDNFixture.id,
-          url: pageStructureServiceCDNFixture.url,
+          pageId: creatingServiceCDNPage.id,
         },
       });
 
@@ -112,85 +100,6 @@ describe('processPageJob', () => {
         'about-company',
         'about-company/index.html',
       ]);
-
-      expectJobsWereNotEnqueued([{ jobName: JobName.reexportPages }]);
-    });
-
-    it('enqueues reexport job if some components are expired', async () => {
-      mockEnqueue();
-
-      const build = await seedBuild({
-        status: Status.success,
-        stage: Stage.commit,
-      });
-
-      await Promise.all(
-        [pageStructureMainFixture, pageStructureServiceFixture, pageStructureAboutFixture].map(
-          (pageStructure) =>
-            seedPage({
-              buildId: build.id,
-              url: pageStructure.url,
-              externalId: pageStructure.id,
-              status: Status.success,
-              stage: Stage.commit,
-            }),
-        ),
-      );
-
-      nockGetPlatformProject();
-      nockGetPlatformDesignSystem({
-        designSystemId: projectT1CloudFixture.settings.designSystemId,
-        body: designSystemFixture.map((designSystemComponent) =>
-          designSystemComponent.sysName === 'section-header'
-            ? { ...designSystemComponent, version: '1.0.3' }
-            : designSystemComponent,
-        ),
-      });
-      nockGetPlatformProjectPage({
-        pageId: pageStructureServiceCDNFixture.id,
-        body: pageStructureServiceCDNFixture as unknown as ProjectPageStructure,
-      });
-      nockGetPlatformComponentSource({
-        component: { version: '1.0.3', name: 'card-number' },
-        designSystemId: projectT1CloudFixture.settings.designSystemId,
-      });
-      nockGetPlatformComponentSource({
-        component: { version: '1.0.3', name: 'section-header' },
-        designSystemId: projectT1CloudFixture.settings.designSystemId,
-      });
-      nockGetPageIdsUsingComponent({
-        component: { version: '1.0.3', name: 'section-header' },
-        designSystemId: projectT1CloudFixture.settings.designSystemId,
-        body: [
-          pageStructureMainFixture.id,
-          pageStructureServiceFixture.id,
-          pageStructureAboutFixture.id,
-        ],
-      });
-
-      await processPageJob({
-        id: '1',
-        name: 'create-page-job',
-        data: {
-          type: PipelineType.create,
-          externalId: pageStructureServiceCDNFixture.id,
-          url: pageStructureServiceCDNFixture.url,
-        },
-      });
-
-      expectJobsWereEnqueued([
-        {
-          jobName: JobName.reexportPages,
-          body: {
-            externalIds: [
-              pageStructureMainFixture.id,
-              pageStructureServiceFixture.id,
-              pageStructureAboutFixture.id,
-            ],
-            expiredComponents: [{ version: '1.0.2', name: 'section-header' }],
-          },
-        },
-      ]);
     });
 
     it('throws error if current build does not exist', async () => {
@@ -200,18 +109,79 @@ describe('processPageJob', () => {
           name: 'create-page-job',
           data: {
             type: PipelineType.create,
-            externalId: pageStructureServiceCDNFixture.id,
-            url: pageStructureServiceCDNFixture.url,
+            pageId: pageStructureServiceCDNFixture.id,
           },
         }),
       ).rejects.toThrow();
+    });
+
+    it('rollback', async () => {
+      await writeFile(
+        path.join(persistentApplicationBuildFolderRootPath, 'application/application.jsx'),
+        'fake text',
+      );
+
+      await Promise.all(
+        [pageStructureMainFixture, pageStructureServiceFixture, pageStructureAboutFixture].map(
+          (pageStructure) =>
+            seedPage({
+              url: pageStructure.url,
+              externalId: pageStructure.id,
+            }),
+        ),
+      );
+
+      const creatingServiceCDNPage = await seedPage({
+        url: pageStructureServiceCDNFixture.url,
+        externalId: pageStructureServiceCDNFixture.id,
+      });
+
+      nockGetPlatformProject();
+      nockGetPlatformDesignSystem({
+        designSystemId: projectT1CloudFixture.settings.designSystemId,
+      });
+      nockGetPlatformProjectPage({
+        pageId: pageStructureServiceCDNFixture.id,
+        body: 'unknown error',
+        status: 404,
+      });
+
+      await expect(
+        processPageJob({
+          id: '1',
+          name: 'create-page-job',
+          data: {
+            type: PipelineType.create,
+            pageId: creatingServiceCDNPage.id,
+          },
+        }),
+      ).rejects.toThrow();
+
+      const pipeline = await Pipeline.findOne({ rejectOnEmpty: true });
+      expect(pipeline.status).toEqual(Status.failed);
+      expect(pipeline.stage).toEqual(Stage.generating);
+
+      const snapshots = await pipeline.getPageSnapshots({ paranoid: false });
+
+      expect(snapshots.length).toEqual(1);
+      expect(snapshots[0].status).toEqual(Status.failed);
+      expect(snapshots[0].isSoftDeleted()).toBeTrue();
+
+      const page = await snapshots[0].getPage({ paranoid: false });
+
+      expect(page.isSoftDeleted()).toBeTrue();
+
+      expect(
+        readFileSync(
+          path.join(temporaryApplicationBuildFolderRootPath, 'application/application.jsx'),
+          'utf8',
+        ),
+      ).toEqual('fake text');
     });
   });
 
   describe('update', () => {
     it('updates existing page', async () => {
-      mockEnqueue();
-
       const mainPageHtmlHash = hashFileSync(
         path.join(persistentApplicationExportFolderRootPath, 'pages/index.html'),
       );
@@ -222,30 +192,21 @@ describe('processPageJob', () => {
         path.join(persistentApplicationExportFolderRootPath, 'pages/about-company/index.html'),
       );
 
-      const build = await seedBuild({
-        status: Status.success,
-        stage: Stage.commit,
-      });
-
       await Promise.all(
         [pageStructureMainFixture, pageStructureAboutFixture].map((pageStructure) =>
           seedPage({
-            buildId: build.id,
             url: pageStructure.url,
             externalId: pageStructure.id,
-            status: Status.success,
-            stage: Stage.commit,
           }),
         ),
       );
 
       const updatingServicePage = await seedPage({
-        buildId: build.id,
         url: pageStructureServiceFixture.url,
         externalId: pageStructureServiceFixture.id,
-        status: Status.success,
-        stage: Stage.commit,
       });
+
+      await seedPageSnapshot({ pageId: updatingServicePage.id, status: Status.success });
 
       nockGetPlatformProject();
       nockGetPlatformDesignSystem({
@@ -269,7 +230,7 @@ describe('processPageJob', () => {
         name: 'update-page-job',
         data: {
           type: PipelineType.update,
-          externalId: updatingServicePage.externalId,
+          pageId: updatingServicePage.id,
         },
       });
 
@@ -312,91 +273,6 @@ describe('processPageJob', () => {
           path.join(persistentApplicationExportFolderRootPath, 'pages/service/index.html'),
         ),
       ).not.toEqual(servicePageHtmlHash);
-
-      expectJobsWereNotEnqueued([
-        {
-          jobName: JobName.reexportPages,
-        },
-      ]);
-    });
-
-    it('enqueues reexport job if some components are expired', async () => {
-      mockEnqueue();
-
-      const build = await seedBuild({
-        status: Status.success,
-        stage: Stage.commit,
-      });
-
-      await Promise.all(
-        [pageStructureMainFixture, pageStructureAboutFixture].map((pageStructure) =>
-          seedPage({
-            buildId: build.id,
-            url: pageStructure.url,
-            externalId: pageStructure.id,
-            status: Status.success,
-            stage: Stage.commit,
-          }),
-        ),
-      );
-
-      const updatingServicePage = await seedPage({
-        buildId: build.id,
-        url: pageStructureServiceFixture.url,
-        externalId: pageStructureServiceFixture.id,
-        status: Status.success,
-        stage: Stage.commit,
-      });
-
-      nockGetPlatformProject();
-      nockGetPlatformDesignSystem({
-        designSystemId: projectT1CloudFixture.settings.designSystemId,
-        body: designSystemFixture.map((designSystemComponent) =>
-          designSystemComponent.sysName === 'section-header'
-            ? { ...designSystemComponent, version: '1.0.3' }
-            : designSystemComponent,
-        ),
-      });
-      nockGetPlatformProjectPage({
-        pageId: pageStructureServiceUpdateFixture.id,
-        body: pageStructureServiceUpdateFixture as unknown as ProjectPageStructure,
-      });
-      nockGetPlatformComponentSource({
-        component: { version: '1.0.3', name: 'slider-case' },
-        designSystemId: projectT1CloudFixture.settings.designSystemId,
-      });
-      nockGetPlatformComponentSource({
-        component: { version: '1.0.1', name: 'slider-case-card' },
-        designSystemId: projectT1CloudFixture.settings.designSystemId,
-      });
-      nockGetPlatformComponentSource({
-        component: { version: '1.0.3', name: 'section-header' },
-        designSystemId: projectT1CloudFixture.settings.designSystemId,
-      });
-      nockGetPageIdsUsingComponent({
-        component: { version: '1.0.3', name: 'section-header' },
-        designSystemId: projectT1CloudFixture.settings.designSystemId,
-        body: [pageStructureMainFixture.id, pageStructureAboutFixture.id],
-      });
-
-      await processPageJob({
-        id: '1',
-        name: 'update-page-job',
-        data: {
-          type: PipelineType.update,
-          externalId: updatingServicePage.externalId,
-        },
-      });
-
-      expectJobsWereEnqueued([
-        {
-          jobName: JobName.reexportPages,
-          body: {
-            externalIds: [pageStructureMainFixture.id, pageStructureAboutFixture.id],
-            expiredComponents: [{ version: '1.0.2', name: 'section-header' }],
-          },
-        },
-      ]);
     });
 
     it('throws error if current build does not exist', async () => {
@@ -406,7 +282,7 @@ describe('processPageJob', () => {
           name: 'update-page-job',
           data: {
             type: PipelineType.update,
-            externalId: 1,
+            pageId: 1,
           },
         }),
       ).rejects.toThrow();
@@ -415,30 +291,22 @@ describe('processPageJob', () => {
 
   describe('remove', () => {
     it('removes page', async () => {
-      const build = await seedBuild({
-        status: Status.success,
-        stage: Stage.commit,
-      });
-
       await Promise.all(
         [pageStructureMainFixture, pageStructureAboutFixture].map((pageStructure) =>
           seedPage({
-            buildId: build.id,
             url: pageStructure.url,
             externalId: pageStructure.id,
-            status: Status.success,
-            stage: Stage.commit,
           }),
         ),
       );
 
       const deletingServicePage = await seedPage({
-        buildId: build.id,
         url: pageStructureServiceFixture.url,
         externalId: pageStructureServiceFixture.id,
-        status: Status.success,
-        stage: Stage.commit,
       });
+      await deletingServicePage.destroy();
+
+      await seedPageSnapshot({ pageId: deletingServicePage.id, status: Status.success });
 
       nockGetPlatformProject();
 
@@ -447,7 +315,7 @@ describe('processPageJob', () => {
         name: 'delete-page-job',
         data: {
           type: PipelineType.remove,
-          externalId: deletingServicePage.externalId,
+          pageId: deletingServicePage.id,
         },
       });
 
@@ -495,7 +363,7 @@ describe('processPageJob', () => {
           name: 'delete-page-job',
           data: {
             type: PipelineType.remove,
-            externalId: 1,
+            pageId: 1,
           },
         }),
       ).rejects.toThrow();

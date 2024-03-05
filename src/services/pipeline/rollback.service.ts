@@ -2,7 +2,7 @@ import capitalize from 'lodash/capitalize';
 import takeWhile from 'lodash/takeWhile';
 
 import { logger } from '../../lib/logger';
-import { Page } from '../../models';
+import { Pipeline } from '../../models';
 import { Stage } from '../../types';
 import { PagePipelineContext } from '../page/page.service';
 
@@ -20,14 +20,12 @@ export async function rollback({
   stages: Stage[];
   rollbackFns: RollbackFns;
 }): Promise<void> {
-  logger.debug(
-    `[rollback] run rollback for pipeline for page: ${JSON.stringify(context.workInProgressPage, null, 2)}`,
-  );
+  logger.debug(`[rollback] run rollback for pipeline for page: ${context.snapshot.page.url}`);
 
-  await context.workInProgressPage.reload();
+  await context.pipeline.reload();
 
   await Promise.all(
-    getPreviousStages(context.workInProgressPage, stages)
+    getPreviousStages(context.pipeline, stages)
       .map((stage) => getRollbackFn(rollbackFns, stage))
       .map((fn) => fn(context)),
   );
@@ -40,6 +38,6 @@ function getRollbackFn(rollbackFns: RollbackFns, stage: Stage): RollbackFn {
   );
 }
 
-function getPreviousStages(page: Page, stages: Stage[]) {
-  return takeWhile(stages, (stage) => stage !== page.stage);
+function getPreviousStages(pipeline: Pipeline, stages: Stage[]) {
+  return takeWhile(stages, (stage) => stage !== pipeline.stage).concat(pipeline.stage);
 }

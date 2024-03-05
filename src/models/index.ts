@@ -1,12 +1,15 @@
-import { Build } from './Build.model';
 import { Page } from './Page.model';
+import { PageSnapshot } from './PageSnapshot.model';
+import { Pipeline } from './Pipeline.model';
 
 function initAssociations() {
-  Build.hasMany(Page);
-  Page.belongsTo(Build);
+  Pipeline.associate();
+  Page.associate();
+  PageSnapshot.associate();
 }
 
 initAssociations();
 
-export * from './Build.model';
+export * from './Pipeline.model';
 export * from './Page.model';
+export * from './PageSnapshot.model';

@@ -5,7 +5,7 @@ import 'jest-extended';
 import { cleanupOutputFolder } from './helpers';
 import { application, runTestApplication } from '../application';
 import { sequelize } from '../lib/sequelize';
-import { Build, Page } from '../models';
+import { Pipeline, Page, PageSnapshot } from '../models';
 import { pgQueue } from '../services/enqueueJob.service';
 
 jest.setTimeout(20_000);
@@ -22,7 +22,12 @@ beforeEach(() => {
 
 afterEach(async () => {
   expect(nock.pendingMocks()).toEqual([]);
-  await Promise.all([Build.truncate(), Page.truncate(), cleanupOutputFolder()]);
+  await Promise.all([
+    Pipeline.truncate(),
+    Page.truncate(),
+    PageSnapshot.truncate(),
+    cleanupOutputFolder(),
+  ]);
 });
 
 afterAll(async () => {

@@ -48,12 +48,6 @@ export async function createComponentsFiles({
   }
 }
 
-export function getMissedComponents(components: ComponentLike[]): ComponentLike[] {
-  return components.filter(
-    (component) => !pathExistsSync(convertComponentLikeToComponentFilePath(component)),
-  );
-}
-
 export async function createComponentFile(
   designSystemId: number,
   component: ComponentLike,
@@ -66,6 +60,12 @@ export async function createComponentFile(
   }
 
   await outputFile(convertComponentLikeToComponentFilePath(component), componentBundleSource);
+}
+
+export function getMissedComponents(components: ComponentLike[]): ComponentLike[] {
+  return components.filter(
+    (component) => !pathExistsSync(convertComponentLikeToComponentFilePath(component)),
+  );
 }
 
 export function mapDesignSystemComponentToComponentLike(

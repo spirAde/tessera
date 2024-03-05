@@ -6,56 +6,48 @@ import {
 } from '../../../config';
 import { logger } from '../../../lib/logger';
 import { getPageFolderPathFromUrl } from '../../../lib/url';
-import { Page } from '../../../models';
+import { Page, PageSnapshot, Pipeline } from '../../../models';
 import { Stage, Status } from '../../../types';
 import { convertComponentsToMap } from '../../component/component.service';
+import {
+  createPageSnapshot,
+  getLastPageSnapshot,
+  updatePageSnapshot,
+} from '../../pageSnapshot/pageSnapshot.service';
 import { commit } from '../../pipeline/commit.service';
 import { generatePage, getAbsolutePageFilePath } from '../../pipeline/generating.service';
-import { runPipeline } from '../../pipeline/pipeline.service';
+import { runPipeline, updatePipeline } from '../../pipeline/pipeline.service';
 import { rollback } from '../../pipeline/rollback.service';
 import {
   createPagePipelineContext,
   PagePipelineContext,
-  runFetchingStage,
-  runPreparingStage,
-  runCompilationStage,
-  runExportStage,
-  updatePage,
   rollbackCompilationStage,
   rollbackExportStage,
-  runTeardownStage,
+  runCompilationStage,
+  runExportStage,
+  runFetchingStage,
+  runPreparingStage,
 } from '../page.service';
 
-export async function runPageUpdating({
-  buildId,
-  externalId,
-}: {
-  buildId: number;
-  externalId: number;
-}): Promise<void> {
-  const page = await Page.findOne({
-    where: {
-      buildId,
-      externalId,
-    },
-    rejectOnEmpty: true,
-  });
+export async function runPageUpdating(pipeline: Pipeline, pageId: number): Promise<void> {
+  const pages = await Page.findAll();
 
-  const readyToRunPage = await updatePage(page, {
+  const lastSnapshot = await getLastPageSnapshot(pageId);
+  const snapshot = await createPageSnapshot({
+    pageId,
+    pipelineId: pipeline.id,
     status: Status.progress,
-    stage: Stage.setup,
   });
 
-  const projectPages = await Page.findAll({
-    where: {
-      buildId: page.buildId,
-      status: Status.success,
-    },
+  await lastSnapshot.destroy();
+  await snapshot.reload({
+    include: { association: PageSnapshot.page },
   });
 
   const pipelineContext = createPagePipelineContext({
-    workInProgressPage: page,
-    projectPages,
+    pipeline,
+    pages,
+    snapshot,
   });
 
   const stageToHandleMap = {
@@ -65,16 +57,26 @@ export async function runPageUpdating({
     [Stage.compilation]: runCompilationStage,
     [Stage.export]: runExportStage,
     [Stage.commit]: runCommitStage,
-    [Stage.teardown]: runTeardownStage,
   };
 
   try {
     await runPipeline(pipelineContext, Object.values(stageToHandleMap));
+    await updatePageSnapshot(snapshot, {
+      status: Status.success,
+    });
+    await updatePipeline(pipeline, {
+      status: Status.success,
+    });
     logger.debug(`page updating pipeline is successfully finished`);
   } catch (error) {
-    await updatePage(readyToRunPage, {
+    await updatePipeline(pipeline, {
       status: Status.failed,
     });
+    await updatePageSnapshot(snapshot, {
+      status: Status.failed,
+    });
+    await lastSnapshot.restore();
+    await snapshot.destroy();
     await rollback({
       context: pipelineContext,
       stages: Object.keys(stageToHandleMap) as Stage[],
@@ -85,17 +87,18 @@ export async function runPageUpdating({
 }
 
 async function runGeneratingStage({
-  workInProgressPage,
+  pipeline,
+  snapshot,
   designSystemComponentsList,
 }: PagePipelineContext) {
   logger.debug('page generating stage');
 
-  await updatePage(workInProgressPage, {
+  await updatePipeline(pipeline, {
     stage: Stage.generating,
   });
 
   const { pageComponentsList } = await generatePage(
-    workInProgressPage,
+    snapshot.page,
     convertComponentsToMap(designSystemComponentsList),
   );
 
@@ -104,22 +107,18 @@ async function runGeneratingStage({
   };
 }
 
-async function runCommitStage({ projectPages, workInProgressPage }: PagePipelineContext) {
+async function runCommitStage({ pipeline, pages }: PagePipelineContext) {
   logger.debug(`page commit stage`);
 
-  await updatePage(workInProgressPage, {
+  await updatePipeline(pipeline, {
     stage: Stage.commit,
   });
 
-  await commit([...projectPages, workInProgressPage]);
-
-  await updatePage(workInProgressPage, {
-    status: Status.success,
-  });
+  await commit(pages);
 }
 
-async function rollbackGeneratingStage({ workInProgressPage }: PagePipelineContext) {
-  const pageFolderPath = getPageFolderPathFromUrl(workInProgressPage.url);
+async function rollbackGeneratingStage({ snapshot }: PagePipelineContext) {
+  const pageFolderPath = getPageFolderPathFromUrl(snapshot.page.url);
 
   await copy(
     getAbsolutePageFilePath(pageFolderPath, temporaryApplicationBuildFolderRootPath),

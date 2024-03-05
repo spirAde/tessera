@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import fp from 'fastify-plugin';
 
-import { create, update, remove } from '../../controllers/pages/pages.controller';
+import { create, update, remove } from '../../controllers/page/pages.controller';
 import { schemas } from '../../types';
 
 // ts-prune-ignore-next

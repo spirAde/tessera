@@ -4,7 +4,7 @@ import path from 'path';
 
 import { createBuildJob } from './createBuild.job';
 import { outputFolderPath, temporaryApplicationBuildFolderRootPath } from '../../config';
-import { Build } from '../../models';
+import { Pipeline } from '../../models';
 import { ProjectPageStructure } from '../../sdk/platform/types';
 import { ComponentLike } from '../../services/component/component.service';
 import {
@@ -99,22 +99,19 @@ describe('createBuildJob', () => {
       '<Route exact path="/about-company" element={<PageAboutCompany />} />',
     ]);
 
-    const builds = await Build.findAll();
+    const pipelines = await Pipeline.findAll();
 
-    expect(builds.length).toEqual(1);
-    expect(builds[0].status).toEqual(Status.success);
-    expect(builds[0].stage).toEqual(Stage.commit);
+    expect(pipelines.length).toEqual(1);
+    expect(pipelines[0].status).toEqual(Status.success);
+    expect(pipelines[0].stage).toEqual(Stage.commit);
 
-    const buildPages = await builds[0].getPages();
+    const snapshots = await pipelines[0].getPageSnapshots();
 
-    expect(buildPages).toIncludeSameMembers(
-      [pageStructureMainFixture, pageStructureServiceFixture, pageStructureAboutFixture].map(
-        (page) =>
-          expect.objectContaining({
-            url: page.url,
-            status: Status.success,
-            stage: Stage.commit,
-          }),
+    expect(snapshots).toIncludeSameMembers(
+      [pageStructureMainFixture, pageStructureServiceFixture, pageStructureAboutFixture].map(() =>
+        expect.objectContaining({
+          status: Status.success,
+        }),
       ),
     );
   });
@@ -162,29 +159,23 @@ describe('createBuildJob', () => {
       '<Route exact path="/about-company" element={<PageAboutCompany />} />',
     ]);
 
-    const builds = await Build.findAll();
+    const pipelines = await Pipeline.findAll();
 
-    expect(builds.length).toEqual(1);
-    expect(builds[0].status).toEqual(Status.success);
-    expect(builds[0].stage).toEqual(Stage.commit);
+    expect(pipelines.length).toEqual(1);
+    expect(pipelines[0].status).toEqual(Status.success);
+    expect(pipelines[0].stage).toEqual(Stage.commit);
 
-    const buildPages = await builds[0].getPages();
+    const snapshots = await pipelines[0].getPageSnapshots();
 
-    expect(buildPages).toIncludeSameMembers([
+    expect(snapshots).toIncludeSameMembers([
       expect.objectContaining({
-        url: pageStructureMainFixture.url,
         status: Status.success,
-        stage: Stage.commit,
       }),
       expect.objectContaining({
-        url: pageStructureServiceFixture.url,
         status: Status.failed,
-        stage: Stage.fetching,
       }),
       expect.objectContaining({
-        url: pageStructureAboutFixture.url,
         status: Status.success,
-        stage: Stage.commit,
       }),
     ]);
   });

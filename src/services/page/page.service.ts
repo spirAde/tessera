@@ -9,7 +9,7 @@ import {
 } from '../../config';
 import { logger } from '../../lib/logger';
 import { getPageFolderPathFromUrl } from '../../lib/url';
-import { Page, PageAttributes, PageAttributesNew } from '../../models';
+import { Page, PageAttributesNew, PageSnapshot, Pipeline } from '../../models';
 import { getProject } from '../../sdk/platform/platform.sdk';
 import { Project } from '../../sdk/platform/types';
 import { Stage } from '../../types';
@@ -17,22 +17,15 @@ import { ComponentLike, getUniqueComponents } from '../component/component.servi
 import { compile } from '../pipeline/compiling.service';
 import { exportPages } from '../pipeline/export.service';
 import { getDesignSystemComponentsList } from '../pipeline/fetching.service';
+import { updatePipeline } from '../pipeline/pipeline.service';
 import { prepare } from '../pipeline/preparing.service';
 import { teardown } from '../pipeline/teardown.service';
 
-type PageUpdate = Partial<PageAttributes>;
-
-export enum PipelineType {
-  create = 'create',
-  update = 'update',
-  // eslint-disable-next-line @typescript-eslint/no-shadow
-  remove = 'remove',
-}
-
 export type PagePipelineContext = {
   project: Project | null;
-  projectPages: Page[];
-  workInProgressPage: Page;
+  pages: Page[];
+  pipeline: Pipeline;
+  snapshot: EagerLoaded<PageSnapshot, 'page'>;
   designSystemComponentsList: ComponentLike[];
   componentsRequiringBundles: ComponentLike[];
   foundationKitComponent: ComponentLike | null;
@@ -42,12 +35,13 @@ export function createPage(values: PageAttributesNew): Promise<Page> {
   return Page.create(values);
 }
 
-export function updatePage(page: Page, values: PageUpdate): Promise<Page> {
-  return page.update(values);
-}
-
+// TODO: to figure out about converting snapshot -> snapshots
 export function createPagePipelineContext(
-  context: Partial<PagePipelineContext> & { workInProgressPage: Page; projectPages: Page[] },
+  context: Partial<PagePipelineContext> & {
+    pipeline: Pipeline;
+    snapshot: PageSnapshot;
+    pages: Page[];
+  },
 ): PagePipelineContext {
   return {
     project: null,
@@ -58,14 +52,14 @@ export function createPagePipelineContext(
   };
 }
 
-export async function runFetchingStage({ workInProgressPage }: PagePipelineContext): Promise<{
+export async function runFetchingStage({ pipeline }: PagePipelineContext): Promise<{
   project: Project;
   designSystemComponentsList: ComponentLike[];
   foundationKitComponent: ComponentLike;
 }> {
   logger.debug('page fetching stage');
 
-  await updatePage(workInProgressPage, { stage: Stage.fetching });
+  await updatePipeline(pipeline, { stage: Stage.fetching });
 
   const project = await getProject();
   const designSystemComponentsList = await getDesignSystemComponentsList(
@@ -88,13 +82,13 @@ export async function runFetchingStage({ workInProgressPage }: PagePipelineConte
 
 export async function runPreparingStage({
   project,
-  workInProgressPage,
+  pipeline,
   componentsRequiringBundles,
   foundationKitComponent,
 }: PagePipelineContext): Promise<void> {
   logger.debug(`page preparing stage`);
 
-  await updatePage(workInProgressPage, { stage: Stage.preparing });
+  await updatePipeline(pipeline, { stage: Stage.preparing });
 
   await prepare({
     foundationKitComponent: foundationKitComponent!,
@@ -103,37 +97,34 @@ export async function runPreparingStage({
   });
 }
 
-export async function runCompilationStage({
-  projectPages,
-  workInProgressPage,
-}: PagePipelineContext): Promise<void> {
+export async function runCompilationStage({ pages, pipeline }: PagePipelineContext): Promise<void> {
   logger.debug('page compilation stage');
 
-  await updatePage(workInProgressPage, { stage: Stage.compilation });
+  await updatePipeline(pipeline, { stage: Stage.compilation });
 
-  await compile([...projectPages.map(({ url }) => url), workInProgressPage.url]);
+  await compile(pages);
 }
 
-export async function runExportStage({
-  projectPages,
-  workInProgressPage,
-}: PagePipelineContext): Promise<void> {
+export async function runExportStage({ pages, pipeline }: PagePipelineContext): Promise<void> {
   logger.debug('page export stage');
 
-  await updatePage(workInProgressPage, { stage: Stage.export });
+  await updatePipeline(pipeline, { stage: Stage.export });
 
-  await exportPages([...projectPages, workInProgressPage]);
+  await exportPages(pages);
 }
 
+// TODO: A decision needs to be made about which side (platform or tessera)
+// TODO: the affected pages were found on, considering the updated component.
+// ts-prune-ignore-next
 export async function runTeardownStage({
   project,
-  workInProgressPage,
+  snapshot,
   componentsRequiringBundles,
 }: PagePipelineContext): Promise<void> {
   logger.debug('page teardown stage');
 
   await teardown({
-    workInProgressPage,
+    snapshot,
     components: componentsRequiringBundles,
     designSystemId: project!.settings.designSystemId,
   });

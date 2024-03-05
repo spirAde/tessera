@@ -1,11 +1,12 @@
 import { Association, DataTypes, HasManyGetAssociationsMixin, Model, Optional } from 'sequelize';
 
-import { Page } from './Page.model';
+import { PageSnapshot } from './PageSnapshot.model';
 import { sequelize } from '../lib/sequelize';
 import { Stage, Status } from '../types';
 
-export type BuildAttributes = {
+export type PipelineAttributes = {
   id: number;
+  jobId: string;
   stage: Stage | null;
   status: Status | null;
   createdAt: string;
@@ -13,16 +14,23 @@ export type BuildAttributes = {
   deletedAt: string | null;
 };
 
-type BuildAttributesWithDefaultValue = 'id' | 'createdAt' | 'updatedAt';
-type BuildAttributesNullable = 'deletedAt' | 'stage' | 'status';
+type PipelineAttributesWithDefaultValue = 'id' | 'createdAt' | 'updatedAt';
+type PipelineAttributesNullable = 'deletedAt';
 
-export type BuildAttributesNew = Optional<
-  BuildAttributes,
-  BuildAttributesNullable | BuildAttributesWithDefaultValue
+export type PipelineAttributesNew = Optional<
+  PipelineAttributes,
+  PipelineAttributesNullable | PipelineAttributesWithDefaultValue
 >;
 
-export class Build extends Model<BuildAttributes, BuildAttributesNew> implements BuildAttributes {
-  static pages: Association<Build, Page>;
+export class Pipeline
+  extends Model<PipelineAttributes, PipelineAttributesNew>
+  implements PipelineAttributes
+{
+  static pageSnapshots: Association<Pipeline, PageSnapshot>;
+
+  static associate() {
+    this.pageSnapshots = this.hasMany(PageSnapshot);
+  }
 
   readonly id!: number;
 
@@ -30,14 +38,15 @@ export class Build extends Model<BuildAttributes, BuildAttributesNew> implements
   readonly updatedAt!: string;
   readonly deletedAt!: string | null;
 
-  readonly stage!: Stage | null;
-  readonly status!: Status | null;
+  readonly jobId!: string;
+  readonly stage!: Stage;
+  readonly status!: Status;
 
-  readonly pages?: Page[];
-  readonly getPages!: HasManyGetAssociationsMixin<Page>;
+  readonly pageSnapshots?: PageSnapshot[];
+  readonly getPageSnapshots!: HasManyGetAssociationsMixin<PageSnapshot>;
 }
 
-Build.init(
+Pipeline.init(
   {
     id: {
       type: DataTypes.INTEGER,
@@ -45,17 +54,21 @@ Build.init(
       autoIncrement: true,
       allowNull: false,
     },
+    jobId: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
     stage: {
       type: DataTypes.ENUM,
       values: Object.values(Stage),
       validate: { isIn: [Object.values(Stage)] },
-      allowNull: true,
+      allowNull: false,
     },
     status: {
       type: DataTypes.ENUM,
       values: Object.values(Status),
       validate: { isIn: [Object.values(Status)] },
-      allowNull: true,
+      allowNull: false,
     },
     createdAt: DataTypes.DATE,
     updatedAt: DataTypes.DATE,
@@ -66,8 +79,8 @@ Build.init(
   },
   {
     sequelize,
-    tableName: 'builds',
-    name: { singular: 'build', plural: 'builds' },
+    tableName: 'pipelines',
+    name: { singular: 'pipeline', plural: 'pipelines' },
     paranoid: true,
   },
 );

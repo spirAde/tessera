@@ -6,6 +6,8 @@ import { logger } from '../../lib/logger';
 import { otlContext, SemanticAttributes, withSafelyActiveSpan } from '../../lib/opentelemetry';
 import { cleanUpBeforeBuild, runProjectBuild } from '../../services/build/build.service';
 import { runPageJobs, stopPageJobs } from '../../services/enqueueJob.service';
+import { createPipeline } from '../../services/pipeline/pipeline.service';
+import { Stage, Status } from '../../types';
 
 export async function createBuildJob(payload: Job<{ parentSpanContext?: SpanContext }>) {
   await withSafelyActiveSpan(
@@ -28,9 +30,15 @@ export async function createBuildJob(payload: Job<{ parentSpanContext?: SpanCont
       logger.debug(`[createBuildJob] start job`);
 
       await cleanUpBeforeBuild();
-
       await stopPageJobs();
-      await runProjectBuild();
+
+      const pipeline = await createPipeline({
+        jobId: payload.id,
+        status: Status.progress,
+        stage: Stage.setup,
+      });
+      await runProjectBuild(pipeline);
+
       await runPageJobs();
     },
   );

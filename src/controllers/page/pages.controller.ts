@@ -3,9 +3,9 @@ import { RouteHandler } from 'fastify';
 import { throwBadRequest } from '../../lib/error';
 import { otlContext, SemanticAttributes, withSafelyActiveSpan } from '../../lib/opentelemetry';
 import { Page } from '../../models';
-import { getCurrentBuild } from '../../services/build/build.service';
 import { enqueue, JobName } from '../../services/enqueueJob.service';
-import { PipelineType } from '../../services/page/page.service';
+import { createPage } from '../../services/page/page.service';
+import { PipelineType } from '../../services/pipeline/pipeline.service';
 import { CreatePageRequestBody, DeletePageRequestBody, UpdatePageRequestBody } from '../../types';
 
 export const create: RouteHandler<{ Body: CreatePageRequestBody }> = async function (
@@ -23,16 +23,9 @@ export const create: RouteHandler<{ Body: CreatePageRequestBody }> = async funct
       },
     },
     async (span) => {
-      const build = await getCurrentBuild();
-
-      if (!build) {
-        return throwBadRequest();
-      }
-
       const page = await Page.findOne({
         where: {
           externalId: request.body.id,
-          buildId: build.id,
         },
       });
 
@@ -40,12 +33,16 @@ export const create: RouteHandler<{ Body: CreatePageRequestBody }> = async funct
         return throwBadRequest();
       }
 
+      const createdPage = await createPage({
+        url: request.body.url,
+        externalId: request.body.id,
+      });
+
       await enqueue(
         JobName.processPage,
         {
           type: PipelineType.create,
-          externalId: request.body.id,
-          url: request.body.url,
+          pageId: createdPage.id,
           parentSpanContext: span?.spanContext() ?? null,
         },
         {
@@ -73,15 +70,8 @@ export const update: RouteHandler<{ Body: UpdatePageRequestBody }> = async funct
       },
     },
     async (span) => {
-      const build = await getCurrentBuild();
-
-      if (!build) {
-        return throwBadRequest();
-      }
-
       const page = await Page.findOne({
         where: {
-          buildId: build.id,
           externalId: request.body.id,
         },
       });
@@ -94,7 +84,7 @@ export const update: RouteHandler<{ Body: UpdatePageRequestBody }> = async funct
         JobName.processPage,
         {
           type: PipelineType.update,
-          externalId: request.body.id,
+          pageId: page.id,
           parentSpanContext: span?.spanContext() ?? null,
         },
         {
@@ -122,15 +112,8 @@ export const remove: RouteHandler<{ Body: DeletePageRequestBody }> = async funct
       },
     },
     async (span) => {
-      const build = await getCurrentBuild();
-
-      if (!build) {
-        return throwBadRequest();
-      }
-
       const page = await Page.findOne({
         where: {
-          buildId: build.id,
           externalId: request.body.id,
         },
       });
@@ -139,11 +122,13 @@ export const remove: RouteHandler<{ Body: DeletePageRequestBody }> = async funct
         return throwBadRequest();
       }
 
+      await page.destroy();
+
       await enqueue(
         JobName.processPage,
         {
           type: PipelineType.remove,
-          externalId: request.body.id,
+          pageId: page.id,
           parentSpanContext: span?.spanContext() ?? null,
         },
         {

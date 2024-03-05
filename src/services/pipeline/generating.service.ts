@@ -13,20 +13,15 @@ import { logger } from '../../lib/logger';
 import { isFulfilled } from '../../lib/promise';
 import { getRandomString } from '../../lib/random';
 import { getPageFolderPathFromUrl } from '../../lib/url';
-import { Page } from '../../models';
+import { Page, PageSnapshot } from '../../models';
 import { getProjectPageStructure } from '../../sdk/platform/platform.sdk';
-import {
-  ProjectPageStructureComponent,
-  ProjectPageStructureMetaItemProps,
-  ProjectPageStructureMetaProps,
-  ProjectPageStructureSeoProps,
-  ProjectPageStructure,
-} from '../../sdk/platform/types';
+import { ProjectPageStructureComponent, ProjectPageStructure } from '../../sdk/platform/types';
 import { getApplicationFileContent } from '../../templates/templates/application.template';
 import { getApplicationPageFileContent } from '../../templates/templates/page.template';
 import { Stage, Status } from '../../types';
 import { ComponentLike } from '../component/component.service';
-import { updatePage } from '../page/page.service';
+import { getHelmetComponent } from '../component/helmet.service';
+import { getLastPageSnapshot, updatePageSnapshot } from '../pageSnapshot/pageSnapshot.service';
 import { createPool } from '../thread.service';
 
 type GeneratedPage = {
@@ -75,19 +70,11 @@ export async function generatePage(
 }> {
   logger.debug(`generating page: id: - ${page.externalId}, url - ${page.url}`);
 
-  await updatePage(page, {
-    stage: Stage.fetching,
-  });
-
   const pageStructure = await getProjectPageStructure(page.externalId);
   const pageComponentsList = normalizePageComponentsVersionsGivenDesignSystem(
     designSystemComponentsMap,
     parsePageStructureComponentsList(pageStructure),
   );
-
-  await updatePage(page, {
-    stage: Stage.generating,
-  });
 
   const { pageFilePath, pageComponentName } = await createApplicationPageFile(
     pageStructure,
@@ -136,7 +123,7 @@ async function createApplicationPageFile(
   const pageFolderPath = getPageFolderPathFromUrl(pageStructure.url);
   const absolutePageFilePath = getAbsolutePageFilePath(pageFolderPath);
 
-  const pageHelmetComponent = getPageHelmetComponent({
+  const pageHelmetComponent = getHelmetComponent({
     url: pageStructure.url,
     seo: pageStructure.seo.result,
     meta: pageStructure.meta.result,
@@ -179,7 +166,7 @@ async function processGeneratingInWorkerThreads(
       generatedPages: GeneratedPage[];
       componentsRequiringBundles: ComponentLike[];
     };
-    rejected: number[];
+    rejected: Page[];
   }>(
     (groups, taskOutput, currentIndex) => {
       if (isFulfilled(taskOutput)) {
@@ -204,7 +191,7 @@ async function processGeneratingInWorkerThreads(
 
       return {
         ...groups,
-        rejected: [...groups.rejected, pages[currentIndex].id],
+        rejected: [...groups.rejected, pages[currentIndex]],
       };
     },
     {
@@ -216,12 +203,16 @@ async function processGeneratingInWorkerThreads(
     },
   );
 
+  const snapshots = await Promise.all(
+    groupedTasksOutput.rejected.map((page) => getLastPageSnapshot(page.id)),
+  );
+
   groupedTasksOutput.rejected.length > 0 &&
-    (await Page.update(
+    (await PageSnapshot.update(
       { status: Status.failed },
       {
         where: {
-          id: groupedTasksOutput.rejected,
+          id: snapshots.map((snapshot) => snapshot.id),
         },
       },
     ));
@@ -251,7 +242,8 @@ async function processGeneratingInMainThread(
         pageName: pageComponentName,
       });
     } catch (error) {
-      await updatePage(page, {
+      const pageSnapshot = await getLastPageSnapshot(page.id);
+      await updatePageSnapshot(pageSnapshot, {
         status: Status.failed,
       });
     }
@@ -339,46 +331,4 @@ function getPageComponentsImports(componentsList: ComponentLike[]) {
       return `import ${getHumanReadableComponentName(name)} from '@/components/outer/${name}@${version}';`;
     })
     .join('\n');
-}
-
-function getPageHelmetComponent({
-  url,
-  seo,
-  meta,
-}: {
-  url: string;
-  seo: ProjectPageStructureSeoProps;
-  meta: ProjectPageStructureMetaProps;
-}) {
-  const tags = adjustMetaTags(meta).map(
-    (tag) => `<meta name="${tag.name}" content="${tag.content}" property="${tag.property}" />`,
-  );
-
-  return `
-    <Helmet>
-      <title>${seo.title}</title>
-      <link rel="canonical" href="${url}" />
-      <meta name="description" content="${seo.description}" />
-      <meta name="keywords" content="${seo.keywords}" />
-      ${tags}
-    </Helmet>
-  `;
-}
-
-function adjustMetaTags(meta: ProjectPageStructureMetaProps) {
-  return (meta.items ?? []).reduce<ProjectPageStructureMetaItemProps[]>((tags, tag) => {
-    if (isBotSpecificTag(tag)) {
-      return [...tags, { ...tag, content: 'index,follow' }];
-    }
-
-    return isValidTag(tag) ? [...tags, tag] : tags;
-  }, []);
-}
-
-function isBotSpecificTag(tag: ProjectPageStructureMetaItemProps) {
-  return (tag.name === 'robots' || tag.name === 'googlebot') && !tag.content;
-}
-
-function isValidTag(tag: ProjectPageStructureMetaItemProps) {
-  return tag.content || tag.name || tag.property;
 }

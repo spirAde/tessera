@@ -4,18 +4,17 @@ import { Job } from 'pg-boss';
 
 import { logger } from '../../lib/logger';
 import { otlContext, SemanticAttributes, withSafelyActiveSpan } from '../../lib/opentelemetry';
-import { getCurrentBuild } from '../../services/build/build.service';
 import { runPageCreation } from '../../services/page/creation/createPage.service';
 import { runPageDeleting } from '../../services/page/deleting/deletePage.service';
-import { PipelineType } from '../../services/page/page.service';
 import { runPageUpdating } from '../../services/page/updating/updatePage.service';
+import { PipelineType, createPipeline } from '../../services/pipeline/pipeline.service';
+import { Stage, Status } from '../../types';
 
 export async function processPageJob(
   payload: Job<{
-    externalId: number;
+    pageId: number;
     type: PipelineType;
     parentSpanContext?: SpanContext;
-    url?: string;
   }>,
 ) {
   await withSafelyActiveSpan(
@@ -36,14 +35,14 @@ export async function processPageJob(
     },
     async () => {
       logger.debug(
-        `[processPageJob] start ${payload.data.type} job for page with external id: ${payload.data.externalId}`,
+        `[processPageJob] start ${payload.data.type} job for page id: ${payload.data.pageId}`,
       );
 
-      const build = await getCurrentBuild();
-
-      if (!build) {
-        throw new Error('active build not found');
-      }
+      const pipeline = await createPipeline({
+        jobId: payload.id,
+        status: Status.progress,
+        stage: Stage.setup,
+      });
 
       // Due to compilation and generating pages implies a lot of changes of
       // different files we can't guarantee race condition between
@@ -52,25 +51,15 @@ export async function processPageJob(
       // Maybe after MVP this behaviour will be changed
       switch (payload.data.type) {
         case PipelineType.create: {
-          await runPageCreation({
-            buildId: build.id,
-            externalId: payload.data.externalId,
-            url: payload.data.url as string,
-          });
+          await runPageCreation(pipeline, payload.data.pageId);
           return;
         }
         case PipelineType.update: {
-          await runPageUpdating({
-            buildId: build.id,
-            externalId: payload.data.externalId,
-          });
+          await runPageUpdating(pipeline, payload.data.pageId);
           return;
         }
         case PipelineType.remove: {
-          await runPageDeleting({
-            buildId: build.id,
-            externalId: payload.data.externalId,
-          });
+          await runPageDeleting(pipeline, payload.data.pageId);
           return;
         }
       }

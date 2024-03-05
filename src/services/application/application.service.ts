@@ -31,5 +31,6 @@ export async function ensureApplicationIsReadyToLaunch(): Promise<void> {
   }
 
   await waitJobCompletion(JobName.createBuild);
+
   logger.debug('[ensureApplicationIsReadyToLaunch] application is ready to launch');
 }

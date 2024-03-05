@@ -5,9 +5,10 @@ import { merge } from 'webpack-merge';
 import nodeExternals from 'webpack-node-externals';
 
 import { temporaryApplicationBuildFolderRootPath } from '../../config';
+import { Page } from '../../models';
 
-export async function compile(projectPageUrls: string[]): Promise<void> {
-  const commonWebpackConfig = getCommonWebpackConfig(projectPageUrls);
+export async function compile(pages: Page[]): Promise<void> {
+  const commonWebpackConfig = getCommonWebpackConfig(pages);
   const serverWebpackConfig = getServerWebpackConfig(commonWebpackConfig);
   const clientWebpackConfig = getClientWebpackConfig(commonWebpackConfig);
 
@@ -16,7 +17,7 @@ export async function compile(projectPageUrls: string[]): Promise<void> {
   );
 }
 
-function getCommonWebpackConfig(projectPageUrls: string[]) {
+function getCommonWebpackConfig(pages: Page[]) {
   return {
     bail: true,
     parallelism: 2,
@@ -42,7 +43,7 @@ function getCommonWebpackConfig(projectPageUrls: string[]) {
       ],
     },
     context: temporaryApplicationBuildFolderRootPath,
-    entry: getWebpackConfigEntries(projectPageUrls),
+    entry: getWebpackConfigEntries(pages),
     output: {
       publicPath: '/static/',
       filename: '[name].[contenthash].js',
@@ -138,9 +139,9 @@ function getClientWebpackConfig(config: Configuration) {
   });
 }
 
-function getWebpackConfigEntries(projectPageUrls: string[]) {
-  return projectPageUrls.reduce(
-    (entries, pageUrl) => ({ ...entries, [getEntryName(pageUrl)]: getEntryFile(pageUrl) }),
+function getWebpackConfigEntries(pages: Page[]) {
+  return pages.reduce(
+    (entries, page) => ({ ...entries, [getEntryName(page.url)]: getEntryFile(page.url) }),
     {},
   );
 }
