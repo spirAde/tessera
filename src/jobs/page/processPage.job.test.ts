@@ -17,7 +17,7 @@ import {
   pageStructureServiceFixture,
   pageStructureServiceUpdateFixture,
 } from '../../tests/fixtures/pageStructure.fixture';
-import { projectT1CloudFixture } from '../../tests/fixtures/project.fixture';
+import { projectExampleProjectFixture } from '../../tests/fixtures/project.fixture';
 import { copyOutputFixture, hashFileSync } from '../../tests/helpers';
 import {
   nockGetPlatformComponentSource,
@@ -53,7 +53,7 @@ describe('processPageJob', () => {
 
       nockGetPlatformProject();
       nockGetPlatformDesignSystem({
-        designSystemId: projectT1CloudFixture.settings.designSystemId,
+        designSystemId: projectExampleProjectFixture.settings.designSystemId,
       });
       nockGetPlatformProjectPage({
         pageId: pageStructureServiceCDNFixture.id,
@@ -61,7 +61,7 @@ describe('processPageJob', () => {
       });
       nockGetPlatformComponentSource({
         component: { version: '1.0.3', name: 'card-number' },
-        designSystemId: projectT1CloudFixture.settings.designSystemId,
+        designSystemId: projectExampleProjectFixture.settings.designSystemId,
       });
 
       await processPageJob({
@@ -138,7 +138,7 @@ describe('processPageJob', () => {
 
       nockGetPlatformProject();
       nockGetPlatformDesignSystem({
-        designSystemId: projectT1CloudFixture.settings.designSystemId,
+        designSystemId: projectExampleProjectFixture.settings.designSystemId,
       });
       nockGetPlatformProjectPage({
         pageId: pageStructureServiceCDNFixture.id,
@@ -210,7 +210,7 @@ describe('processPageJob', () => {
 
       nockGetPlatformProject();
       nockGetPlatformDesignSystem({
-        designSystemId: projectT1CloudFixture.settings.designSystemId,
+        designSystemId: projectExampleProjectFixture.settings.designSystemId,
       });
       nockGetPlatformProjectPage({
         pageId: pageStructureServiceUpdateFixture.id,
@@ -218,11 +218,11 @@ describe('processPageJob', () => {
       });
       nockGetPlatformComponentSource({
         component: { version: '1.0.3', name: 'slider-case' },
-        designSystemId: projectT1CloudFixture.settings.designSystemId,
+        designSystemId: projectExampleProjectFixture.settings.designSystemId,
       });
       nockGetPlatformComponentSource({
         component: { version: '1.0.1', name: 'slider-case-card' },
-        designSystemId: projectT1CloudFixture.settings.designSystemId,
+        designSystemId: projectExampleProjectFixture.settings.designSystemId,
       });
 
       await processPageJob({

@@ -6,7 +6,7 @@ import { outputFolderPath, rootFolderPath, useS3BucketForStatic } from '../../co
 import { logger } from '../../lib/logger';
 import { Page, PageSnapshot, Pipeline } from '../../models';
 import { removeS3BucketFiles } from '../../sdk/minio.sdk';
-import { getProject, getProjectPages } from '../../sdk/platform/platform.sdk';
+import { fetchProject, fetchProjectPages } from '../../sdk/platform/platform.sdk';
 import { Project, ProjectPage } from '../../sdk/platform/types';
 import { Stage, Status } from '../../types';
 import {
@@ -74,11 +74,11 @@ async function runProjectBuildPipeline(pipeline: Pipeline) {
 
   await runPipeline(pipelineContext, handlers);
 
-  logger.debug('build pipeline is successfully finished');
+  logger.info('build pipeline is successfully finished');
 }
 
 async function runSetupStage({ pipeline }: BuildPipelineContext) {
-  logger.debug('build pipeline stage = setup');
+  logger.info('build pipeline stage = setup');
 
   await updatePipeline(pipeline, {
     stage: Stage.setup,
@@ -88,14 +88,14 @@ async function runSetupStage({ pipeline }: BuildPipelineContext) {
 }
 
 async function runFetchingStage({ pipeline }: BuildPipelineContext) {
-  logger.debug('build pipeline stage = fetching');
+  logger.info('build pipeline stage = fetching');
 
   await updatePipeline(pipeline, {
     stage: Stage.fetching,
   });
 
-  const project = await getProject();
-  const projectPages = await getProjectPages();
+  const project = await fetchProject();
+  const projectPages = await fetchProjectPages();
   const designSystemComponentsList = await getDesignSystemComponentsList(
     project.settings.designSystemId,
   );
@@ -110,7 +110,7 @@ async function runFetchingStage({ pipeline }: BuildPipelineContext) {
 
   return {
     project,
-    projectPages,
+    projectPages: projectPages.filter((page) => page.url === '/about-company/career'),
     designSystemComponentsList,
     foundationKitComponent,
   } as Partial<BuildPipelineContext>;
@@ -121,7 +121,7 @@ async function runGeneratingStage({
   projectPages,
   designSystemComponentsList,
 }: BuildPipelineContext) {
-  logger.debug('build pipeline stage = generating');
+  logger.info('build pipeline stage = generating');
 
   await updatePipeline(pipeline, {
     stage: Stage.generating,
@@ -159,7 +159,7 @@ async function runPreparingStage({
   componentsRequiringBundles,
   foundationKitComponent,
 }: BuildPipelineContext) {
-  logger.debug('build pipeline stage = preparing');
+  logger.info('build pipeline stage = preparing');
 
   await updatePipeline(pipeline, { stage: Stage.preparing });
 
@@ -171,7 +171,7 @@ async function runPreparingStage({
 }
 
 async function runCompilationStage({ pipeline }: BuildPipelineContext) {
-  logger.debug('build pipeline stage = compilation');
+  logger.info('build pipeline stage = compilation');
 
   await updatePipeline(pipeline, {
     stage: Stage.compilation,
@@ -188,7 +188,7 @@ async function runCompilationStage({ pipeline }: BuildPipelineContext) {
 }
 
 async function runExportStage({ pipeline }: BuildPipelineContext) {
-  logger.debug('build pipeline stage = export');
+  logger.info('build pipeline stage = export');
 
   await updatePipeline(pipeline, {
     stage: Stage.export,
@@ -205,7 +205,7 @@ async function runExportStage({ pipeline }: BuildPipelineContext) {
 }
 
 async function runCommitStage({ pipeline }: BuildPipelineContext) {
-  logger.debug('build pipeline stage = commit');
+  logger.info('build pipeline stage = commit');
 
   await updatePipeline(pipeline, {
     stage: Stage.commit,

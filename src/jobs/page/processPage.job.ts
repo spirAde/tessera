@@ -34,9 +34,7 @@ export async function processPageJob(
       },
     },
     async () => {
-      logger.debug(
-        `[processPageJob] start ${payload.data.type} job for page id: ${payload.data.pageId}`,
-      );
+      logger.debug(payload, `[processPageJob] start ${payload.data.type} job`);
 
       const pipeline = await createPipeline({
         jobId: payload.id,

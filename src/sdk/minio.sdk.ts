@@ -14,7 +14,7 @@ const minioSdk = new Client({
 
 const bucketName = projectSysName.toLowerCase();
 
-export async function ensureS3BucketExists() {
+export async function ensureS3BucketExists(): Promise<void> {
   try {
     const bucketExists = await minioSdk.bucketExists(bucketName);
 
@@ -22,7 +22,7 @@ export async function ensureS3BucketExists() {
       await minioSdk.makeBucket(bucketName);
     }
   } catch (error) {
-    logger.debug('[ensureBucketExists] failed to create bucket');
+    logger.error(error, '[ensureBucketExists] failed to create bucket');
     throw error;
   }
 }
@@ -31,18 +31,18 @@ export async function uploadFileToS3Bucket(
   filePath: string,
   fileContent: string,
   meta: ItemBucketMetadata = {},
-) {
+): Promise<void> {
   await minioSdk.putObject(bucketName, filePath, fileContent, {
     ...meta,
     'Content-Type': lookup(filePath),
   });
 }
 
-export async function removeFilesFromS3Bucket(filePaths: string[]) {
+export async function removeFilesFromS3Bucket(filePaths: string[]): Promise<void> {
   await minioSdk.removeObjects(bucketName, filePaths);
 }
 
-export async function removeS3BucketFiles() {
+export async function removeS3BucketFiles(): Promise<void> {
   const objects: string[] = [];
 
   await new Promise((resolve) => {

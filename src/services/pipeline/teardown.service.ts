@@ -3,7 +3,7 @@ import uniq from 'lodash/uniq';
 import { logger } from '../../lib/logger';
 import { isFulfilled } from '../../lib/promise';
 import { PageSnapshot } from '../../models';
-import { getPageIdsUsingComponent } from '../../sdk/platform/platform.sdk';
+import { fetchPageIdsUsingComponent } from '../../sdk/platform/platform.sdk';
 import {
   ComponentLike,
   getSameComponentsButDifferentVersion,
@@ -24,9 +24,7 @@ export async function teardown({
     components.flatMap((component) => getSameComponentsButDifferentVersion(component)),
   );
 
-  logger.debug(
-    `[teardown] found expired components: ${JSON.stringify(expiredComponents, null, 2)}`,
-  );
+  logger.debug(expiredComponents, '[teardown] found expired components');
 
   const affectedPageExternalIds = await getAffectedPageIdsWithExpiredComponents({
     excludeExternalIds: [snapshot.page.externalId],
@@ -35,7 +33,7 @@ export async function teardown({
   });
 
   if (affectedPageExternalIds.length > 0) {
-    logger.debug(`[teardown] found affected pages: ${affectedPageExternalIds}`);
+    logger.debug(affectedPageExternalIds, '[teardown] found affected pages}');
     await enqueue(JobName.reexportPages, {
       externalIds: affectedPageExternalIds,
       expiredComponents,
@@ -53,7 +51,7 @@ async function getAffectedPageIdsWithExpiredComponents({
   expiredComponents: ComponentLike[];
 }) {
   const promises = expiredComponents.map((expiredComponent) =>
-    getPageIdsUsingComponent(designSystemId, expiredComponent),
+    fetchPageIdsUsingComponent(designSystemId, expiredComponent),
   );
 
   const tasksOutput = await Promise.allSettled(promises);

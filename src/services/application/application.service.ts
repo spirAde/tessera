@@ -14,18 +14,32 @@ export function getHttpsServerOptions(): ServerOptions {
   };
 }
 
-export async function ensureApplicationIsReadyToLaunch(): Promise<void> {
+export async function ensureApplicationIsReadyToLaunch(
+  forceRebuild: boolean = false,
+): Promise<void> {
   const projectBuildCreationQueueSize = await pgQueue.getQueueSize(JobName.createBuild);
-
-  const existsPersistentFolder = await pathExists(persistentApplicationExportFolderRootPath);
   const isProjectBuildCreationQueueEmpty = projectBuildCreationQueueSize === 0;
 
-  if (existsPersistentFolder && isProjectBuildCreationQueueEmpty) {
+  const existsPersistentFolder = await pathExists(persistentApplicationExportFolderRootPath);
+
+  const isApplicationReadyToLaunch = shouldLaunchApplication({
+    forceRebuild,
+    existsPersistentFolder,
+    isProjectBuildCreationQueueEmpty,
+  });
+
+  const isApplicationNeededBuild = shouldRunApplicationBuild({
+    forceRebuild,
+    existsPersistentFolder,
+    isProjectBuildCreationQueueEmpty,
+  });
+
+  if (isApplicationReadyToLaunch) {
     logger.debug('[ensureApplicationIsReadyToLaunch] application is ready to launch');
     return Promise.resolve();
   }
 
-  if (!existsPersistentFolder && isProjectBuildCreationQueueEmpty) {
+  if (isApplicationNeededBuild) {
     logger.debug('[ensureApplicationIsReadyToLaunch] application requires the project build');
     await enqueue(JobName.createBuild);
   }
@@ -33,4 +47,28 @@ export async function ensureApplicationIsReadyToLaunch(): Promise<void> {
   await waitJobCompletion(JobName.createBuild);
 
   logger.debug('[ensureApplicationIsReadyToLaunch] application is ready to launch');
+}
+
+function shouldLaunchApplication({
+  forceRebuild,
+  isProjectBuildCreationQueueEmpty,
+  existsPersistentFolder,
+}: {
+  forceRebuild: boolean;
+  isProjectBuildCreationQueueEmpty: boolean;
+  existsPersistentFolder: boolean;
+}) {
+  return !forceRebuild && existsPersistentFolder && isProjectBuildCreationQueueEmpty;
+}
+
+function shouldRunApplicationBuild({
+  forceRebuild,
+  isProjectBuildCreationQueueEmpty,
+  existsPersistentFolder,
+}: {
+  forceRebuild: boolean;
+  isProjectBuildCreationQueueEmpty: boolean;
+  existsPersistentFolder: boolean;
+}) {
+  return forceRebuild || (!existsPersistentFolder && isProjectBuildCreationQueueEmpty);
 }

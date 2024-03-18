@@ -4,17 +4,17 @@ import { DesignSystemComponent, ProjectPageStructure } from '../../sdk/platform/
 import { ComponentLike } from '../../services/component/component.service';
 import { componentFixture } from '../fixtures/component.fixture';
 import { designSystemFixture } from '../fixtures/designSystem.fixture';
-import { projectT1CloudFixture } from '../fixtures/project.fixture';
+import { projectExampleProjectFixture } from '../fixtures/project.fixture';
 
 const basePath = process.env.PLATFORM_HOST ?? 'https://admin.t1-academy.ru';
-const projectSysName = process.env.PROJECT_NAME ?? 'T1Cloud';
+const projectSysName = process.env.PROJECT_NAME ?? 'ExampleProject';
 const projectPagesStatus = process.env.PROJECT_PAGES_STATUS ?? 'published';
 
 export function nockGetPlatformProject(status = 200, times = 1) {
   return nock(basePath)
     .get(`/api/v1/project/${projectSysName}`)
     .times(times)
-    .reply(status, projectT1CloudFixture);
+    .reply(status, projectExampleProjectFixture);
 }
 
 export function nockGetPlatformDesignSystem({

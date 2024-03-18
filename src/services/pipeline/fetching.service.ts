@@ -1,5 +1,5 @@
 import { logger } from '../../lib/logger';
-import { getProjectDesignSystemComponents } from '../../sdk/platform/platform.sdk';
+import { fetchProjectDesignSystemComponents } from '../../sdk/platform/platform.sdk';
 import {
   ComponentLike,
   mapDesignSystemComponentToComponentLike,
@@ -8,9 +8,9 @@ import {
 export async function getDesignSystemComponentsList(
   designSystemId: number,
 ): Promise<ComponentLike[]> {
-  logger.debug('fetch project design system');
+  logger.info('fetch project design system');
 
-  const designSystemComponentsList = await getProjectDesignSystemComponents(designSystemId);
+  const designSystemComponentsList = await fetchProjectDesignSystemComponents(designSystemId);
 
   return mapDesignSystemComponentToComponentLike(designSystemComponentsList);
 }

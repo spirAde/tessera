@@ -1,4 +1,4 @@
-import got from 'got';
+import axios from 'axios';
 
 import { Page } from '../../models';
 import { JobName } from '../../services/enqueueJob.service';
@@ -17,11 +17,10 @@ describe('POST /pages', () => {
     const externalId = 1;
     const url = '/';
 
-    await got
-      .post<CreatePageRequestBody>(`${applicationUrl}/api/v1/pages`, {
-        json: { id: externalId, url },
-      })
-      .json();
+    await axios.post<CreatePageRequestBody>(`${applicationUrl}/api/v1/pages`, {
+      id: externalId,
+      url,
+    });
 
     const pages = await Page.findAll({
       where: { externalId },
@@ -46,9 +45,7 @@ describe('POST /pages', () => {
     await seedPage({ externalId, url });
 
     await expect(
-      got.post<CreatePageRequestBody>(`${applicationUrl}/api/v1/pages`, {
-        json: { id: externalId, url },
-      }),
+      axios.post<CreatePageRequestBody>(`${applicationUrl}/api/v1/pages`, { id: externalId, url }),
     ).rejects.toThrow();
   });
 });
@@ -60,11 +57,7 @@ describe('PUT /pages', () => {
     const externalId = 1;
     await seedPage({ url: '/', externalId });
 
-    await got
-      .put<UpdatePageRequestBody>(`${applicationUrl}/api/v1/pages`, {
-        json: { id: externalId },
-      })
-      .json();
+    await axios.put<UpdatePageRequestBody>(`${applicationUrl}/api/v1/pages`, { id: externalId });
 
     const pages = await Page.findAll({
       where: { externalId },
@@ -86,8 +79,8 @@ describe('PUT /pages', () => {
     const externalId = 1;
 
     await expect(
-      got.put<UpdatePageRequestBody>(`${applicationUrl}/api/v1/pages`, {
-        json: { id: externalId },
+      axios.put<UpdatePageRequestBody>(`${applicationUrl}/api/v1/pages`, {
+        id: externalId,
       }),
     ).rejects.toThrow();
   });
@@ -100,11 +93,11 @@ describe('DELETE /pages', () => {
     const externalId = 1;
     const page = await seedPage({ url: '/', externalId });
 
-    await got
-      .delete<DeletePageRequestBody>(`${applicationUrl}/api/v1/pages`, {
-        json: { id: externalId },
-      })
-      .json();
+    await axios.delete<DeletePageRequestBody>(`${applicationUrl}/api/v1/pages`, {
+      data: {
+        id: externalId,
+      },
+    });
 
     const pages = await Page.findAll({
       where: { externalId },
@@ -126,8 +119,8 @@ describe('DELETE /pages', () => {
     const externalId = 1;
 
     await expect(
-      got.delete<UpdatePageRequestBody>(`${applicationUrl}/api/v1/pages`, {
-        json: { id: externalId },
+      axios.delete<UpdatePageRequestBody>(`${applicationUrl}/api/v1/pages`, {
+        data: { id: externalId },
       }),
     ).rejects.toThrow();
   });

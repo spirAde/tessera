@@ -1,3 +1,3 @@
 import { runApplication } from './application';
 
-runApplication().catch(() => process.exit(1));
+runApplication(require('minimist')(process.argv.slice(2))).catch(() => process.exit(1));

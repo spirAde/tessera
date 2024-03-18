@@ -27,7 +27,7 @@ export async function createBuildJob(payload: Job<{ parentSpanContext?: SpanCont
       },
     },
     async () => {
-      logger.debug(`[createBuildJob] start job`);
+      logger.debug(payload, `[createBuildJob] start job`);
 
       await cleanUpBeforeBuild();
       await stopPageJobs();

@@ -23,8 +23,6 @@ export type Project = {
   title: string;
   sysName: string;
   description: string;
-  robotsText: string;
-  siteMirror: string;
   updateLogin: string;
   updateMoment: string;
   settings: ProjectSettings;
@@ -124,5 +122,5 @@ type ProjectSettings = {
     parameters: ProjectStandParametersBucket[];
   };
   designSystemId: number;
-  domain: string;
+  domain: string | null;
 };

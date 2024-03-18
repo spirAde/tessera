@@ -1,11 +1,12 @@
 import fastify, { errorCodes, FastifyError, FastifyReply, FastifyRequest } from 'fastify';
 import path from 'path';
 
-import { host, isTest, port, useS3BucketForStatic } from './config';
+import { host, isDevelopment, isTest, port, useS3BucketForStatic } from './config';
 import { logger } from './lib/logger';
 import { initializeOpentelemetry } from './lib/opentelemetry';
 import { sequelize } from './lib/sequelize';
 import { ensureS3BucketExists } from './sdk/minio.sdk';
+import { authenticate } from './sdk/platform/platform.sdk';
 import {
   ensureApplicationIsReadyToLaunch,
   getHttpsServerOptions,
@@ -14,7 +15,7 @@ import { initializeJobs, pgQueue } from './services/enqueueJob.service';
 
 export const application = fastify({
   logger: true,
-  https: !isTest ? getHttpsServerOptions() : null,
+  https: isDevelopment || isTest ? null : getHttpsServerOptions(),
 });
 
 async function handleErrors(error: FastifyError, _: FastifyRequest, reply: FastifyReply) {
@@ -25,7 +26,7 @@ async function handleErrors(error: FastifyError, _: FastifyRequest, reply: Fasti
   }
 }
 
-export async function runApplication() {
+export async function runApplication(argv: { force: boolean }) {
   application.setErrorHandler(handleErrors);
 
   initializeOpentelemetry({
@@ -37,12 +38,14 @@ export async function runApplication() {
   });
 
   try {
+    useS3BucketForStatic && (await ensureS3BucketExists());
+
     await sequelize.sync();
     await pgQueue.start();
 
+    await authenticate();
     await initializeJobs();
-    useS3BucketForStatic && (await ensureS3BucketExists());
-    await ensureApplicationIsReadyToLaunch();
+    await ensureApplicationIsReadyToLaunch(argv.force);
 
     await application.register(require('@fastify/helmet'));
     await application.register(require('@fastify/swagger'), {
@@ -65,7 +68,7 @@ export async function runApplication() {
     });
     await application.listen({ host, port });
   } catch (error) {
-    logger.fatal('error', error);
+    logger.fatal(error, 'fatal application error');
     application.log.error(error);
     process.exit(1);
   }

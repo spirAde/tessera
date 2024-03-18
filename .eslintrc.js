@@ -95,7 +95,7 @@ module.exports = {
   },
   overrides: [
     {
-      files: ['*/services/**/*.ts'],
+      files: ['*/services/**/*.ts', '*/sdk/**/*.ts'],
       rules: {
         '@typescript-eslint/explicit-module-boundary-types': 'error',
       },

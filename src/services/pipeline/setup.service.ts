@@ -7,6 +7,6 @@ import {
 import { logger } from '../../lib/logger';
 
 export function setupApplicationFolderEnvironment(): Promise<void> {
-  logger.debug('copy application environment folder');
+  logger.info('copy application environment folder');
   return copy(applicationTemplateFolderPath, temporaryApplicationBuildFolderRootPath);
 }

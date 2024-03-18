@@ -13,7 +13,7 @@ import {
   pageStructureAboutFixture,
   pageComponentsByPageId,
 } from '../../tests/fixtures/pageStructure.fixture';
-import { projectT1CloudFixture } from '../../tests/fixtures/project.fixture';
+import { projectExampleProjectFixture } from '../../tests/fixtures/project.fixture';
 import {
   nockGetPlatformProject,
   nockGetPlatformProjectPages,
@@ -41,7 +41,9 @@ describe('createBuildJob', () => {
 
     nockGetPlatformProject();
     nockGetPlatformProjectPages({ body: pages });
-    nockGetPlatformDesignSystem({ designSystemId: projectT1CloudFixture.settings.designSystemId });
+    nockGetPlatformDesignSystem({
+      designSystemId: projectExampleProjectFixture.settings.designSystemId,
+    });
     nockProjectPages(pages);
     nockProjectComponentsSources(pages);
 
@@ -125,7 +127,9 @@ describe('createBuildJob', () => {
 
     nockGetPlatformProject();
     nockGetPlatformProjectPages({ body: pages });
-    nockGetPlatformDesignSystem({ designSystemId: projectT1CloudFixture.settings.designSystemId });
+    nockGetPlatformDesignSystem({
+      designSystemId: projectExampleProjectFixture.settings.designSystemId,
+    });
     nockGetPlatformProjectPage({
       pageId: pageStructureMainFixture.id,
       body: pageStructureMainFixture as unknown as ProjectPageStructure,
@@ -184,7 +188,7 @@ describe('createBuildJob', () => {
     nockGetPlatformProject();
     nockGetPlatformProjectPages({ body: [] });
     nockGetPlatformDesignSystem({
-      designSystemId: projectT1CloudFixture.settings.designSystemId,
+      designSystemId: projectExampleProjectFixture.settings.designSystemId,
       body: [],
     });
 
@@ -215,7 +219,7 @@ function nockProjectComponentsSources(pages: ProjectPageStructure[]) {
   for (const component of components) {
     nockGetPlatformComponentSource({
       component,
-      designSystemId: projectT1CloudFixture.settings.designSystemId,
+      designSystemId: projectExampleProjectFixture.settings.designSystemId,
     });
   }
 }

@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import fp from 'fastify-plugin';
 
-import { create } from '../../controllers/build/builds.controller';
+import { create } from '../../controllers/build/build.controller';
 
 // ts-prune-ignore-next, eslint-disable-next-line require-await
 export default fp(async (application: FastifyInstance) => {

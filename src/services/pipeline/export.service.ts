@@ -47,7 +47,7 @@ async function exportPage({
   extractor: ChunkExtractor;
   page: Page;
 }) {
-  logger.debug(`export page url: ${page.url}`);
+  logger.info(`export page url: ${page.url}`);
 
   const html = renderToString(
     extractor.collectChunks(

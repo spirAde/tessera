@@ -4,7 +4,7 @@ module.exports = {
   logging: false,
   dialect: 'postgres',
   host: process.env.PG_HOST || 'localhost',
-  port: Number(process.env.PG_PORT) || 5432,
+  port: Number(process.env.PG_PORT) || 5431,
   database: process.env.PG_DATABASE || 'tessera-db',
   username: process.env.PG_USER || 'user',
   password: process.env.PG_PASSWORD || 'password',

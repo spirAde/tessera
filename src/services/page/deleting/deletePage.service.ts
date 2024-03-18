@@ -8,7 +8,7 @@ import {
 import { logger } from '../../../lib/logger';
 import { getPageFolderPathFromUrl } from '../../../lib/url';
 import { Page, PageSnapshot, Pipeline } from '../../../models';
-import { getProject } from '../../../sdk/platform/platform.sdk';
+import { fetchProject } from '../../../sdk/platform/platform.sdk';
 import { Stage, Status } from '../../../types';
 import {
   createPageSnapshot,
@@ -69,7 +69,7 @@ export async function runPageDeleting(pipeline: Pipeline, pageId: number): Promi
     await updatePipeline(pipeline, {
       status: Status.success,
     });
-    logger.debug(`page deleting pipeline is successfully finished`);
+    logger.info(`page deleting pipeline is successfully finished`);
   } catch (error) {
     await updatePageSnapshot(snapshot, {
       status: Status.failed,
@@ -90,13 +90,13 @@ export async function runPageDeleting(pipeline: Pipeline, pageId: number): Promi
 }
 
 async function runFetchingStage({ pipeline, snapshot }: PagePipelineContext) {
-  logger.debug(`page fetching stage: ${snapshot.page.url}`);
+  logger.info(`page fetching stage: ${snapshot.page.url}`);
 
   await updatePipeline(pipeline, {
     stage: Stage.fetching,
   });
 
-  const project = await getProject();
+  const project = await fetchProject();
 
   return {
     project,
@@ -105,7 +105,7 @@ async function runFetchingStage({ pipeline, snapshot }: PagePipelineContext) {
 }
 
 async function runGeneratingStage({ pipeline, pages, snapshot }: PagePipelineContext) {
-  logger.debug(`page generating stage: ${snapshot.page.url}`);
+  logger.info(`page generating stage: ${snapshot.page.url}`);
 
   await updatePipeline(pipeline, {
     stage: Stage.generating,

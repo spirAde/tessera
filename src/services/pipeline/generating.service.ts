@@ -8,21 +8,20 @@ import {
   normalizePageComponentsVersionsGivenDesignSystem,
   parsePageStructureComponentsList,
 } from './parsing.service';
-import { useWorkerThreadsProcessing, temporaryApplicationBuildFolderRootPath } from '../../config';
+import { temporaryApplicationBuildFolderRootPath } from '../../config';
 import { logger } from '../../lib/logger';
 import { isFulfilled } from '../../lib/promise';
 import { getRandomString } from '../../lib/random';
 import { getPageFolderPathFromUrl } from '../../lib/url';
 import { Page, PageSnapshot } from '../../models';
-import { getProjectPageStructure } from '../../sdk/platform/platform.sdk';
+import { fetchProjectPageStructure } from '../../sdk/platform/platform.sdk';
 import { ProjectPageStructureComponent, ProjectPageStructure } from '../../sdk/platform/types';
 import { getApplicationFileContent } from '../../templates/templates/application.template';
 import { getApplicationPageFileContent } from '../../templates/templates/page.template';
-import { Stage, Status } from '../../types';
+import { Status } from '../../types';
 import { ComponentLike } from '../component/component.service';
 import { getHelmetComponent } from '../component/helmet.service';
-import { getLastPageSnapshot, updatePageSnapshot } from '../pageSnapshot/pageSnapshot.service';
-import { createPool } from '../thread.service';
+import { getLastPageSnapshot } from '../pageSnapshot/pageSnapshot.service';
 
 type GeneratedPage = {
   pageUrl: string;
@@ -68,9 +67,10 @@ export async function generatePage(
   pageComponentName: string;
   pageComponentsList: ComponentLike[];
 }> {
-  logger.debug(`generating page: id: - ${page.externalId}, url - ${page.url}`);
+  logger.info(`generating page: id: - ${page.externalId}, url - ${page.url}`);
 
-  const pageStructure = await getProjectPageStructure(page.externalId);
+  const pageStructure = await fetchProjectPageStructure(page.externalId);
+
   const pageComponentsList = normalizePageComponentsVersionsGivenDesignSystem(
     designSystemComponentsMap,
     parsePageStructureComponentsList(pageStructure),
@@ -84,80 +84,18 @@ export async function generatePage(
   return { pageFilePath, pageComponentName, pageComponentsList };
 }
 
-export function generatePages(
+export async function generatePages(
   pages: Page[],
   designSystemComponentsMap: Map<string, string>,
 ): Promise<{
   generatedPages: GeneratedPage[];
   componentsRequiringBundles: ComponentLike[];
 }> {
-  // nock supports only main thread catching request, as result we can skip this branch
-  /* istanbul ignore if */
-  if (useWorkerThreadsProcessing) {
-    return processGeneratingInWorkerThreads(pages, designSystemComponentsMap);
-  }
-
-  return processGeneratingInMainThread(pages, designSystemComponentsMap);
-}
-
-export function getPageComponentName(pageFolderPath: string): string {
-  const folderName = pageFolderPath.split('/').reverse()[0];
-  return folderName
-    ? getHumanReadableComponentName(`page-${folderName}`)
-        .slice(0, maxPageNameLength)
-        .concat(getRandomString())
-    : 'PageMain'.concat(getRandomString());
-}
-
-export function getAbsolutePageFilePath(
-  pageFolderPath: string,
-  prefix = temporaryApplicationBuildFolderRootPath,
-): string {
-  return path.join(prefix, 'pages', pageFolderPath, 'index.jsx');
-}
-
-async function createApplicationPageFile(
-  pageStructure: ProjectPageStructure,
-  componentsList: ComponentLike[],
-) {
-  const pageFolderPath = getPageFolderPathFromUrl(pageStructure.url);
-  const absolutePageFilePath = getAbsolutePageFilePath(pageFolderPath);
-
-  const pageHelmetComponent = getHelmetComponent({
-    url: pageStructure.url,
-    seo: pageStructure.seo.result,
-    meta: pageStructure.meta.result,
-  });
-  const pageComponentsTree = getPageComponentsTree(pageStructure.template, [pageHelmetComponent]);
-  const pageComponentsImports = getPageComponentsImports(componentsList);
-  const pageComponentName = getPageComponentName(pageFolderPath);
-
-  const pageFileContent = getApplicationPageFileContent({
-    pageName: pageComponentName,
-    pageContent: pageComponentsTree,
-    pageFooter: JSON.stringify({}),
-    imports: pageComponentsImports,
-    businessTheme: "'main'",
-    colorTheme: "'light'",
-  });
-
-  await outputFile(absolutePageFilePath, stripIndent(pageFileContent));
-
-  return { pageComponentName, pageFilePath: absolutePageFilePath };
-}
-
-/* istanbul ignore next */
-async function processGeneratingInWorkerThreads(
-  pages: Page[],
-  designSystemComponentsMap: Map<string, string>,
-) {
-  const pool = createPool(Stage.generating);
-
   const promises: Promise<{
     pageFilePath: string;
     pageComponentName: string;
     pageComponentsList: ComponentLike[];
-  }>[] = pages.map((page) => pool.run({ pageId: page.id, designSystemComponentsMap }));
+  }>[] = pages.map((page) => generatePage(page, designSystemComponentsMap));
 
   const tasksOutput = await Promise.allSettled(promises);
 
@@ -220,36 +158,50 @@ async function processGeneratingInWorkerThreads(
   return groupedTasksOutput.fulfilled;
 }
 
-async function processGeneratingInMainThread(
-  pages: Page[],
-  designSystemComponentsMap: Map<string, string>,
+export function getPageComponentName(pageFolderPath: string): string {
+  const folderName = pageFolderPath.split('/').reverse()[0];
+  return folderName
+    ? getHumanReadableComponentName(`page-${folderName}`)
+        .slice(0, maxPageNameLength)
+        .concat(getRandomString())
+    : 'PageMain'.concat(getRandomString());
+}
+
+export function getAbsolutePageFilePath(
+  pageFolderPath: string,
+  prefix = temporaryApplicationBuildFolderRootPath,
+): string {
+  return path.join(prefix, 'pages', pageFolderPath, 'index.jsx');
+}
+
+async function createApplicationPageFile(
+  pageStructure: ProjectPageStructure,
+  componentsList: ComponentLike[],
 ) {
-  const componentsRequiringBundles: ComponentLike[] = [];
-  const generatedPages: GeneratedPage[] = [];
+  const pageFolderPath = getPageFolderPathFromUrl(pageStructure.url);
+  const absolutePageFilePath = getAbsolutePageFilePath(pageFolderPath);
 
-  for (const page of pages) {
-    try {
-      const { pageFilePath, pageComponentName, pageComponentsList } = await generatePage(
-        page,
-        designSystemComponentsMap,
-      );
+  const pageHelmetComponent = getHelmetComponent({
+    url: pageStructure.url,
+    seo: pageStructure.seo.result,
+    meta: pageStructure.meta.result,
+  });
+  const pageComponentsTree = getPageComponentsTree(pageStructure.template, [pageHelmetComponent]);
+  const pageComponentsImports = getPageComponentsImports(componentsList);
+  const pageComponentName = getPageComponentName(pageFolderPath);
 
-      componentsRequiringBundles.push(...pageComponentsList);
+  const pageFileContent = getApplicationPageFileContent({
+    pageName: pageComponentName,
+    pageContent: pageComponentsTree,
+    pageFooter: JSON.stringify({}),
+    imports: pageComponentsImports,
+    businessTheme: "'main'",
+    colorTheme: "'light'",
+  });
 
-      generatedPages.push({
-        pageUrl: page.url,
-        path: pageFilePath,
-        pageName: pageComponentName,
-      });
-    } catch (error) {
-      const pageSnapshot = await getLastPageSnapshot(page.id);
-      await updatePageSnapshot(pageSnapshot, {
-        status: Status.failed,
-      });
-    }
-  }
+  await outputFile(absolutePageFilePath, stripIndent(pageFileContent));
 
-  return { componentsRequiringBundles, generatedPages };
+  return { pageComponentName, pageFilePath: absolutePageFilePath };
 }
 
 function getPageComponentsTree(

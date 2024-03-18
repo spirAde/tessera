@@ -2,7 +2,7 @@ import { mkdir } from 'fs-extra';
 
 import { ensureApplicationIsReadyToLaunch } from './application.service';
 import { persistentApplicationExportFolderRootPath } from '../../config';
-import { projectT1CloudFixture } from '../../tests/fixtures/project.fixture';
+import { projectExampleProjectFixture } from '../../tests/fixtures/project.fixture';
 import {
   nockGetPlatformProject,
   nockGetPlatformProjectPages,
@@ -21,10 +21,12 @@ describe('ensureApplicationIsReadyToLaunch', () => {
   it('waits completion of running create build job if no persistent folder and there is running job', async () => {
     nockGetPlatformProject();
     nockGetPlatformProjectPages({ body: [] });
-    nockGetPlatformDesignSystem({ designSystemId: projectT1CloudFixture.settings.designSystemId });
+    nockGetPlatformDesignSystem({
+      designSystemId: projectExampleProjectFixture.settings.designSystemId,
+    });
     nockGetPlatformComponentSource({
       component: { name: 'foundation-kit', version: '1.0.18' },
-      designSystemId: projectT1CloudFixture.settings.designSystemId,
+      designSystemId: projectExampleProjectFixture.settings.designSystemId,
     });
 
     const spyOnPgQueueOnComplete = jest.spyOn(pgQueue, 'onComplete');

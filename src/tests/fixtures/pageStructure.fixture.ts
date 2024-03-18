@@ -35,7 +35,7 @@ export const pageStructureMainFixture = {
   },
   status: 0,
   restrictions: [],
-  projectSysName: 'T1Cloud',
+  projectSysName: 'ExampleProject',
   updateMoment: '2023-12-29T13:41:47.467419+03:00',
   updateLogin: 'DVRogoza',
   template: [
@@ -366,7 +366,7 @@ export const pageStructureServiceFixture = {
   },
   status: 0,
   restrictions: [],
-  projectSysName: 'T1Cloud',
+  projectSysName: 'ExampleProject',
   updateMoment: '2023-12-20T11:02:38.07412+03:00',
   updateLogin: 'DVRogoza',
   template: [
@@ -542,7 +542,7 @@ export const pageStructureServiceCDNFixture = {
   },
   status: 0,
   restrictions: [],
-  projectSysName: 'T1Cloud',
+  projectSysName: 'ExampleProject',
   updateMoment: '2023-12-29T12:32:02.623019+03:00',
   updateLogin: 'DOleshkevich',
   template: [
@@ -602,12 +602,12 @@ export const pageStructureServiceCDNFixture = {
             btnSecondHref: '',
             btnSecondTarget: '_self',
             image:
-              '/media-files/T1Cloud/sitepages/service/corporate-services/disk-t1/pic-header.png',
+              '/media-files/ExampleProject/sitepages/service/corporate-services/disk-t1/pic-header.png',
             imageType: 'inContent',
             components: [],
             uiOrder: 0,
-            imageMobile: '/media-files/T1Cloud/sitepages/service/cdn-3d-ico.png',
-            imageDesktop: '/media-files/T1Cloud/sitepages/service/cdn-3d-ico.png',
+            imageMobile: '/media-files/ExampleProject/sitepages/service/cdn-3d-ico.png',
+            imageDesktop: '/media-files/ExampleProject/sitepages/service/cdn-3d-ico.png',
             imagePosition: 'whole',
           },
           uiOrder: 0,
@@ -812,7 +812,7 @@ export const pageStructureAboutFixture = {
   },
   status: 0,
   restrictions: [],
-  projectSysName: 'T1Cloud',
+  projectSysName: 'ExampleProject',
   updateMoment: '2024-01-11T10:23:54.547901+03:00',
   updateLogin: 'DOleshkevich',
   template: [
@@ -876,7 +876,7 @@ export const pageStructureAboutFixture = {
             components: [],
             uiOrder: 0,
             imageMobile: '',
-            imageDesktop: '/media-files/T1Cloud/sitepages/service/plus1-img.jpg',
+            imageDesktop: '/media-files/ExampleProject/sitepages/service/plus1-img.jpg',
             imagePosition: 'whole',
           },
           uiOrder: 0,
@@ -974,7 +974,7 @@ export const pageStructureAboutFixture = {
                   description: '',
                   cardHref: '',
                   altImage: 'Магнит',
-                  image: '/media-files/T1Cloud/sitepages/about-company/1c.png',
+                  image: '/media-files/ExampleProject/sitepages/about-company/1c.png',
                   imageType: 'logo',
                   logo: '',
                   altLogo: 'Alt логотипа',
@@ -997,7 +997,7 @@ export const pageStructureAboutFixture = {
                   description: '',
                   cardHref: '',
                   altImage: '',
-                  image: '/media-files/T1Cloud/sitepages/about-company/bonduelle.png',
+                  image: '/media-files/ExampleProject/sitepages/about-company/bonduelle.png',
                   imageType: 'logo',
                   logo: '',
                   altLogo: '',
@@ -1020,7 +1020,7 @@ export const pageStructureAboutFixture = {
                   description: '',
                   cardHref: '',
                   altImage: '',
-                  image: '/media-files/T1Cloud/sitepages/about-company/directum.png',
+                  image: '/media-files/ExampleProject/sitepages/about-company/directum.png',
                   imageType: 'logo',
                   logo: '',
                   altLogo: '',
@@ -1043,7 +1043,7 @@ export const pageStructureAboutFixture = {
                   description: '',
                   cardHref: '',
                   altImage: '',
-                  image: '/media-files/T1Cloud/sitepages/about-company/ingosstrakh.png',
+                  image: '/media-files/ExampleProject/sitepages/about-company/ingosstrakh.png',
                   imageType: 'logo',
                   logo: '',
                   altLogo: 'Alt логотипа',
@@ -1066,7 +1066,7 @@ export const pageStructureAboutFixture = {
                   description: '',
                   cardHref: '',
                   altImage: '',
-                  image: '/media-files/T1Cloud/sitepages/about-company/karo.png',
+                  image: '/media-files/ExampleProject/sitepages/about-company/karo.png',
                   imageType: 'logo',
                   logo: '',
                   altLogo: '',
@@ -1089,7 +1089,7 @@ export const pageStructureAboutFixture = {
                   description: '',
                   cardHref: '',
                   altImage: '',
-                  image: '/media-files/T1Cloud/sitepages/about-company/teko.png',
+                  image: '/media-files/ExampleProject/sitepages/about-company/teko.png',
                   imageType: 'logo',
                   logo: '',
                   altLogo: '',
@@ -1112,7 +1112,7 @@ export const pageStructureAboutFixture = {
                   description: '',
                   cardHref: '',
                   altImage: '',
-                  image: '/media-files/T1Cloud/sitepages/about-company/tele.png',
+                  image: '/media-files/ExampleProject/sitepages/about-company/tele.png',
                   imageType: 'logo',
                   logo: '',
                   altLogo: '',
@@ -1135,7 +1135,7 @@ export const pageStructureAboutFixture = {
                   description: '',
                   cardHref: '',
                   altImage: '',
-                  image: '/media-files/T1Cloud/sitepages/about-company/x5.png',
+                  image: '/media-files/ExampleProject/sitepages/about-company/x5.png',
                   imageType: 'logo',
                   logo: '',
                   altLogo: '',
@@ -1158,7 +1158,7 @@ export const pageStructureAboutFixture = {
                   description: '',
                   cardHref: '',
                   altImage: '',
-                  image: '/media-files/T1Cloud/sitepages/about-company/zeppelin.png',
+                  image: '/media-files/ExampleProject/sitepages/about-company/zeppelin.png',
                   imageType: 'logo',
                   logo: '',
                   altLogo: '',
@@ -1181,7 +1181,7 @@ export const pageStructureAboutFixture = {
                   description: '',
                   cardHref: '',
                   altImage: '',
-                  image: '/media-files/T1Cloud/sitepages/test1/about-company/magnit.png',
+                  image: '/media-files/ExampleProject/sitepages/test1/about-company/magnit.png',
                   imageType: 'logo',
                   logo: '',
                   altLogo: '',
@@ -1205,7 +1205,7 @@ export const pageStructureAboutFixture = {
                   description: '',
                   cardHref: '',
                   altImage: '',
-                  image: '/media-files/T1Cloud/sitepages/test1/about-company/magnit.png',
+                  image: '/media-files/ExampleProject/sitepages/test1/about-company/magnit.png',
                   imageType: 'logo',
                   logo: '',
                   altLogo: '',
@@ -1295,8 +1295,8 @@ export const pageStructureAboutFixture = {
             btnSecondText: '',
             btnSecondHref: '',
             btnSecondTarget: '_self',
-            imageMobile: '/media-files/T1Cloud/sitepages/qr-tg-200.png',
-            imageDesktop: '/media-files/T1Cloud/sitepages/qr-tg-200.png',
+            imageMobile: '/media-files/ExampleProject/sitepages/qr-tg-200.png',
+            imageDesktop: '/media-files/ExampleProject/sitepages/qr-tg-200.png',
             imagePosition: 'whole',
             components: [],
             uiOrder: 0,
@@ -1402,7 +1402,7 @@ export const pageStructureServiceUpdateFixture = {
                 result: {
                   title:
                     'Level Group повышает эффективность процессов проектирования с помощью облачных сервисов',
-                  imageLink: '/media-files/T1Cloud/fragment-template/123703/phot.png',
+                  imageLink: '/media-files/ExampleProject/fragment-template/123703/phot.png',
                   buttonLink:
                     '/about-company/cases/t1-cloud-i-datapro-predostavil-virtualnuyu-infrastrukturu-dlya-level-group/',
                   buttonText: 'Подробнее',
@@ -1438,7 +1438,7 @@ export const pageStructureServiceUpdateFixture = {
                 componentName: 'slider-case-card',
                 result: {
                   title: 'T1 Cloud обеспечил Trussardi бесперебойную работу сервиса 1С',
-                  imageLink: '/media-files/T1Cloud/fragment-template/123703/phot.png',
+                  imageLink: '/media-files/ExampleProject/fragment-template/123703/phot.png',
                   buttonLink:
                     '/about-company/cases/t1-cloud-pomogaet-obespechivat-otkazoustoychivost-it-infrastruktury-trussardi/ ',
                   buttonText: 'Подробнее',
@@ -1475,7 +1475,7 @@ export const pageStructureServiceUpdateFixture = {
                 result: {
                   title:
                     '«Новатех» сократила трудозатраты в 4 раза, используя облачную инфраструктуру',
-                  imageLink: '/media-files/T1Cloud/fragment-template/123703/phot.png',
+                  imageLink: '/media-files/ExampleProject/fragment-template/123703/phot.png',
                   buttonLink: '/about-company/cases/novatekh/',
                   buttonText: 'Подробнее',
                   buttonTarget: '_self',
@@ -1510,7 +1510,7 @@ export const pageStructureServiceUpdateFixture = {
                 componentName: 'slider-case-card',
                 result: {
                   title: 'T1 Cloud помог Проконсим организовать удаленную работу сотрудников',
-                  imageLink: '/media-files/T1Cloud/fragment-template/123703/phot.png',
+                  imageLink: '/media-files/ExampleProject/fragment-template/123703/phot.png',
                   buttonLink:
                     '/about-company/cases/t1-cloud-virtualnyy-data-tsentr-dlya-firmy-prokonsim/',
                   buttonText: 'Подробнее',
@@ -1546,7 +1546,7 @@ export const pageStructureServiceUpdateFixture = {
                 componentName: 'slider-case-card',
                 result: {
                   title: 'Облачная платформа обеспечивает «Бондюэль» стабильную работы ИТ-систем',
-                  imageLink: '/media-files/T1Cloud/fragment-template/123703/phot.png',
+                  imageLink: '/media-files/ExampleProject/fragment-template/123703/phot.png',
                   buttonLink: '/about-company/cases/bondyuel-polzuetsya-oblakom-t1-cloud/  ',
                   buttonText: 'Подробнее',
                   buttonTarget: '_self',
@@ -1582,7 +1582,7 @@ export const pageStructureServiceUpdateFixture = {
                 result: {
                   title:
                     'Directum повысил доступность сервисов для клиентов, используя облачную инфраструктуру',
-                  imageLink: '/media-files/T1Cloud/fragment-template/123703/phot.png',
+                  imageLink: '/media-files/ExampleProject/fragment-template/123703/phot.png',
                   buttonLink:
                     '/about-company/cases/directum-uspeshno-perevel-v-oblako-t1-cloud-servisy-zakazchikov',
                   buttonText: 'Подробнее',
@@ -1619,7 +1619,7 @@ export const pageStructureServiceUpdateFixture = {
                 result: {
                   title:
                     'LIFE PAY повышает качество сервисов для клиентов с помощью облака T1 Cloud',
-                  imageLink: '/media-files/T1Cloud/fragment-template/123703/phot.png',
+                  imageLink: '/media-files/ExampleProject/fragment-template/123703/phot.png',
                   buttonLink:
                     '/about-company/cases/kak-oblako-t1-cloud-pomogaet-life-pay-sokhranyat-vysokuyu-otkazoustoychivost-it-infrastruktury-i-gib',
                   buttonText: 'Подробнее',
@@ -1655,7 +1655,7 @@ export const pageStructureServiceUpdateFixture = {
                 componentName: 'slider-case-card',
                 result: {
                   title: 'Защищенная инфраструктура в соответствии с 152 -ФЗ для Bellerage Alinga',
-                  imageLink: '/media-files/T1Cloud/fragment-template/123703/phot.png',
+                  imageLink: '/media-files/ExampleProject/fragment-template/123703/phot.png',
                   buttonLink:
                     '/about-company/cases/t1-cloud-predostavil-uslugu-colocation-kompanii-bellerage-alinga',
                   buttonText: 'Подробнее',
@@ -1692,7 +1692,7 @@ export const pageStructureServiceUpdateFixture = {
                 result: {
                   title:
                     'Аэропорт Пулково повышает эффективность процессов бэк-офиса с помощью облачных сервисов  ',
-                  imageLink: '/media-files/T1Cloud/fragment-template/123703/phot.png',
+                  imageLink: '/media-files/ExampleProject/fragment-template/123703/phot.png',
                   buttonLink:
                     '/about-company/cases/t1-cloud-predostavil-oblachnye-resursy-aeroportu-pulkovo',
                   buttonText: 'Подробнее',
@@ -1728,7 +1728,7 @@ export const pageStructureServiceUpdateFixture = {
                 componentName: 'slider-case-card',
                 result: {
                   title: 'Сервис видеоконференций DION использует облачную инфраструктуру T1 Cloud',
-                  imageLink: '/media-files/T1Cloud/fragment-template/123703/phot.png',
+                  imageLink: '/media-files/ExampleProject/fragment-template/123703/phot.png',
                   buttonLink:
                     '/about-company/cases/Servis-videokonferentsiy-DION-razmestil-infrastrukturu-v-oblake-T1-Cloud',
                   buttonText: 'Подробнее',

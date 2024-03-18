@@ -1,4 +1,4 @@
-import got from 'got';
+import axios from 'axios';
 
 import { JobName } from '../../services/enqueueJob.service';
 import { getApplicationUrl } from '../../tests/helpers';
@@ -10,7 +10,7 @@ describe('POST /builds', () => {
   it('works', async () => {
     mockEnqueue();
 
-    await got.post(`${applicationUrl}/api/v1/builds`).json();
+    await axios.post(`${applicationUrl}/api/v1/builds`);
 
     expectJobsWereEnqueued([
       {

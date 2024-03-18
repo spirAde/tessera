@@ -1,7 +1,7 @@
-export const projectT1CloudFixture = {
+export const projectExampleProjectFixture = {
   id: 1,
   title: 'T1 Cloud',
-  sysName: 'T1Cloud',
+  sysName: 'ExampleProject',
   description: 'T1 Cloud',
   settings: {
     draftBaseUrl: 'https://draft.t1-cloud.ru',

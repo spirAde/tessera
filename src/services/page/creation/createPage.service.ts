@@ -67,7 +67,7 @@ export async function runPageCreation(pipeline: Pipeline, pageId: number): Promi
     await updatePageSnapshot(snapshot, {
       status: Status.success,
     });
-    logger.debug('page creation pipeline is successfully finished');
+    logger.info('page creation pipeline is successfully finished');
   } catch (error) {
     await updatePipeline(pipeline, {
       status: Status.failed,
@@ -92,7 +92,7 @@ async function runGeneratingStage({
   pages,
   designSystemComponentsList,
 }: PagePipelineContext) {
-  logger.debug('page generating stage');
+  logger.info('page generating stage');
 
   await updatePipeline(pipeline, {
     stage: Stage.generating,
@@ -118,7 +118,7 @@ async function runGeneratingStage({
 }
 
 async function runCommitStage({ pipeline, pages }: PagePipelineContext) {
-  logger.debug(`page commit stage`);
+  logger.info(`page commit stage`);
 
   await updatePipeline(pipeline, {
     stage: Stage.commit,

@@ -6,7 +6,7 @@ export const port = Number(process.env.PORT || 3003);
 
 const pgConfig = {
   host: process.env.PG_HOST || 'localhost',
-  port: Number(process.env.PG_PORT) || 5432,
+  port: Number(process.env.PG_PORT) || 5431,
   database: process.env.PG_DATABASE || 'tessera-db',
   user: process.env.PG_USER || 'user',
   password: process.env.PG_PASSWORD || 'password',
@@ -24,13 +24,9 @@ export const minioConfig = {
 export const s3StaticUrl = `http://${minioConfig.endPoint}:${Number(process.env.MINIO_PORT_STATIC) || 9001}`;
 
 export const isTest = process.env.STAGE === 'test';
+export const isDevelopment = process.env.STAGE === 'development';
 
-export const useWorkerThreadsProcessing = Number(process.env.USE_WORKER_THREADS) || 0;
 export const useS3BucketForStatic = Number(process.env.USE_S3_BUCKET) || 0;
-
-export const platformHost = process.env.PLATFORM_HOST || 'https://admin.t1-academy.ru';
-export const projectSysName = process.env.PROJECT_NAME || 'T1Cloud';
-export const projectPagesStatus = process.env.PROJECT_PAGES_STATUS || 'published';
 
 export const rootFolderPath = process.cwd();
 export const outputFolderPath = path.join(rootFolderPath, 'output');
@@ -56,3 +52,13 @@ export const persistentApplicationExportFolderRootPath = path.join(
 );
 
 export const applicationTemplateFolderPath = path.join(rootFolderPath, 'src/templates/application');
+
+export const platformMaxRPS = 2;
+export const platformMaxQueueSize = 100;
+export const platformMaxRateLimitRetries = 20;
+export const platformApiVersion = 'v1';
+export const platformHost = process.env.PLATFORM_HOST || 'https://admin.t1-academy.ru';
+export const platformUserName = process.env.PLATFORM_USERNAME || 'Admin';
+export const platformPassword = process.env.PLATFORM_PASSWORD || 'password';
+export const projectSysName = process.env.PROJECT_NAME || 'ExampleProject';
+export const projectPagesStatus = process.env.PROJECT_PAGES_STATUS || 'draft';

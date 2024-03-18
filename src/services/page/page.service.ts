@@ -10,7 +10,7 @@ import {
 import { logger } from '../../lib/logger';
 import { getPageFolderPathFromUrl } from '../../lib/url';
 import { Page, PageAttributesNew, PageSnapshot, Pipeline } from '../../models';
-import { getProject } from '../../sdk/platform/platform.sdk';
+import { fetchProject } from '../../sdk/platform/platform.sdk';
 import { Project } from '../../sdk/platform/types';
 import { Stage } from '../../types';
 import { ComponentLike, getUniqueComponents } from '../component/component.service';
@@ -57,11 +57,11 @@ export async function runFetchingStage({ pipeline }: PagePipelineContext): Promi
   designSystemComponentsList: ComponentLike[];
   foundationKitComponent: ComponentLike;
 }> {
-  logger.debug('page fetching stage');
+  logger.info('page fetching stage');
 
   await updatePipeline(pipeline, { stage: Stage.fetching });
 
-  const project = await getProject();
+  const project = await fetchProject();
   const designSystemComponentsList = await getDesignSystemComponentsList(
     project.settings.designSystemId,
   );
@@ -74,7 +74,7 @@ export async function runFetchingStage({ pipeline }: PagePipelineContext): Promi
   }
 
   return {
-    project: project as Project,
+    project,
     designSystemComponentsList,
     foundationKitComponent,
   };
@@ -86,7 +86,7 @@ export async function runPreparingStage({
   componentsRequiringBundles,
   foundationKitComponent,
 }: PagePipelineContext): Promise<void> {
-  logger.debug(`page preparing stage`);
+  logger.info(`page preparing stage`);
 
   await updatePipeline(pipeline, { stage: Stage.preparing });
 
@@ -98,7 +98,7 @@ export async function runPreparingStage({
 }
 
 export async function runCompilationStage({ pages, pipeline }: PagePipelineContext): Promise<void> {
-  logger.debug('page compilation stage');
+  logger.info('page compilation stage');
 
   await updatePipeline(pipeline, { stage: Stage.compilation });
 
@@ -106,7 +106,7 @@ export async function runCompilationStage({ pages, pipeline }: PagePipelineConte
 }
 
 export async function runExportStage({ pages, pipeline }: PagePipelineContext): Promise<void> {
-  logger.debug('page export stage');
+  logger.info('page export stage');
 
   await updatePipeline(pipeline, { stage: Stage.export });
 
@@ -121,7 +121,7 @@ export async function runTeardownStage({
   snapshot,
   componentsRequiringBundles,
 }: PagePipelineContext): Promise<void> {
-  logger.debug('page teardown stage');
+  logger.info('page teardown stage');
 
   await teardown({
     snapshot,

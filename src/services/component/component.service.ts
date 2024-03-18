@@ -4,7 +4,7 @@ import uniqBy from 'lodash/uniqBy';
 import path from 'path';
 
 import { temporaryApplicationBuildFolderRootPath } from '../../config';
-import { getDesignSystemComponentSource } from '../../sdk/platform/platform.sdk';
+import { fetchDesignSystemComponentSource } from '../../sdk/platform/platform.sdk';
 import { DesignSystemComponent } from '../../sdk/platform/types';
 
 export type ComponentLike = {
@@ -53,7 +53,7 @@ export async function createComponentFile(
   component: ComponentLike,
   callback?: (componentBundleSource: string) => string,
 ): Promise<void> {
-  let componentBundleSource = await getDesignSystemComponentSource(designSystemId, component);
+  let componentBundleSource = await fetchDesignSystemComponentSource(designSystemId, component);
 
   if (callback) {
     componentBundleSource = callback(componentBundleSource);
